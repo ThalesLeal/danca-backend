@@ -1,0 +1,10 @@
+Dockerfile
+.dockerignore
+.git
+.gitignore
+.venv
+.env
+.env.example
+README.md
+requirements.in
+requirements-dev.txt
