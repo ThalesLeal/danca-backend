@@ -35,5 +35,5 @@ pip install -r requirements-dev.txt
 pip-sync
 
 # copiar arquivo de variáveis de ambiente
-cp .venv.example .venv
+cp .env.example .env
 ```
