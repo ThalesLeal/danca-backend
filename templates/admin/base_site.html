@@ -1,0 +1,11 @@
+{% extends "admin/base_site.html" %}
+
+{% load static %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">
+        <img style="height: 2ex" src="{% static 'codata-white.svg' %}" alt="Codata">
+    </a>
+</h1>
+{% endblock %}

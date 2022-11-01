@@ -43,6 +43,8 @@ SITE_ID = 1
 # Application definition
 
 INSTALLED_APPS = [
+    "whitenoise.runserver_nostatic",
+
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -50,15 +52,31 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
-    # Django AllAuth
+
+    # Debug Toolbar https://django-debug-toolbar.readthedocs.io/
+    "debug_toolbar",
+
+    # Django AllAuth https://django-allauth.readthedocs.io/
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.keycloak",
+
+    # Django Admin Extra buttons https://saxix.github.io/django-admin-extra-buttons/
+    "admin_extra_buttons",
+
+    # Django Import Export https://django-import-export.readthedocs.io/
+    "import_export",
+
+    # Django Reversion https://django-reversion.readthedocs.io/
+    "reversion",
+
     # Project apps
-    "apps._default",
+    "apps.auth",
     "apps.example",
 ]
+
+AUTH_USER_MODEL = "appauth.User"
 
 AUTHENTICATION_BACKENDS = [
     # Needed to login by username in Django admin, regardless of `allauth`
@@ -68,6 +86,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 MIDDLEWARE = [
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -141,9 +160,13 @@ USE_TZ = False
 
 STATIC_URL = "static/"
 
+STATICFILES_DIRS = [
+    BASE_DIR / "static"
+]
+
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -164,3 +187,7 @@ SOCIALACCOUNT_PROVIDERS = {
         },
     }
 }
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]

@@ -1,23 +1,13 @@
 from django.contrib import admin
 
+from import_export import resources
+from import_export.admin import ImportExportModelAdmin
+
+from reversion.admin import VersionAdmin
+
 from .models import Example
 
 
 @admin.register(Example)
-class ExampleAdmin(admin.ModelAdmin):
-    list_display = ("id", "name")
-
-    def has_add_permission(self, request):
-        return True
-
-    def has_view_permission(self, request, obj=None):
-        return True
-
-    def has_change_permission(self, request, obj=None):
-        return True
-
-    def has_delete_permission(self, request, obj=None):
-        return True
-
-    def has_module_permission(self, request):
-        return True
+class ExampleAdmin(ImportExportModelAdmin, VersionAdmin):
+    list_display = ("name", "created_at", "updated_at")
