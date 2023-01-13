@@ -20,7 +20,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(
     DEBUG=(bool, False),
     SSO_URL=(str, "https://sso.codata.pb.gov.br/auth"),
-    SSO_CLIENT_ID=str,
+    SSO_REALM=(str, "paraiba"),
+    SSO_NAME=(str, "Paraíba"),
+    SSO_CLIENT_ID=(str, "crm-contratos"),
     SSO_CLIENT_SECRET=str,
 )
 
@@ -30,13 +32,13 @@ environ.Env.read_env(BASE_DIR / ".env")
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-+1rc@eoyyawp06cq**^shey)m9*_6mc1ymwgr9e#9unp267=31"
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = ["*"]
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = env("SECRET_KEY") if not DEBUG else env("SECRET_KEY", default="django-secret-key")
+
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
 
 SITE_ID = 1
 
@@ -173,21 +175,21 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
+
 ACCOUNT_EMAIL_VERIFICATION = "none"
 
 # django-allauth
 SOCIALACCOUNT_PROVIDERS = {
     "keycloak": {
         "KEYCLOAK_URL": env("SSO_URL"),
-        "KEYCLOAK_REALM": "paraiba",
-        "OVERRIDE_NAME": "Paraíba",
+        "KEYCLOAK_REALM": env("SSO_REALM"),
+        "OVERRIDE_NAME": env("SSO_NAME"),
         "APP": {
             "client_id": env("SSO_CLIENT_ID"),
             "secret": env("SSO_CLIENT_SECRET"),
         },
     }
 }
-
-INTERNAL_IPS = [
-    "127.0.0.1",
-]
