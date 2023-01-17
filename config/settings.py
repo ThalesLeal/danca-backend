@@ -22,7 +22,7 @@ env = environ.Env(
     SSO_URL=(str, "https://sso.codata.pb.gov.br/auth"),
     SSO_REALM=(str, "paraiba"),
     SSO_NAME=(str, "Paraíba"),
-    SSO_CLIENT_ID=(str, "crm-contratos"),
+    SSO_CLIENT_ID=(str, "exemplo"),
     SSO_CLIENT_SECRET=str,
 )
 
