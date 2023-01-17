@@ -3,4 +3,8 @@ from django.db import models
 
 
 class User(AbstractUser):
-    pass
+    def __str__(self):
+        return self.get_full_name()
+
+    def __repr__(self):
+        return f"<User '{self.username}' ('{self.get_full_name()}')>"

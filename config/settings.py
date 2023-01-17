@@ -47,6 +47,8 @@ SITE_ID = 1
 INSTALLED_APPS = [
     "whitenoise.runserver_nostatic",
 
+    "jazzmin",
+
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -179,9 +181,10 @@ INTERNAL_IPS = [
     "127.0.0.1",
 ]
 
+# Django AllAuth
+ACCOUNT_ADAPTER = "config.account_adapter.AccountAdapter"
 ACCOUNT_EMAIL_VERIFICATION = "none"
 
-# django-allauth
 SOCIALACCOUNT_PROVIDERS = {
     "keycloak": {
         "KEYCLOAK_URL": env("SSO_URL"),
@@ -192,4 +195,15 @@ SOCIALACCOUNT_PROVIDERS = {
             "secret": env("SSO_CLIENT_SECRET"),
         },
     }
+}
+
+# Django Jazzmin
+JAZZMIN_SETTINGS = {
+    "site_title": "Exemplo",
+    "site_header": "Exemplo",
+    "site_brand": "Exemplo",
+    "site_logo": "codata-logo.svg",
+    "login_logo": "codata.svg",
+    "login_logo_dark": "codata-white.svg",
+    "welcome_sign": "Exemplo",
 }
