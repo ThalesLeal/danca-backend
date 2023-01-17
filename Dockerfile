@@ -10,4 +10,4 @@ RUN DATABASE_URL=sqlite:///db.sqlite \
     SSO_CLIENT_SECRET='' \
     python manage.py collectstatic --noinput
 
-CMD ["gunicorn", "config.wsgi", "--bind=8080"]
+CMD ["gunicorn", "config.wsgi", "--bind=0.0.0.0:8080"]
