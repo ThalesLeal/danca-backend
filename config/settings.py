@@ -36,57 +36,42 @@ environ.Env.read_env(BASE_DIR / ".env")
 DEBUG = env("DEBUG")
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env("SECRET_KEY") if not DEBUG else env("SECRET_KEY", default="django-secret-key")
+SECRET_KEY = (
+    env("SECRET_KEY") if not DEBUG else env("SECRET_KEY", default="django-secret-key")
+)
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
-
-SITE_ID = 1
 
 # Application definition
 
 INSTALLED_APPS = [
-    "whitenoise.runserver_nostatic",
-
     "jazzmin",
-
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django.contrib.sites",
-
+    # Mozilla Django OIDC https://mozilla-django-oidc.readthedocs.io/en/stable/
+    "mozilla_django_oidc",
     # Debug Toolbar https://django-debug-toolbar.readthedocs.io/
     "debug_toolbar",
-
-    # Django AllAuth https://django-allauth.readthedocs.io/
-    "allauth",
-    "allauth.account",
-    "allauth.socialaccount",
-    "allauth.socialaccount.providers.keycloak",
-
     # Django Admin Extra buttons https://saxix.github.io/django-admin-extra-buttons/
     "admin_extra_buttons",
-
     # Django Import Export https://django-import-export.readthedocs.io/
     "import_export",
-
     # Django Reversion https://django-reversion.readthedocs.io/
     "reversion",
-
     # Project apps
     "apps.auth",
     "apps.example",
 ]
 
-AUTH_USER_MODEL = "appauth.User"
+AUTH_USER_MODEL = "app_auth.User"
 
 AUTHENTICATION_BACKENDS = [
-    # Needed to login by username in Django admin, regardless of `allauth`
+    "config.auth.SSOAuthenticationBackend",
     "django.contrib.auth.backends.ModelBackend",
-    # `allauth` specific authentication methods, such as login by e-mail
-    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
 MIDDLEWARE = [
@@ -98,6 +83,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "mozilla_django_oidc.middleware.SessionRefresh",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.cache.FetchFromCacheMiddleware",
@@ -129,7 +115,9 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {"default": env.db_url()}
 
-CACHES = {"default": env.cache_url(default="locmemcache://" if not DEBUG else "dummycache://")}
+CACHES = {
+    "default": env.cache_url(default="locmemcache://" if not DEBUG else "dummycache://")
+}
 
 
 # Password validation
@@ -168,9 +156,7 @@ USE_TZ = False
 
 STATIC_URL = "static/"
 
-STATICFILES_DIRS = [
-    BASE_DIR / "static"
-]
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
@@ -214,28 +200,35 @@ LOGGING = {
         },
         "django": {
             "handlers": ["console"],
-            "level": "INFO" ,
+            "level": "INFO",
             "propagate": False,
         },
-    }
-
+    },
 }
 
-# Django AllAuth
-ACCOUNT_ADAPTER = "config.account_adapter.AccountAdapter"
-ACCOUNT_EMAIL_VERIFICATION = "none"
+LOGIN_REDIRECT_URL = "admin:login"
+LOGOUT_REDIRECT_URL = "admin:login"
 
-SOCIALACCOUNT_PROVIDERS = {
-    "keycloak": {
-        "KEYCLOAK_URL": env("SSO_URL"),
-        "KEYCLOAK_REALM": env("SSO_REALM"),
-        "OVERRIDE_NAME": env("SSO_NAME"),
-        "APP": {
-            "client_id": env("SSO_CLIENT_ID"),
-            "secret": env("SSO_CLIENT_SECRET"),
-        },
-    }
-}
+# Mozilla Django OIDC
+SSO_URL = env("SSO_URL")
+SSO_REALM = env("SSO_REALM")
+SSO_CLIENT_ID = env("SSO_CLIENT_ID")
+SSO_CLIENT_SECRET = env("SSO_CLIENT_SECRET")
+SSO_OIDC_URL = f"{SSO_URL}/realms/{SSO_REALM}/protocol/openid-connect"
+
+OIDC_RP_SIGN_ALGO = "RS256"
+OIDC_OP_JWKS_ENDPOINT = f"{SSO_OIDC_URL}/certs"
+OIDC_OP_AUTHORIZATION_ENDPOINT = f"{SSO_OIDC_URL}/auth"
+OIDC_OP_TOKEN_ENDPOINT = f"{SSO_OIDC_URL}/token"
+OIDC_OP_USER_ENDPOINT = f"{SSO_OIDC_URL}/userinfo"
+
+OIDC_RP_CLIENT_ID = SSO_CLIENT_ID
+OIDC_RP_CLIENT_SECRET = SSO_CLIENT_SECRET
+
+OIDC_STORE_ACCESS_TOKEN = True
+OIDC_STORE_ID_TOKEN = True
+
+OIDC_OP_LOGOUT_URL_METHOD = "config.auth.logout_url"
 
 # Django Jazzmin
 JAZZMIN_SETTINGS = {

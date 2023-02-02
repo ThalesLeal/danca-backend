@@ -3,7 +3,6 @@ from django.db import models
 
 from ..base_models import TimestampedModel
 
-
 User = get_user_model()
 
 

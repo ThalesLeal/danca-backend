@@ -6,7 +6,7 @@
 
 <br class="clear" />
 
-<form action="{% url 'keycloak_login' %}?next={{ request.GET.next|urlencode }}" method="post">
+<form method="get" action="{% url 'oidc_authentication_init' %}?next={{ request.GET.next | urlencode }}">
     <div class="submit-row">
         {% csrf_token %}
         <input type="submit" value="Login em Paraíba" class="btn btn-primary btn-block" />
