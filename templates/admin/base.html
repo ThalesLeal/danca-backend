@@ -159,6 +159,7 @@
                         <!-- LOGOUT: Realiza logout e redireciona para SSO para encerrar a sessão -->
                         <form id="logout-form" method="post" action="{% url 'oidc_logout' %}">
                             {% csrf_token %}
+                            <input type="hidden" name="next" value="admin:login" />
                             <button type="submit" class="dropdown-item">
                                 <i class="fas fa-users mr-2"></i> {% trans 'Log out' %}
                             </button>

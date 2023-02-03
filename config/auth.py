@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 from mozilla_django_oidc.auth import OIDCAuthenticationBackend
 
 from django.conf import settings
@@ -44,24 +46,36 @@ class SSOAuthenticationBackend(OIDCAuthenticationBackend):
         return user
 
 
+def get_post_logout_redirect_uri(request) -> str:
+    if next_url := request.GET.get("next") or request.POST.get("next"):
+        redirect_uri = next_url
+    else:
+        redirect_uri = settings.LOGOUT_REDIRECT_URL
+
+    if not redirect_uri:
+        redirect_uri = settings.LOGIN_URL
+    elif redirect_uri.startswith("http://") or redirect_uri.startswith("https://"):
+        return redirect_uri
+    elif redirect_uri.startswith("/"):
+        redirect_uri = redirect_uri
+    else:
+        redirect_uri = reverse(redirect_uri)
+
+    return request.build_absolute_uri(redirect_uri)
+
+
 def logout_url(request) -> str:
-    sso_url = settings.SSO_OIDC_URL.rstrip("/")
+    sso_logout_url = settings.OIDC_OP_LOGOUT_ENDPOINT
     client_id = settings.SSO_CLIENT_ID
     id_token = request.session["oidc_id_token"]
+    post_logout_redirect_uri = get_post_logout_redirect_uri(request)
 
-    redirect_uri = f"{request.scheme}://{request.get_host()}"
-    if settings.LOGOUT_REDIRECT_URL.startswith("/"):
-        redirect_uri += settings.LOGOUT_REDIRECT_URL
-    elif settings.LOGOUT_REDIRECT_URL.startswith("http"):
-        redirect_uri = settings.LOGOUT_REDIRECT_URL
-    else:
-        redirect_uri += reverse(settings.LOGOUT_REDIRECT_URL)
-
-    url = (
-        f"{sso_url}/logout"
-        f"?client_id={client_id}"
-        f"&id_token_hint={id_token}"
-        f"&post_logout_redirect_uri={redirect_uri}"
+    querystring = urlencode(
+        {
+            "client_id": client_id,
+            "id_token_hint": id_token,
+            "post_logout_redirect_uri": post_logout_redirect_uri,
+        }
     )
 
-    return url
+    return f"{sso_logout_url}?{querystring}"
