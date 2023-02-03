@@ -156,15 +156,9 @@
                     <div class="dropdown-menu dropdown-menu-lg dropdown-menu-left" id="jazzy-usermenu">
                         <span class="dropdown-header">{% trans 'Account' %}</span>
                         <div class="dropdown-divider"></div>
-                        <!-- LOGOUT: Realiza logout e redireciona para SSO para encerrar a sessão -->
-                        <form id="logout-form" method="post" action="{% url 'oidc_logout' %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="next" value="admin:login" />
-                            <button type="submit" class="dropdown-item">
-                                <i class="fas fa-users mr-2"></i> {% trans 'Log out' %}
-                            </button>
-                        </form>
-                        <!-- LOGOUT -->
+
+                        {% block authentication %}{% endblock %}
+
                         {% get_user_menu user request.current_app|default:"admin" as user_menu %}
                         {% for link in user_menu %}
                             <div class="dropdown-divider"></div>

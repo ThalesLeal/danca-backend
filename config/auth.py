@@ -5,6 +5,9 @@ from mozilla_django_oidc.auth import OIDCAuthenticationBackend
 from django.conf import settings
 from django.urls import reverse
 
+staff = settings.STAFF_LIST
+superusers = settings.SUPERUSER_LIST
+
 
 class SSOAuthenticationBackend(OIDCAuthenticationBackend):
     def describe_user_by_claims(self, claims):
@@ -29,10 +32,10 @@ class SSOAuthenticationBackend(OIDCAuthenticationBackend):
             email=email,
             first_name=first_name,
             last_name=last_name,
-            is_staff=True,
+            is_staff=username in staff or username in superusers,
+            is_superuser=username in superusers
         )
 
-        user.set_unusable_password()
         return user
 
     def get_username(self, claims):
@@ -42,6 +45,10 @@ class SSOAuthenticationBackend(OIDCAuthenticationBackend):
         user.email = claims.get("email")
         user.first_name = claims.get("given_name")
         user.last_name = claims.get("family_name")
+
+        user.is_staff = user.username in staff or user.username in superusers
+        user.is_superuser = user.username in superusers
+
         user.save()
         return user
 

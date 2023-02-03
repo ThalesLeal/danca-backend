@@ -1,8 +1,14 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin, GroupAdmin
+from django.contrib.auth.models import Group as OriginalGroup
 from django.utils.translation import gettext_lazy as _
 
-from .models import User
+from .models import User, Group
+
+# Altera o local no menu onde os grupos são exibidos
+# para ficar junto com a opção de usuários
+admin.site.unregister(OriginalGroup)
+admin.site.register(Group, GroupAdmin)
 
 
 class UserAdmin(BaseUserAdmin):
@@ -28,7 +34,7 @@ class UserAdmin(BaseUserAdmin):
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
     )
 
-    readonly_fields = ("username", "first_name", "last_name", "email")
+    readonly_fields = ("username", "first_name", "last_name", "email", "last_login", "date_joined")
 
     def get_form(self, *args, **kwargs):
         # Remove help text do username, já que não é cadastrado/editado

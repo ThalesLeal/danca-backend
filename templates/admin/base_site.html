@@ -1,6 +1,6 @@
 {% extends "admin/base_site.html" %}
 
-{% load static %}
+{% load i18n static %}
 
 {% block branding %}
 <h1 id="site-name">
@@ -8,6 +8,17 @@
         <img style="height: 2ex" src="{% static 'codata-white.svg' %}" alt="Codata">
     </a>
 </h1>
+{% endblock %}
+
+{% block authentication %}
+<!-- LOGOUT: Realiza logout e redireciona para SSO para encerrar a sessão -->
+<form id="logout-form" method="post" action="{% url 'oidc_logout' %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="admin:index" />
+    <button type="submit" class="dropdown-item">
+        <i class="fas fa-users mr-2"></i> {% trans 'Log out' %}
+    </button>
+</form>
 {% endblock %}
 
 {% block extrajs %}

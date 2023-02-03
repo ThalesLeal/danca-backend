@@ -24,6 +24,8 @@ env = environ.Env(
     SSO_NAME=(str, "Paraíba"),
     SSO_CLIENT_ID=(str, "exemplo"),
     SSO_CLIENT_SECRET=str,
+    STAFF_LIST=(list, []),  # usuários que podem se logar no admin
+    SUPERUSER_LIST=(list, []),  # superusuários
 )
 
 environ.Env.read_env(BASE_DIR / ".env")
@@ -52,16 +54,22 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
     # Mozilla Django OIDC https://mozilla-django-oidc.readthedocs.io/en/stable/
     "mozilla_django_oidc",
+
     # Debug Toolbar https://django-debug-toolbar.readthedocs.io/
     "debug_toolbar",
+
     # Django Admin Extra buttons https://saxix.github.io/django-admin-extra-buttons/
     "admin_extra_buttons",
+
     # Django Import Export https://django-import-export.readthedocs.io/
     "import_export",
+
     # Django Reversion https://django-reversion.readthedocs.io/
     "reversion",
+
     # Project apps
     "apps.auth",
     "apps.example",
@@ -113,7 +121,9 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-DATABASES = {"default": env.db_url()}
+DATABASES = {
+    "default": env.db_url(),
+}
 
 CACHES = {
     "default": env.cache_url(default="locmemcache://" if not DEBUG else "dummycache://")
@@ -210,6 +220,9 @@ LOGIN_REDIRECT_URL = "index"
 LOGOUT_REDIRECT_URL = "index"
 
 # SSO
+STAFF_LIST = env("STAFF_LIST")
+SUPERUSER_LIST = env("SUPERUSER_LIST")
+
 SSO_URL = env("SSO_URL")
 SSO_REALM = env("SSO_REALM")
 SSO_CLIENT_ID = env("SSO_CLIENT_ID")
