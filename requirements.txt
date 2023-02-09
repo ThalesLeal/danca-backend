@@ -4,15 +4,17 @@
 #
 #    pip-compile --resolver=backtracking
 #
+--extra-index-url https://gitcodata.pb.gov.br/api/v4/projects/libs%2Fpython/packages/pypi/simple
+
 asgiref==3.5.2
     # via django
-certifi==2022.9.14
+certifi==2022.12.7
     # via requests
 cffi==1.15.1
     # via cryptography
-charset-normalizer==2.1.1
+charset-normalizer==3.0.1
     # via requests
-cryptography==38.0.1
+cryptography==39.0.1
     # via
     #   josepy
     #   mozilla-django-oidc
@@ -21,16 +23,18 @@ defusedxml==0.7.1
     # via odfpy
 diff-match-patch==20200713
     # via django-import-export
-django==4.1.5
+django==4.1.6
     # via
-    #   -r requirements.in
+    #   django-codata
     #   django-debug-toolbar
     #   django-import-export
-    #   django-jazzmin
     #   django-reversion
-    #   django-smart-selects
     #   mozilla-django-oidc
-django-admin-extra-buttons==1.5.5
+django-admin-extra-buttons==1.5.6
+    # via -r requirements.in
+django-autocomplete-light==3.9.4
+    # via -r requirements.in
+django-codata==1.0.0
     # via -r requirements.in
 django-debug-toolbar==3.8.1
     # via -r requirements.in
@@ -38,11 +42,7 @@ django-environ==0.9.0
     # via -r requirements.in
 django-import-export==3.0.2
     # via -r requirements.in
-django-jazzmin==2.6.0
-    # via -r requirements.in
 django-reversion==5.0.4
-    # via -r requirements.in
-django-smart-selects==1.6.0
     # via -r requirements.in
 et-xmlfile==1.1.0
     # via openpyxl
@@ -55,7 +55,7 @@ josepy==1.13.0
 markuppy==1.14
     # via tablib
 mozilla-django-oidc==3.0.0
-    # via -r requirements.in
+    # via django-codata
 odfpy==1.4.1
     # via tablib
 openpyxl==3.0.10
@@ -68,15 +68,17 @@ pyopenssl==23.0.0
     # via josepy
 pyyaml==6.0
     # via tablib
-requests==2.28.1
+requests==2.28.2
     # via mozilla-django-oidc
+six==1.16.0
+    # via django-autocomplete-light
 sqlparse==0.4.2
     # via
     #   django
     #   django-debug-toolbar
 tablib[html,ods,xls,xlsx,yaml]==3.2.1
     # via django-import-export
-urllib3==1.26.12
+urllib3==1.26.14
     # via requests
 whitenoise==6.3.0
     # via -r requirements.in

@@ -21,11 +21,10 @@ env = environ.Env(
     DEBUG=(bool, False),
     SSO_URL=(str, "https://sso.codata.pb.gov.br/auth"),
     SSO_REALM=(str, "paraiba"),
-    SSO_NAME=(str, "Paraíba"),
     SSO_CLIENT_ID=(str, "exemplo"),
     SSO_CLIENT_SECRET=str,
-    STAFF_LIST=(list, []),  # usuários que podem se logar no admin
-    SUPERUSER_LIST=(list, []),  # superusuários
+    USERS_STAFF=(list, []),  # usuários que podem se logar no admin
+    USERS_SUPERUSER=(list, []),  # superusuários
 )
 
 environ.Env.read_env(BASE_DIR / ".env")
@@ -47,7 +46,10 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
 # Application definition
 
 INSTALLED_APPS = [
-    "jazzmin",
+    # "codata_sso_jazzmin",
+    "codata_sso",
+    # "jazzmin",
+
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -71,14 +73,13 @@ INSTALLED_APPS = [
     "reversion",
 
     # Project apps
-    "apps.auth",
     "apps.example",
 ]
 
-AUTH_USER_MODEL = "app_auth.User"
+AUTH_USER_MODEL = "codata_sso.User"
 
 AUTHENTICATION_BACKENDS = [
-    "config.auth.SSOAuthenticationBackend",
+    "codata_sso.auth_backend.SSOAuthenticationBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]
 
@@ -220,38 +221,23 @@ LOGIN_REDIRECT_URL = "index"
 LOGOUT_REDIRECT_URL = "index"
 
 # SSO
-STAFF_LIST = env("STAFF_LIST")
-SUPERUSER_LIST = env("SUPERUSER_LIST")
+USERS_STAFF = env("USERS_STAFF")
+USERS_SUPERUSER = env("USERS_SUPERUSER")
 
 SSO_URL = env("SSO_URL")
 SSO_REALM = env("SSO_REALM")
+SSO_ISSUER_URL = f"{SSO_URL}/realms/{SSO_REALM}"
+
 SSO_CLIENT_ID = env("SSO_CLIENT_ID")
 SSO_CLIENT_SECRET = env("SSO_CLIENT_SECRET")
-SSO_OIDC_URL = f"{SSO_URL}/realms/{SSO_REALM}/protocol/openid-connect"
-
-# Mozilla Django OIDC
-OIDC_RP_SIGN_ALGO = "RS256"
-OIDC_OP_JWKS_ENDPOINT = f"{SSO_OIDC_URL}/certs"
-OIDC_OP_AUTHORIZATION_ENDPOINT = f"{SSO_OIDC_URL}/auth"
-OIDC_OP_TOKEN_ENDPOINT = f"{SSO_OIDC_URL}/token"
-OIDC_OP_USER_ENDPOINT = f"{SSO_OIDC_URL}/userinfo"
-OIDC_OP_LOGOUT_ENDPOINT = f"{SSO_OIDC_URL}/logout"
-
-OIDC_RP_CLIENT_ID = SSO_CLIENT_ID
-OIDC_RP_CLIENT_SECRET = SSO_CLIENT_SECRET
-
-OIDC_STORE_ACCESS_TOKEN = True
-OIDC_STORE_ID_TOKEN = True
-
-OIDC_OP_LOGOUT_URL_METHOD = "config.auth.logout_url"
 
 # Django Jazzmin
-JAZZMIN_SETTINGS = {
-    "site_title": "Exemplo",
-    "site_header": "Exemplo",
-    "site_brand": "Exemplo",
-    "site_logo": "codata-logo.svg",
-    "login_logo": "codata.svg",
-    "login_logo_dark": "codata-white.svg",
-    "welcome_sign": "Exemplo",
-}
+# JAZZMIN_SETTINGS = {
+#     "site_title": "Exemplo",
+#     "site_header": "Exemplo",
+#     "site_brand": "Exemplo",
+#     "site_logo": "codata/codata-logo.svg",
+#     "login_logo": "codata/codata.svg",
+#     "login_logo_dark": "codata/codata-white.svg",
+#     "welcome_sign": "Exemplo",
+# }
