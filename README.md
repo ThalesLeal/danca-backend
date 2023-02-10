@@ -6,6 +6,12 @@ O projeto utiliza autenticação com Codata SSO.
 
 ## Iniciar novo projeto
 
+Crie um *fork* do projeto pelo GitCodata (https://gitcodata.pb.gov.br/help/user/project/repository/forking_workflow.md)
+
+Ou
+
+Clone o projeto e reinicialize o repositório local:
+
 ```shell
 # clonar projeto
 git clone https://gitcodata.pb.gov.br/seed/django novo-projeto
@@ -36,4 +42,15 @@ pip-sync
 
 # copiar arquivo de variáveis de ambiente
 cp .env.example .env
+```
+
+### Adicionar nova dependência
+
+Para adicionar uma nova dependência, adicione ao `requirements.in` e execute `pip-compile` para atualizar o
+`requirements.txt`, então `pip-sync` para sincronizar o venv
+
+```shell
+# após atualizar o requirements.in
+pip-compile
+pip-sync
 ```
