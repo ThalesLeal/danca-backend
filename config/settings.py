@@ -25,9 +25,9 @@ env = environ.Env(
     SSO_CLIENT_SECRET=str,
     USERS_STAFF=(list, []),  # usuários que podem se logar no admin
     USERS_SUPERUSER=(list, []),  # superusuários
-    STATIC_URL=(std, "static/"),
+    STATIC_URL=(str, "static/"),
     STATIC_ROOT=(Path, BASE_DIR / "staticfiles"),
-    MEDIA_URL=(std, "media/"),
+    MEDIA_URL=(str, "media/"),
     MEDIA_ROOT=(Path, BASE_DIR / "media"),
 )
 
