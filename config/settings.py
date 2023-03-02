@@ -25,6 +25,10 @@ env = environ.Env(
     SSO_CLIENT_SECRET=str,
     USERS_STAFF=(list, []),  # usuários que podem se logar no admin
     USERS_SUPERUSER=(list, []),  # superusuários
+    STATIC_URL=(std, "static/"),
+    STATIC_ROOT=(Path, BASE_DIR / "staticfiles"),
+    MEDIA_URL=(std, "media/"),
+    MEDIA_ROOT=(Path, BASE_DIR / "media"),
 )
 
 environ.Env.read_env(BASE_DIR / ".env")
@@ -165,13 +169,17 @@ USE_TZ = False
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = env("STATIC_URL")
 
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_ROOT = env("STATIC_ROOT")
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+
+MEDIA_URL = env("MEDIA_URL")
+
+MEDIA_ROOT = env("MEDIA_ROOT")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
