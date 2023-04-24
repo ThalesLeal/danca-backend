@@ -1,14 +1,14 @@
 --extra-index-url https://gitcodata.pb.gov.br/api/v4/projects/libs%2Fpython/packages/pypi/simple
 
-django-codata>=1.0.0,<1.1
-# django-codata[jazzmin]>=1.0.0,<1.1
+django-codata>=1.1,<1.2
+# django-codata[jazzmin]>=1.1,<1.2
 
-django-environ>=0.9.0,<0.10
-django-reversion>=5.0.4,<5.1
-django-debug-toolbar>=3.8.0,<3.9
+django-environ>=0.10,<0.11
+django-reversion>=5.0,<5.1
+django-debug-toolbar>=4.0,<5.0
 django-admin-extra-buttons>=1.5.6,<1.6
-django-import-export>=3.1.0,<3.2
+django-import-export>=3.2,<3.3
 django-autocomplete-light>=3.9.4,<3.10
-psycopg2-binary>=2.9.5,<2.10
-whitenoise>=6.3.0,<6.4
+psycopg2-binary>=2.9.6,<2.10
+whitenoise>=6.4,<6.5
 gunicorn>=20.1,<21.0

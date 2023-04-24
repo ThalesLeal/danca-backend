@@ -1,0 +1,60 @@
+services:
+  app:
+    build: .
+    depends_on:
+      - db
+      - sso
+    user: "1000"
+    command:
+      - sh
+      - /opt/app.sh
+    restart: on-failure
+    network_mode: host
+    environment:
+      - DEBUG=True
+      - DATABASE_URL=postgresql://postgres:postgres@localhost:15432/application
+      - CACHE_URL=locmemcache://
+      - LOG_LEVEL=INFO
+      - SSO_URL=http://localhost:8888
+      - SSO_REALM=paraiba
+      - SSO_CLIENT_ID=application
+      - SSO_CLIENT_SECRET=tGnQyF2oPNeQosLS1bF31253AKWrKcwk
+      - USERS_SUPERUSER=00000000000
+    volumes:
+      - ./.docker-compose/app.sh:/opt/app.sh
+
+  db:
+    image: docker.io/postgres:15.2-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=application
+    ports:
+      - "15432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./.docker-compose/init-sso-db.sql:/docker-entrypoint-initdb.d/init-sso-db.sql
+
+  sso:
+    image: quay.io/keycloak/keycloak:21.1
+    depends_on:
+      - db
+    command:
+      - start-dev
+      - --import-realm
+    network_mode: host
+    environment:
+      - KC_DB=postgres
+      - KC_DB_URL_HOST=localhost
+      - KC_DB_URL_PORT=15432
+      - KC_DB_URL_DATABASE=sso
+      - KC_DB_USERNAME=sso
+      - KC_DB_PASSWORD=sso
+      - KC_HTTP_PORT=8888
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    volumes:
+      - ./.docker-compose/realm.json:/opt/keycloak/data/import/realm.json
+
+volumes:
+  db-data:

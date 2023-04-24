@@ -1,5 +1,7 @@
 Dockerfile
 .dockerignore
+docker-compose.yml
+.docker-compose
 .git
 .gitignore
 .venv

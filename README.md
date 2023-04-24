@@ -1,4 +1,4 @@
-# Projeto Seed Django
+# Projeto Boilerplate Django
 
 Projeto utilizado como base para novos projetos utilizando [Django](https://djangoproject.com).
 
@@ -43,6 +43,20 @@ pip-sync
 # copiar arquivo de variáveis de ambiente
 cp .env.example .env
 ```
+
+### Executar com Docker Compose
+
+O boilerplate disponibiliza um docker-compose.yml para executar o projeto,
+juntamente com um banco de dados Postgres e uma instância do Keycloak já
+configurada para importar um realm de teste.
+
+Após executar o `docker-compose up`, será possível acessar o sistema em
+`http://localhost:8000` e efetuar autenticar com as credenciais:
+
+| CPF         | Senha     |
+|-------------|-----------|
+| 00000000000 | codata123 |
+
 
 ### Adicionar nova dependência
 
