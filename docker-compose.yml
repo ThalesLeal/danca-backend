@@ -5,9 +5,7 @@ services:
       - db
       - sso
     user: "1000"
-    command:
-      - sh
-      - /opt/app.sh
+    command: [sh, /app/.docker-compose/app.sh]
     restart: on-failure
     network_mode: host
     environment:
@@ -21,7 +19,7 @@ services:
       - SSO_CLIENT_SECRET=tGnQyF2oPNeQosLS1bF31253AKWrKcwk
       - USERS_SUPERUSER=00000000000
     volumes:
-      - ./.docker-compose/app.sh:/opt/app.sh
+      - .:/app
 
   db:
     image: docker.io/postgres:15.2-alpine

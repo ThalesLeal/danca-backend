@@ -61,11 +61,18 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    # Mozilla Django OIDC https://mozilla-django-oidc.readthedocs.io/en/stable/
+    # Mozilla Django OIDC https://mozilla-django-oidc.readthedocs.io/
     "mozilla_django_oidc",
 
     # Debug Toolbar https://django-debug-toolbar.readthedocs.io/
     "debug_toolbar",
+
+    # Health Checks https://django-watchman.readthedocs.io/
+    'watchman',
+
+    # Crispy Forms https://django-crispy-forms.readthedocs.io/
+    "crispy_forms",
+    "crispy_bootstrap5",
 
     # Django Admin Extra buttons https://saxix.github.io/django-admin-extra-buttons/
     "admin_extra_buttons",
@@ -77,7 +84,8 @@ INSTALLED_APPS = [
     "reversion",
 
     # Project apps
-    "apps.example",
+    "_core",
+    "exemplo",
 ]
 
 AUTH_USER_MODEL = "codata_sso.User"
@@ -102,12 +110,12 @@ MIDDLEWARE = [
     "django.middleware.cache.FetchFromCacheMiddleware",
 ]
 
-ROOT_URLCONF = "config.urls"
+ROOT_URLCONF = "_conf.urls"
 
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -120,7 +128,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "config.wsgi.application"
+WSGI_APPLICATION = "_conf.wsgi.application"
 
 
 # Database
@@ -170,16 +178,16 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = env("STATIC_URL")
-
-STATICFILES_DIRS = [BASE_DIR / "static"]
-
 STATIC_ROOT = env("STATIC_ROOT")
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
-
 MEDIA_URL = env("MEDIA_URL")
-
 MEDIA_ROOT = env("MEDIA_ROOT")
+
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -238,6 +246,20 @@ SSO_REALM = env("SSO_REALM")
 SSO_ISSUER_URL = f"{SSO_URL}/realms/{SSO_REALM}"
 SSO_CLIENT_ID = env("SSO_CLIENT_ID")
 SSO_CLIENT_SECRET = env("SSO_CLIENT_SECRET")
+
+
+# Crispy Forms
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+
+# Watchman (health check)
+WATCHMAN_TOKENS = env("WATCHMAN_TOKENS", default=None)
+WATCHMAN_CHECKS = [
+    "watchman.checks.databases",
+    "watchman.checks.caches"
+]
+
 
 # Django Jazzmin
 # JAZZMIN_SETTINGS = {

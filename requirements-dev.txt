@@ -1,7 +1,6 @@
 pip-tools>=6.9,<7
-pytest>=7.2,<8
 black>=23.3
 isort>=5.12
 pylint>=2.15
 flake8>=6.0
-mypy>=1.2
+mypy>=1.3

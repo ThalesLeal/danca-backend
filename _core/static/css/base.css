@@ -1,0 +1,15 @@
+main {
+    min-height: calc(100vh - 9.6em);
+}
+
+nav.navbar {
+    background-color: #0f2f4e;
+}
+
+.navbar .navbar-brand img {
+    max-height: 2.5ex;
+}
+
+footer div.footer-logos > img {
+    max-height: 3em;
+}
