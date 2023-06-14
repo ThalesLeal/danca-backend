@@ -55,14 +55,14 @@
       <span class="navbar-text me-4">Olá, {{ user.first_name|title }}</span>
       <div class="vr me-3 d-none d-lg-inline-block d-lg-inline-block"></div>
 
-      <form class="d-flex" method="post" action="">
+      <form class="d-flex" method="post" action="{% url 'oidc_logout' %}">
         {% csrf_token %}
         <button class="btn btn-light" type="submit">Sair<i class="bi-box-arrow-in-right"></i></button>
       </form>
       {% else %}
       <hr class="d-lg-none">
       <div class="vr ms-auto me-3 d-none d-lg-inline-block d-lg-inline-block"></div>
-      <a href="{% url 'oidc_authentication_init' %}" class="btn btn-primary">Login</a>
+      <a href="{% url 'oidc_authentication_init' %}" class="btn btn-light">Login</a>
       {% endif %}
     </div>
   </div>
