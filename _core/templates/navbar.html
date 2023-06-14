@@ -52,7 +52,7 @@
       </ul>
 
       <hr class="d-lg-none">
-      <span class="navbar-text me-4">Olá, {{ user.first_name|title }}</span>
+      <span class="navbar-text me-lg-4 d-inline-block">Olá, {{ user.first_name|title }}</span>
       <div class="vr me-3 d-none d-lg-inline-block d-lg-inline-block"></div>
 
       <form class="d-flex" method="post" action="{% url 'oidc_logout' %}">
