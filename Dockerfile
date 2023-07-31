@@ -10,4 +10,4 @@ RUN SECRET_KEY='' \
     SSO_CLIENT_SECRET='' \
     python manage.py collectstatic --noinput
 
-CMD ["gunicorn", "config.wsgi", "--bind=0.0.0.0:8080"]
+CMD ["gunicorn", "_conf.wsgi", "--bind=0.0.0.0:8080"]
