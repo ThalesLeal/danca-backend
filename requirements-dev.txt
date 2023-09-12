@@ -1,4 +1,4 @@
-pip-tools>=6.9,<7
+pip-tools>=7
 black>=23.3
 isort>=5.12
 pylint>=2.15
