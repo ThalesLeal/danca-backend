@@ -11,7 +11,7 @@
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&amp;display=swap" />
     <!-- Design System de Governo-->
-    <link rel="stylesheet" href="{% static 'pbgovbr/core/dist/core.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'pbgovbr/css/core.min.css' %}" />
     <link rel="shortcut icon" type="image/x-icon" href="{% static 'pbgovbr/img/favicon.png' %}" />
     <!-- Fontawesome-->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" />
@@ -62,11 +62,10 @@
                                         <i class="fas fa-caret-down" aria-hidden="true"></i>
                                     </button>
                                     <div class="br-list" id="avatar-menu" hidden="hidden" style="z-index: 30;">
-                                        <a class="br-item" href="javascript:void(0)">Dados pessoais</a>
-                                        <a class="br-item" href="javascript:void(0)">Privacidade</a>
-                                        <a class="br-item" href="javascript:void(0)">Notificações</a>
-                                        <a class="br-item" href="javascript:void(0)">Perguntas frequentes</a>
-                                        <a class="br-item" href="{% url 'admin:logout' %}">Sair do Sistema</a>
+                                        <a class="br-item" href="javascript:void(0)">{{ user }}</a>
+                                        <form action="{% url 'oidc_logout' %}" method="post">{% csrf_token %}
+                                        <button class="br-item" type="submit">Sair do Sistema</button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
@@ -192,7 +191,7 @@
             </div>
         </footer>
     </div>
-    <script src="{% static 'pbgovbr/core/dist/core-init.min.js' %}"></script>
+    <script src="{% static 'pbgovbr/js/core-init.min.js' %}"></script>
 </body>
 
 </html>

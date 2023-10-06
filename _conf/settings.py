@@ -23,8 +23,8 @@ env = environ.Env(
     SSO_REALM=(str, "acesso_restrito"),
     SSO_CLIENT_ID=(str, "exemplo"),
     SSO_CLIENT_SECRET=str,
-    USERS_STAFF=(list, ["04579246403"]), # usuários que podem se logar no admin
-    USERS_SUPERUSER=(list, ["04579246403"]),  # superusuários
+    USERS_STAFF=(list, []), # usuários que podem se logar no admin
+    USERS_SUPERUSER=(list, []),  # superusuários
     STATIC_URL=(str, "static/"),
     STATIC_ROOT=(Path, BASE_DIR / "staticfiles"),
     MEDIA_URL=(str, "media/"),
@@ -77,7 +77,7 @@ INSTALLED_APPS = [
     "crispy_bootstrap5",
 
     # Django Admin Extra buttons https://saxix.github.io/django-admin-extra-buttons/
-    # "admin_extra_buttons",
+    "admin_extra_buttons",
 
     # Django Import Export https://django-import-export.readthedocs.io/
     "import_export",
@@ -242,8 +242,8 @@ LOGIN_REDIRECT_URL = "index"
 LOGOUT_REDIRECT_URL = "index"
 
 # SSO
-USERS_STAFF = env("USERS_STAFF")
-USERS_SUPERUSER = env("USERS_SUPERUSER")
+USERS_STAFF = env.list("USERS_STAFF")
+USERS_SUPERUSER = env.list("USERS_SUPERUSER")
 
 SSO_URL = env("SSO_URL")
 SSO_REALM = env("SSO_REALM")
