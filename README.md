@@ -44,6 +44,13 @@ pip-sync
 cp .env.example .env
 ```
 
+>
+>Quando criar o arquivo .env o mesmo deverá conter ao menos as seguintes
+>configurações para que a aplicação funcione: DATABASE_URL, SSO_URL,
+>SSO_CLIENT_ID e SSO_CLIENT_SECRET 
+>
+
+
 ### Executar com Docker Compose
 
 O boilerplate disponibiliza um docker-compose.yml para executar o projeto,
@@ -68,3 +75,14 @@ Para adicionar uma nova dependência, adicione ao `requirements.in` e execute `p
 pip-compile
 pip-sync
 ```
+
+## Configuração do SSO (Single Sign-On)
+
+Para que sua aplicação funcione atrelado ao Single Sign-On da Codata, é
+necessário que sejam informados os seguintes parâmetros:
+
+* SSO_URL - Que especifica a URL onde reside a instância do Keycloak
+* SSO_REALM - Uma string que identifica o realm de usuários do SSO, exemplo "paraiba"
+* SSO_CLIENT_ID - O id de cadastro da aplicação no Keycloak
+* SSO_CLIENT_SECRET - A senha referente ao id de cadastro da aplicação no Keycloack
+
