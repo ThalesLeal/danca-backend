@@ -23,7 +23,7 @@ env = environ.Env(
     SSO_REALM=(str, "acesso_restrito"),
     SSO_CLIENT_ID=(str, "exemplo"),
     SSO_CLIENT_SECRET=str,
-    USERS_STAFF=(list, []),  # usuários que podem se logar no admin
+    USERS_STAFF=(list, []), # usuários que podem se logar no admin
     USERS_SUPERUSER=(list, []),  # superusuários
     STATIC_URL=(str, "static/"),
     STATIC_ROOT=(Path, BASE_DIR / "staticfiles"),
@@ -52,9 +52,11 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 # Application definition
 
 INSTALLED_APPS = [
+    "_core",
     # "codata_sso_jazzmin",
     "codata_sso",
     # "jazzmin",
+
 
     "django.contrib.admin",
     "django.contrib.auth",
@@ -86,7 +88,7 @@ INSTALLED_APPS = [
     "reversion",
 
     # Project apps
-    "_core",
+    # "_core",
     "exemplo",
 ]
 
@@ -117,7 +119,9 @@ ROOT_URLCONF = "_conf.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [
+            BASE_DIR / "_core" / "templatetags"
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -125,6 +129,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "_core.context_processors.application",
             ],
         },
     },
@@ -239,8 +244,8 @@ LOGIN_REDIRECT_URL = "index"
 LOGOUT_REDIRECT_URL = "index"
 
 # SSO
-USERS_STAFF = env("USERS_STAFF")
-USERS_SUPERUSER = env("USERS_SUPERUSER")
+USERS_STAFF = env.list("USERS_STAFF")
+USERS_SUPERUSER = env.list("USERS_SUPERUSER")
 
 SSO_URL = env("SSO_URL")
 SSO_REALM = env("SSO_REALM")
@@ -273,3 +278,30 @@ WATCHMAN_CHECKS = [
 #     "login_logo_dark": "codata/codata-white.svg",
 #     "welcome_sign": "Exemplo",
 # }
+
+
+APP_ASSINATURA = "Polícia Civil"
+APP_TITULO = "Delegacia Online"
+APP_SUBTITULO = "Versão 3.0"
+APP_ASSINATURA_URL = "https://www.policiacivil.pb.gov.br"
+APP_TITULO_URL = "localhost:8000/"
+HEADER_BG_COLOR = "bg-blue-70"
+HEADER_FONT_COLOR = "text-pure-0"
+FOOTER_TEXT = """
+    Ao utilizar esta aplicação você assume estar de acordo com os
+    <a href="https://codata.pb.gov.br"><u>nossos termos de uso</u></a>.
+"""
+GOVBR_LOGO_BRANCA = True
+ALWAYS_SHOW_MENU_LATERAL = False
+ACESSO_RAPIDO = [
+    {"label": "Boletim Interno", "url": "https://policiacivil.pb.gov.br/boletim-interno-1"},
+    {"label": "PJe", "url": "https://www.policiacivil.pb.gov.br/links-uteis/pje-1"},
+    # {"label": "Link 3", "url": "https://codata.pb.gov.br"},
+    # {"label": "Link 4", "url": "https://codata.pb.gov.br"},
+]
+FUNCIONALIDADES = [
+    {"icon": "fa-chart-bar", "label": "Boletim Interno", "url": "https://policiacivil.pb.gov.br/boletim-interno-1"},
+    {"icon": "fa-heart", "label": "PJe", "url": "https://www.policiacivil.pb.gov.br/links-uteis/pje-1"},
+    # {"label": "Link 3", "url": "https://codata.pb.gov.br"},
+    # {"label": "Link 4", "url": "https://codata.pb.gov.br"},
+]
