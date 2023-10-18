@@ -18,6 +18,10 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
 
+
+admin.site.index_title = "Início"
+
+
 urlpatterns = [
     path("", TemplateView.as_view(template_name="index.html"), name="index"),
     path("oidc/", include("mozilla_django_oidc.urls")),
