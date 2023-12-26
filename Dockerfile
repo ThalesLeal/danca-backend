@@ -1,4 +1,4 @@
-FROM dockercodata.pb.gov.br/ci-base-images/python:3.11
+FROM dockercodata.pb.gov.br/ci-base-images/python:3.12
 
 COPY requirements.txt .
 RUN pip install -r requirements.txt
@@ -10,4 +10,7 @@ RUN SECRET_KEY='' \
     SSO_CLIENT_SECRET='' \
     python manage.py collectstatic --noinput
 
-CMD ["gunicorn", "_conf.wsgi", "--bind=0.0.0.0:8080"]
+COPY --chmod=755 docker-entrypoint.sh /docker-entrypoint.sh
+
+ENV DJANGO_RUN_MIGRATE=1
+CMD ["/docker-entrypoint.sh"]
