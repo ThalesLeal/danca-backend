@@ -282,10 +282,10 @@ WATCHMAN_CHECKS = [
 # }
 
 
-APP_ASSINATURA = "Polícia Civil"
-APP_TITULO = "Delegacia Online"
-APP_SUBTITULO = "Versão 3.0"
-APP_ASSINATURA_URL = "https://www.policiacivil.pb.gov.br"
+APP_ASSINATURA = "SECRETARIA DE ESTADO DO NONONONONONO"
+APP_TITULO = "Nome da Aplicação"
+APP_SUBTITULO = "Versão 1.0"
+APP_ASSINATURA_URL = "https://www.paraiba.pb.gov.br"
 APP_TITULO_URL = "localhost:8000/"
 HEADER_BG_COLOR = "bg-blue-70"
 HEADER_FONT_COLOR = "text-pure-0"
@@ -296,14 +296,14 @@ FOOTER_TEXT = """
 GOVBR_LOGO_BRANCA = True
 ALWAYS_SHOW_MENU_LATERAL = False
 ACESSO_RAPIDO = [
-    {"label": "Boletim Interno", "url": "https://policiacivil.pb.gov.br/boletim-interno-1"},
-    {"label": "PJe", "url": "https://www.policiacivil.pb.gov.br/links-uteis/pje-1"},
-    # {"label": "Link 3", "url": "https://codata.pb.gov.br"},
-    # {"label": "Link 4", "url": "https://codata.pb.gov.br"},
+    {"label": "PBdoc", "url": "https://pbdoc.pb.gov.br"},
+    {"label": "SIAF", "url": "https://siaf.pb.gov.br"},
+    {"label": "Ouvidoria", "url": "https://ouvidoria.pb.gov.br"},
+    {"label": "SIC", "url": "https://sic.pb.gov.br"},
 ]
 FUNCIONALIDADES = [
-    {"icon": "fa-chart-bar", "label": "Boletim Interno", "url": "https://policiacivil.pb.gov.br/boletim-interno-1"},
-    {"icon": "fa-heart", "label": "PJe", "url": "https://www.policiacivil.pb.gov.br/links-uteis/pje-1"},
-    # {"label": "Link 3", "url": "https://codata.pb.gov.br"},
-    # {"label": "Link 4", "url": "https://codata.pb.gov.br"},
+    {"icon": "fa-chart-bar", "label": "Transparência", "url": "https://transparencia.pb.gov.br"},
+    {"icon": "fa-users", "label": "Portal do Servidor", "url": "https://servidor.pb.gov.br"},
+    {"icon": "fa-dollar-sign", "label": "PBconsig", "url": "https://codata.pb.gov.br/servicos/pbconsig"},
+    {"icon": "fa-newspaper", "label": "DOE", "url": "https://auniao.pb.gov.br/doe/"},
 ]
