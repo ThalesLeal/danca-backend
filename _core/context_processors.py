@@ -4,6 +4,7 @@ from _conf import settings
 
 
 def application(request):
+    """Disponibiliza variáveis de contexto para todas os templates do projeto."""
     context = {
         "APP_ASSINATURA": settings.APP_ASSINATURA,
         "APP_ASSINATURA_URL": settings.APP_ASSINATURA_URL,
