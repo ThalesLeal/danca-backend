@@ -55,6 +55,7 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 INSTALLED_APPS = [
     "_core",
+    # "design_system",
     # "codata_sso_jazzmin",
     "codata_sso",
     # "jazzmin",
@@ -80,12 +81,6 @@ INSTALLED_APPS = [
     "crispy_forms",
     "crispy_bootstrap5",
 
-    # Django Admin Extra buttons https://saxix.github.io/django-admin-extra-buttons/
-    "admin_extra_buttons",
-
-    # Django Import Export https://django-import-export.readthedocs.io/
-    "import_export",
-
     # Django Reversion https://django-reversion.readthedocs.io/
     "reversion",
 
@@ -102,7 +97,6 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 MIDDLEWARE = [
-    "django.middleware.cache.UpdateCacheMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -113,7 +107,6 @@ MIDDLEWARE = [
     "mozilla_django_oidc.middleware.SessionRefresh",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django.middleware.cache.FetchFromCacheMiddleware",
 ]
 
 ROOT_URLCONF = "_conf.urls"
