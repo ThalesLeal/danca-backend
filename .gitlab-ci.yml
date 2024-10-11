@@ -1,3 +1,2 @@
 include:
-  - project: cicd/pipelines
-    file: pipeline.yml
+  - component: $CI_SERVER_FQDN/cicd/components/pipeline@1
