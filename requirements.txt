@@ -30,7 +30,7 @@ django==5.1.2
     #   django-reversion
     #   django-watchman
     #   mozilla-django-oidc
-django-codata==2.0.0
+django-codata==2.1.0
     # via -r requirements.in
 django-crispy-forms==2.3
     # via
@@ -48,9 +48,11 @@ gunicorn==23.0.0
     # via -r requirements.in
 idna==3.8
     # via requests
-josepy==1.14.0
-    # via mozilla-django-oidc
-mozilla-django-oidc==3.0.0
+josepy==1.13.0
+    # via
+    #   -r requirements.in
+    #   mozilla-django-oidc
+mozilla-django-oidc==4.0.1
     # via django-codata
 packaging==24.1
     # via gunicorn
@@ -74,3 +76,6 @@ urllib3==2.2.2
     # via requests
 whitenoise==6.7.0
     # via -r requirements.in
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools
