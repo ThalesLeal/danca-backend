@@ -6,7 +6,10 @@ RUN pip install -r requirements.txt
 COPY . .
 
 RUN SECRET_KEY='' \
-    DATABASE_URL=sqlite:///db.sqlite \
+    DATABASE_HOST='' \
+    DATABASE_NAME='' \
+    DATABASE_USERNAME='' \
+    DATABASE_PASSWORD='' \
     SSO_CLIENT_SECRET='' \
     python manage.py collectstatic --noinput
 
