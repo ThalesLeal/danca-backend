@@ -5,6 +5,7 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
+# Variáveis de ambiente temporárias para executar o `python manage.py collectstatic`
 RUN SECRET_KEY='' \
     DATABASE_HOST='' \
     DATABASE_NAME='' \
