@@ -55,11 +55,7 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 INSTALLED_APPS = [
     "_core",
-    # "design_system",
-    # "codata_sso_jazzmin",
     "codata_sso",
-    # "jazzmin",
-
 
     "django.contrib.admin",
     "django.contrib.auth",
@@ -85,11 +81,10 @@ INSTALLED_APPS = [
     "reversion",
 
     # Project apps
-    # "_core",
     "exemplo",
 ]
 
-AUTH_USER_MODEL = "codata_sso.User"
+AUTH_USER_MODEL = "_core.User"
 
 AUTHENTICATION_BACKENDS = [
     "codata_sso.auth_backend.SSOAuthenticationBackend",
@@ -114,9 +109,7 @@ ROOT_URLCONF = "_conf.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [
-            BASE_DIR / "_core" / "templatetags"
-        ],
+        "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -124,7 +117,6 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "_core.context_processors.application",
             ],
         },
     },
@@ -267,43 +259,4 @@ WATCHMAN_TOKENS = env("WATCHMAN_TOKENS", default=None)
 WATCHMAN_CHECKS = [
     "watchman.checks.databases",
     "watchman.checks.caches"
-]
-
-
-# Django Jazzmin
-# JAZZMIN_SETTINGS = {
-#     "site_title": "Exemplo",
-#     "site_header": "Exemplo",
-#     "site_brand": "Exemplo",
-#     "site_logo": "codata/codata-logo.svg",
-#     "login_logo": "codata/codata.svg",
-#     "login_logo_dark": "codata/codata-white.svg",
-#     "welcome_sign": "Exemplo",
-# }
-
-
-APP_ASSINATURA = "SECRETARIA DE ESTADO DO NONONONONONO"
-APP_TITULO = "Nome da Aplicação"
-APP_SUBTITULO = "Versão 1.0"
-APP_ASSINATURA_URL = "https://www.paraiba.pb.gov.br"
-APP_TITULO_URL = "localhost:8000/"
-HEADER_BG_COLOR = "bg-blue-70"
-HEADER_FONT_COLOR = "text-pure-0"
-FOOTER_TEXT = """
-    Ao utilizar esta aplicação você assume estar de acordo com os
-    <a href="https://codata.pb.gov.br"><u>nossos termos de uso</u></a>.
-"""
-GOVBR_LOGO_BRANCA = True
-ALWAYS_SHOW_MENU_LATERAL = False
-ACESSO_RAPIDO = [
-    {"label": "PBdoc", "url": "https://pbdoc.pb.gov.br"},
-    {"label": "SIAF", "url": "https://siaf.pb.gov.br"},
-    {"label": "Ouvidoria", "url": "https://ouvidoria.pb.gov.br"},
-    {"label": "SIC", "url": "https://sic.pb.gov.br"},
-]
-FUNCIONALIDADES = [
-    {"icon": "fa-chart-bar", "label": "Transparência", "url": "https://transparencia.pb.gov.br"},
-    {"icon": "fa-users", "label": "Portal do Servidor", "url": "https://servidor.pb.gov.br"},
-    {"icon": "fa-dollar-sign", "label": "PBconsig", "url": "https://codata.pb.gov.br/servicos/pbconsig"},
-    {"icon": "fa-newspaper", "label": "DOE", "url": "https://auniao.pb.gov.br/doe/"},
 ]
