@@ -44,15 +44,14 @@ def read_usuario(request, usuario_id):
 def update_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     if request.method == 'POST':
-        usuario.nome = request.POST.get('nome')
-        usuario.cpf = request.POST.get('cpf')
-        usuario.email = request.POST.get('email')
-        usuario.telefone = request.POST.get('telefone')
-        usuario.perfil = request.POST.get('perfil')
-        usuario.save()
-        messages.success(request, 'Usuário atualizado com sucesso!')
-        return redirect('usuario_list')
-    return render(request, 'update_usuario.html', {'usuario': usuario})
+        form = UsuarioForm(request.POST, instance=usuario)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Usuário atualizado com sucesso!')
+            return redirect('usuario_list')
+    else:
+        form = UsuarioForm(instance=usuario)
+    return render(request, 'update_usuario.html', {'form': form})
 
 # Delete a user
 def delete_usuario(request, usuario_id):

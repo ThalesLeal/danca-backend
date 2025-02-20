@@ -18,6 +18,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
+from django.shortcuts import redirect
 
 
 admin.site.index_title = "Início"
@@ -25,7 +26,7 @@ admin.site.index_title = "Início"
 
 urlpatterns = [
     
-    path("", TemplateView.as_view(template_name="index.html"), name="index"),
+    path("", lambda request: redirect('usuario_list'), name="index"),
     path("oidc/", include("mozilla_django_oidc.urls")),
     path("admin/", admin.site.urls),
     path("health/", include("watchman.urls")),
