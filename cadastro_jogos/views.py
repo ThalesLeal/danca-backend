@@ -76,6 +76,10 @@ def delete_usuario(request, usuario_id):
 @login_required
 @never_cache
 def usuario_list(request):
-    usuarios = Usuario.objects.all()
-    print(usuarios)
+    query = request.GET.get('q')  # Obtém o parâmetro de busca da URL
+    if query:
+        usuarios = Usuario.objects.filter(nome_completo__icontains=query)  # Filtra usuários pelo nome
+    else:
+        usuarios = Usuario.objects.all()  # Retorna todos os usuários se não houver busca
+
     return render(request, 'index.html', {'usuarios': usuarios})

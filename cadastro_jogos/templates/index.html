@@ -2,6 +2,15 @@
 
 {% block content %}
 <h1>Listagem de Usuários</h1>
+
+<!-- Formulário de busca -->
+<form method="get" action="{% url 'usuario_list' %}" class="mb-3">
+    <label for="search" class="form-label">Filtro por Nome</label>
+    <input type="text" name="q" id="search" placeholder="Buscar por nome" class="form-control form-control-sm" value="{{ request.GET.q }}" />
+    <button type="submit" class="btn btn-primary mt-2">Buscar</button>
+    <a href="{% url 'usuario_list' %}" class="btn btn-secondary mt-2">Limpar Filtros</a>
+</form>
+
 <a href="{% url 'create_usuario' %}" class="btn btn-primary">Cadastrar Novo Usuário</a> <!-- Botão para cadastrar novo usuário -->
 <h2>Este é o template do cadastro_jogos</h2>
 <table class="table">
@@ -27,6 +36,10 @@
                     <button type="submit" class="btn btn-danger">Deletar</button>
                 </form>
             </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">Nenhum usuário encontrado.</td>
         </tr>
         {% endfor %}
     </tbody>
