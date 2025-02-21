@@ -1,6 +1,6 @@
 # Projeto Boilerplate Django
 
-Projeto utilizado como base para novos projetos utilizando [Django](https://djangoproject.com).
+Projeto base para novos projetos utilizando [Django](https://djangoproject.com).
 
 O projeto utiliza autenticação com Codata SSO.
 
