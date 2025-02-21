@@ -19,6 +19,7 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
 from django.shortcuts import redirect
+from mozilla_django_oidc.views import OIDCAuthenticationRequestView, OIDCLogoutView
 
 
 admin.site.index_title = "Início"
@@ -32,5 +33,7 @@ urlpatterns = [
     path("health/", include("watchman.urls")),
     path("__debug__/", include("debug_toolbar.urls")),
     path('cadastro_jogos/', include('cadastro_jogos.urls')),
+    path('oidc/login/', OIDCAuthenticationRequestView.as_view(), name='oidc_login'),
+    path('oidc/logout/', OIDCLogoutView.as_view(), name='oidc_logout'),
 ]
 

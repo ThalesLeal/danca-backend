@@ -238,6 +238,7 @@ LOGGING = {
 
 LOGIN_REDIRECT_URL = "index"
 LOGOUT_REDIRECT_URL = "index"
+LOGIN_URL = '/oidc/login/'
 
 # SSO
 USERS_STAFF = env.list("USERS_STAFF")

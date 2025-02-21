@@ -6,7 +6,11 @@ from .models import Usuario
 from django.contrib import messages
 from .forms import UsuarioForm
 from django.contrib.auth.models import Group as BaseGroup
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
 # Create a new user
+@login_required
+@never_cache
 def create_usuario(request):
     # if not request.user.is_authenticated:
     #     messages.error(request, 'Você precisa estar logado para criar um usuário.')
@@ -36,11 +40,15 @@ def create_usuario(request):
     return render(request, 'create_usuario.html', {'form': form})
 
 # Read user details
+@login_required
+@never_cache
 def read_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     return render(request, 'read_usuario.html', {'usuario': usuario})
 
 # Update user information
+@login_required
+@never_cache
 def update_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     if request.method == 'POST':
@@ -54,6 +62,8 @@ def update_usuario(request, usuario_id):
     return render(request, 'update_usuario.html', {'form': form})
 
 # Delete a user
+@login_required
+@never_cache
 def delete_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     if request.method == 'POST':
@@ -63,6 +73,8 @@ def delete_usuario(request, usuario_id):
     return render(request, 'delete_usuario.html', {'usuario': usuario})
 
 # List all users
+@login_required
+@never_cache
 def usuario_list(request):
     usuarios = Usuario.objects.all()
     print(usuarios)
