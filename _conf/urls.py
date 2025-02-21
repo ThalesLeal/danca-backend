@@ -14,18 +14,26 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
+from django.shortcuts import redirect
+from mozilla_django_oidc.views import OIDCAuthenticationRequestView, OIDCLogoutView
 
 
 admin.site.index_title = "Início"
 
 
 urlpatterns = [
-    path("", TemplateView.as_view(template_name="index.html"), name="index"),
+    
+    path("", lambda request: redirect('usuario_list'), name="index"),
     path("oidc/", include("mozilla_django_oidc.urls")),
     path("admin/", admin.site.urls),
     path("health/", include("watchman.urls")),
     path("__debug__/", include("debug_toolbar.urls")),
+    path('cadastro_jogos/', include('cadastro_jogos.urls')),
+    path('oidc/login/', OIDCAuthenticationRequestView.as_view(), name='oidc_login'),
+    path('oidc/logout/', OIDCLogoutView.as_view(), name='oidc_logout'),
 ]
+

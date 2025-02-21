@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 
+import os
+
 import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -81,7 +83,7 @@ INSTALLED_APPS = [
     "reversion",
 
     # Project apps
-    "exemplo",
+    "cadastro_jogos",
 ]
 
 AUTH_USER_MODEL = "_core.User"
@@ -109,7 +111,7 @@ ROOT_URLCONF = "_conf.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        'DIRS': [os.path.join(BASE_DIR, 'cadastro_jogos', 'templates')],  
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -236,6 +238,7 @@ LOGGING = {
 
 LOGIN_REDIRECT_URL = "index"
 LOGOUT_REDIRECT_URL = "index"
+LOGIN_URL = '/oidc/login/'
 
 # SSO
 USERS_STAFF = env.list("USERS_STAFF")
