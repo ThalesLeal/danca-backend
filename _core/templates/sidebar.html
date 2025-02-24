@@ -1,0 +1,151 @@
+<!-- Barra Lateral -->
+<div class="sidebar text-white" id="sidebar">
+    <button class="btn btn-link text-white sidebar-toggle" id="sidebarToggle">
+        <i class="bi bi-list fs-5"></i>
+    </button>
+    <div class="d-flex flex-column flex-shrink-0 p-2 h-100">
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li class="nav-item mb-2">
+                <a href="{% url 'usuario_list' %}" class="nav-link text-white {% if request.resolver_match.url_name == 'usuario_list' %}active{% endif %}">
+                    <i class="bi bi-person-fill me-2"></i>
+                    Usuários
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a href="#" class="nav-link text-white">
+                    <i class="bi bi-geo-alt-fill me-2"></i>
+                    Regionais
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a href="#" class="nav-link text-white">
+                    <i class="bi bi-tag-fill me-2"></i>
+                    Categorias
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a href="#" class="nav-link text-white">
+                    <i class="bi bi-trophy-fill me-2"></i>
+                    Modalidades
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a href="#" class="nav-link text-white">
+                    <i class="bi bi-list-ol me-2"></i>
+                    Classificações
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a href="#" class="nav-link text-white">
+                    <i class="bi bi-calendar-event-fill me-2"></i>
+                    Eventos
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- CSS para a sidebar -->
+<style>
+.sidebar {
+    position: fixed;
+    top: 56px; /* Altura da navbar */
+    left: 0;
+    bottom: 0;
+    width: 200px;
+    z-index: 100;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    background-color: #0f2f4e;
+}
+
+.sidebar.collapsed {
+    width: 50px;
+}
+
+.sidebar.collapsed .nav-link span {
+    display: none;
+}
+
+.sidebar.collapsed .nav-link {
+    padding: 0.5rem;
+    margin: 0.5rem auto;
+    width: 40px;
+    text-align: center;
+}
+
+.sidebar-toggle {
+    position: absolute;
+    right: -15px;
+    top: 10px;
+    width: 30px;
+    height: 30px;
+    background: #0f2f4e;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 101;
+    padding: 0;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.sidebar .nav-link {
+    border-radius: 5px;
+    margin: 0 8px;
+    transition: all 0.3s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar .nav-link:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.sidebar .nav-link.active {
+    background-color: #0d6efd;
+}
+
+/* Ajuste para o conteúdo principal */
+.main-content {
+    margin-left: 200px;
+    padding: 20px;
+    transition: margin-left 0.3s ease;
+}
+
+.main-content.expanded {
+    margin-left: 50px;
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        position: relative;
+        top: 0;
+        height: auto;
+    }
+    .main-content {
+        margin-left: 0;
+    }
+    .sidebar-toggle {
+        display: none;
+    }
+}</style>
+
+<!-- JavaScript para controlar o sidebar -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.querySelector('.main-content');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+
+    sidebarToggle.addEventListener('click', function() {
+        sidebar.classList.toggle('collapsed');
+        mainContent.classList.toggle('expanded');
+    });
+});
+</script>
+</style>
