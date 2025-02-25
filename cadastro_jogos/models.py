@@ -22,7 +22,7 @@ class Usuario(models.Model):
         verbose_name="Nome Completo"
     )
     cpf = models.CharField(
-        max_length=11,
+        max_length=14,
         default="",
         null=False,
         blank=False,

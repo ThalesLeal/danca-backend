@@ -10,6 +10,28 @@ nav.navbar {
     max-height: 2.5ex;
 }
 
-footer div.footer-logos > img {
+footer div.footer-logos>img {
     max-height: 3em;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+label {
+    font-weight: bold;
+}
+
+label[for][for]:has(+ input[required])::after,
+label[for][for]:has(+ select[required])::after {
+    content: " *";
+    color: rgb(117, 6, 6);
+    font-weight: bold;
+}
+
+.alert-error {
+    --bs-alert-color: var(--bs-danger-text-emphasis);
+    --bs-alert-bg: var(--bs-danger-bg-subtle);
+    --bs-alert-border-color: var(--bs-danger-border-subtle);
+    --bs-alert-link-color: var(--bs-danger-text-emphasis);
 }

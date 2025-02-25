@@ -1,5 +1,6 @@
 from django.shortcuts import render
-
+from django.views.generic.edit import UpdateView
+from django.urls import reverse_lazy
 # Create your views here.
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Usuario
@@ -8,7 +9,11 @@ from .forms import UsuarioForm
 from django.contrib.auth.models import Group as BaseGroup
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
+from django.core.paginator import Paginator
+import re
 # Create a new user
+
+
 @login_required
 @never_cache
 def create_usuario(request):
@@ -21,23 +26,27 @@ def create_usuario(request):
         cpf = request.POST.get('cpf')
         email = request.POST.get('email')
         telefone = request.POST.get('telefone')
-        perfil = request.POST.get('perfil')
+        perfil_id = request.POST.get('perfil')
 
-        user_instance = request.user._wrapped if hasattr(request.user, '_wrapped') else request.user
+        cpf = re.sub(r'\D', '', cpf)  # Remove caracteres não numéricos do CPF
+        # user_instance = request.user._wrapped if hasattr(request.user, '_wrapped') else request.user
 
         # Cria o usuário
-        usuario = Usuario.objects.create(
-            nome_completo=nome_completo,  
+        Usuario.objects.create(
+            nome_completo=nome_completo,
             cpf=cpf,
             email=email,
             telefone=telefone,
-            perfil=perfil
+            perfil=perfil_id
         )
         messages.success(request, 'Usuário criado com sucesso!')
         return redirect('usuario_list')
-    
+
     form = UsuarioForm()
-    return render(request, 'create_usuario.html', {'form': form})
+    titulo = 'Cadastrar Usuário'
+    label_button = 'Cadastrar'
+
+    return render(request, 'create_usuario.html', {'form': form, 'titulo': titulo, 'label_button': label_button})
 
 # Read user details
 @login_required
@@ -53,13 +62,23 @@ def update_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     if request.method == 'POST':
         form = UsuarioForm(request.POST, instance=usuario)
+        
         if form.is_valid():
+            cpf = re.sub(r'\D', '', request.POST.get('cpf'))  # Remove caracteres não numéricos do CPF
+            form.instance.cpf = cpf
+
             form.save()
             messages.success(request, 'Usuário atualizado com sucesso!')
             return redirect('usuario_list')
+        else:
+            messages.error(request, form.errors)
     else:
         form = UsuarioForm(instance=usuario)
-    return render(request, 'update_usuario.html', {'form': form})
+
+    titulo = 'Atualizar Usuário'
+    label_button = 'Atualizar'
+
+    return render(request, 'create_usuario.html', {'form': form, 'titulo': titulo, 'label_button': label_button})
 
 # Delete a user
 @login_required
@@ -78,8 +97,15 @@ def delete_usuario(request, usuario_id):
 def usuario_list(request):
     query = request.GET.get('q')  # Obtém o parâmetro de busca da URL
     if query:
-        usuarios = Usuario.objects.filter(nome_completo__icontains=query)  # Filtra usuários pelo nome
+        usuarios = Usuario.objects.filter(nome_completo__icontains=query).order_by('nome_completo')  # Filtra usuários pelo nome
     else:
-        usuarios = Usuario.objects.all()  # Retorna todos os usuários se não houver busca
+        usuarios = Usuario.objects.all().order_by('nome_completo')  # Retorna todos os usuários se não houver busca
 
-    return render(request, 'index.html', {'usuarios': usuarios})
+    # Paginação
+    paginator = Paginator(usuarios, 10)  # Mostra 10 usuários por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    total_usuarios = usuarios.count()  # Total de registros
+
+    return render(request, 'index.html', {'page_obj': page_obj, 'total_usuarios': total_usuarios})

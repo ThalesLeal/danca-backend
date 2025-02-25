@@ -17,6 +17,8 @@
 
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
 
+    <link rel="shortcut icon" href="{% static 'img/logocodata.png' %}">
+
     {% block extra_css %}
     {% endblock %}
 </head>
@@ -41,6 +43,9 @@
         integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
         crossorigin="anonymous">
 </script>
+<script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
+<script src="{% static 'js/jquery.mask.min.js' %}"></script>
+<script src="{% static 'js/mascaras.js' %}"></script>
 
 {% block extra_js %}
 {% endblock %}

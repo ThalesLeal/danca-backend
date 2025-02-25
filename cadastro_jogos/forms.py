@@ -14,8 +14,8 @@ class UsuarioForm(forms.ModelForm):
         }
         widgets = {
             'nome_completo': forms.TextInput(attrs={'class': 'form-control'}),
-            'cpf': forms.TextInput(attrs={'class': 'form-control'}),
+            'cpf': forms.TextInput(attrs={'class': 'form-control mask-cpf'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
-            'telefone': forms.TextInput(attrs={'class': 'form-control'}),
-            'perfil': forms.Select(attrs={'class': 'form-control'}),  
+            'telefone': forms.TextInput(attrs={'class': 'form-control mask-telefone'}),
+            'perfil': forms.Select(attrs={'class': 'form-select'}),  
         }
