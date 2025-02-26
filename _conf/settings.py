@@ -131,14 +131,7 @@ WSGI_APPLICATION = "_conf.wsgi.application"
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": env("DATABASE_ENGINE", default="django.db.backends.postgresql"),
-        "HOST": env("DATABASE_HOST"),
-        "PORT": env("DATABASE_PORT", default="5432"),
-        "NAME": env("DATABASE_NAME"),
-        "USER": env("DATABASE_USERNAME"),
-        "PASSWORD": env("DATABASE_PASSWORD"),
-    },
+    "default": env.db_url()
 }
 
 CACHES = {

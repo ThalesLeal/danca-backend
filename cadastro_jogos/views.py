@@ -21,7 +21,6 @@ def create_usuario(request):
         cpf = request.POST.get('cpf')
         email = request.POST.get('email')
         telefone = request.POST.get('telefone')
-        perfil = request.POST.get('perfil')
 
         user_instance = request.user._wrapped if hasattr(request.user, '_wrapped') else request.user
 
@@ -31,7 +30,6 @@ def create_usuario(request):
             cpf=cpf,
             email=email,
             telefone=telefone,
-            perfil=perfil
         )
         messages.success(request, 'Usuário criado com sucesso!')
         return redirect('usuario_list')

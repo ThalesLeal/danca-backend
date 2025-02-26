@@ -32,11 +32,6 @@ class Usuario(models.Model):
     )
     email = models.EmailField(max_length=254, unique=True, verbose_name="Email")
     telefone = models.CharField(max_length=15, null=True, blank=True, verbose_name="Telefone")
-    perfil = models.CharField(
-        max_length=50,
-        choices=[(group.name, group.name) for group in BaseGroup.objects.all()],  # Lista os grupos existentes
-        verbose_name="Perfil"
-    )
 
     class Meta:
         verbose_name = "Usuário"

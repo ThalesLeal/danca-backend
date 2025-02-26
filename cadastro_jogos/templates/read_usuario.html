@@ -6,7 +6,6 @@
 <p><strong>CPF:</strong> {{ usuario.cpf }}</p>
 <p><strong>Email:</strong> {{ usuario.email }}</p>
 <p><strong>Telefone:</strong> {{ usuario.telefone }}</p>
-<p><strong>Perfil:</strong> {{ usuario.perfil }}</p>
 
 <a href="{% url 'update_usuario' usuario.id %}" class="btn btn-warning">Editar</a>
 <a href="{% url 'index' %}" class="btn btn-secondary" style="margin-left: 10px;">Voltar</a>
