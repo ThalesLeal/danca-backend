@@ -7,7 +7,6 @@ from django.contrib import messages
 from .forms import UsuarioJogosForm
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
-# Create a new user
 
 
 @login_required
@@ -40,15 +39,16 @@ def create_usuario(request):
 # Read user details
 @login_required
 @never_cache
-def read_usuario(request, usuario_id):
-    usuario = get_object_or_404(UsuarioJogos, id=usuario_id)
+def read_usuario(request, id):
+    usuario = get_object_or_404(UsuarioJogos, id=id)
     return render(request, 'read_usuario.html', {'usuario': usuario})
+
 
 # Update user information
 @login_required
 @never_cache
-def update_usuario(request, usuario_id):
-    usuario = get_object_or_404(UsuarioJogos, id=usuario_id)
+def update_usuario(request, id):
+    usuario = get_object_or_404(UsuarioJogos, id=id)
     if request.method == 'POST':
         form = UsuarioJogosForm(request.POST, instance=usuario)
         if form.is_valid():
@@ -63,13 +63,14 @@ def update_usuario(request, usuario_id):
 # Delete a user
 @login_required
 @never_cache
-def delete_usuario(request, usuario_id):
-    usuario = get_object_or_404(UsuarioJogosForm, id=usuario_id)
+def delete_usuario(request, id):
+    usuario = get_object_or_404(UsuarioJogosForm, id=id)
     if request.method == 'POST':
         usuario.delete()
         messages.success(request, 'Usuário deletado com sucesso!')
         return redirect('usuario_list')  # Redirect to user list after deletion
     return render(request, 'delete_usuario.html', {'usuario': usuario})
+
 
 # List all users
 @login_required
