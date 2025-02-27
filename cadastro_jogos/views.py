@@ -64,7 +64,7 @@ def update_usuario(request, id):
 @login_required
 @never_cache
 def delete_usuario(request, id):
-    usuario = get_object_or_404(UsuarioJogosForm, id=id)
+    usuario = get_object_or_404(UsuarioJogos, id=id)
     if request.method == 'POST':
         usuario.delete()
         messages.success(request, 'Usuário deletado com sucesso!')
