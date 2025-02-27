@@ -1,8 +1,10 @@
+import uuid
+import logging
+
 from django.db import models
 
 # Create your models here.
 from django.db import models
-import uuid
 from _core.models import User
 
 from .utils import PERFIL_CHOICES
@@ -10,6 +12,8 @@ from .validators import validar_cpf
 from django.dispatch import receiver
 from django.db.models.signals import post_save, post_delete
 from django.conf import settings
+
+LOGGER = logging.getLogger("django")
 
 class UsuarioJogos(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -52,3 +56,15 @@ class UsuarioJogos(models.Model):
 
     def __str__(self):
         return f"{self.nome} - {self.cpf}"
+    
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def atualizar_usuario_jogos(sender, instance, **kwargs):
+    '''Associa o usuário criado no sistema ao usuário que se loga via SSO'''
+    try:
+        if not instance.is_superuser:
+            usuario_jogos = UsuarioJogos.objects.get(cpf=instance.username)
+            usuario_jogos.username = instance
+            usuario_jogos.save()
+    except Exception:
+        LOGGER.debug(f"Erro ao associar '{instance}' a modelo UsuarioJogos")
