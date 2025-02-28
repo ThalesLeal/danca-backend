@@ -3,10 +3,9 @@ from django.views.generic.edit import UpdateView
 from django.urls import reverse_lazy
 # Create your views here.
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Usuario
+from .models import UsuarioJogos
 from django.contrib import messages
-from .forms import UsuarioForm
-from django.contrib.auth.models import Group as BaseGroup
+from .forms import UsuarioJogosForm
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.core.paginator import Paginator
@@ -17,12 +16,8 @@ import re
 @login_required
 @never_cache
 def create_usuario(request):
-    # if not request.user.is_authenticated:
-    #     messages.error(request, 'Você precisa estar logado para criar um usuário.')
-    #     return redirect('usuario_list')
-
     if request.method == 'POST':
-        nome_completo = request.POST.get('nome_completo')
+        nome = request.POST.get('nome')
         cpf = request.POST.get('cpf')
         email = request.POST.get('email')
         telefone = request.POST.get('telefone')
@@ -39,6 +34,8 @@ def create_usuario(request):
             telefone=telefone,
             perfil=perfil_id
         )
+
+        usuario.save()
         messages.success(request, 'Usuário criado com sucesso!')
         return redirect('usuario_list')
 
@@ -48,18 +45,20 @@ def create_usuario(request):
 
     return render(request, 'create_usuario.html', {'form': form, 'titulo': titulo, 'label_button': label_button})
 
+
 # Read user details
 @login_required
 @never_cache
-def read_usuario(request, usuario_id):
-    usuario = get_object_or_404(Usuario, id=usuario_id)
+def read_usuario(request, id):
+    usuario = get_object_or_404(UsuarioJogos, id=id)
     return render(request, 'read_usuario.html', {'usuario': usuario})
+
 
 # Update user information
 @login_required
 @never_cache
-def update_usuario(request, usuario_id):
-    usuario = get_object_or_404(Usuario, id=usuario_id)
+def update_usuario(request, id):
+    usuario = get_object_or_404(UsuarioJogos, id=id)
     if request.method == 'POST':
         form = UsuarioForm(request.POST, instance=usuario)
         
@@ -80,16 +79,18 @@ def update_usuario(request, usuario_id):
 
     return render(request, 'create_usuario.html', {'form': form, 'titulo': titulo, 'label_button': label_button})
 
+
 # Delete a user
 @login_required
 @never_cache
-def delete_usuario(request, usuario_id):
-    usuario = get_object_or_404(Usuario, id=usuario_id)
+def delete_usuario(request, id):
+    usuario = get_object_or_404(UsuarioJogos, id=id)
     if request.method == 'POST':
         usuario.delete()
         messages.success(request, 'Usuário deletado com sucesso!')
         return redirect('usuario_list')  # Redirect to user list after deletion
     return render(request, 'delete_usuario.html', {'usuario': usuario})
+
 
 # List all users
 @login_required
