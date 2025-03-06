@@ -24,22 +24,22 @@ def create_usuario(request):
         perfil_id = request.POST.get('perfil')
 
         cpf = re.sub(r'\D', '', cpf)  # Remove caracteres não numéricos do CPF
-        # user_instance = request.user._wrapped if hasattr(request.user, '_wrapped') else request.user
+        telefone = re.sub(r'\D', '', telefone)  # Remove caracteres não numéricos do telefone
 
         # Cria o usuário
-        Usuario.objects.create(
-            nome_completo=nome_completo,
+        UsuarioJogos.objects.create(
+            nome=nome,
             cpf=cpf,
             email=email,
             telefone=telefone,
             perfil=perfil_id
         )
 
-        usuario.save()
+        # UsuarioJogos.save()
         messages.success(request, 'Usuário criado com sucesso!')
         return redirect('usuario_list')
 
-    form = UsuarioForm()
+    form = UsuarioJogosForm()
     titulo = 'Cadastrar Usuário'
     label_button = 'Cadastrar'
 
@@ -60,19 +60,21 @@ def read_usuario(request, id):
 def update_usuario(request, id):
     usuario = get_object_or_404(UsuarioJogos, id=id)
     if request.method == 'POST':
-        form = UsuarioForm(request.POST, instance=usuario)
+        data = request.POST.copy()
+        cpf = re.sub(r'\D', '', request.POST.get('cpf'))  # Remove caracteres não numéricos do CPF
+        telefone = re.sub(r'\D', '', request.POST.get('telefone'))  # Remove caracteres não numéricos do telefone
+        data["cpf"] = cpf
+        data["telefone"] = telefone
+        form = UsuarioJogosForm(data, instance=usuario)
         
         if form.is_valid():
-            cpf = re.sub(r'\D', '', request.POST.get('cpf'))  # Remove caracteres não numéricos do CPF
-            form.instance.cpf = cpf
-
             form.save()
             messages.success(request, 'Usuário atualizado com sucesso!')
             return redirect('usuario_list')
         else:
             messages.error(request, form.errors)
     else:
-        form = UsuarioForm(instance=usuario)
+        form = UsuarioJogosForm(instance=usuario)
 
     titulo = 'Atualizar Usuário'
     label_button = 'Atualizar'
@@ -98,9 +100,9 @@ def delete_usuario(request, id):
 def usuario_list(request):
     query = request.GET.get('q')  # Obtém o parâmetro de busca da URL
     if query:
-        usuarios = Usuario.objects.filter(nome_completo__icontains=query).order_by('nome_completo')  # Filtra usuários pelo nome
+        usuarios = UsuarioJogos.objects.filter(nome__icontains=query).order_by('nome')  # Filtra usuários pelo nome
     else:
-        usuarios = Usuario.objects.all().order_by('nome_completo')  # Retorna todos os usuários se não houver busca
+        usuarios = UsuarioJogos.objects.all().order_by('nome')  # Retorna todos os usuários se não houver busca
 
     # Paginação
     paginator = Paginator(usuarios, 10)  # Mostra 10 usuários por página
