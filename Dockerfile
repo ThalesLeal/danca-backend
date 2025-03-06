@@ -8,6 +8,7 @@ COPY . .
 # Variáveis de ambiente temporárias para executar o `python manage.py collectstatic`
 RUN SECRET_KEY='' \
     DATABASE_HOST='' \
+    DATABASE_PORT='' \
     DATABASE_NAME='' \
     DATABASE_USERNAME='' \
     DATABASE_PASSWORD='' \
