@@ -25,8 +25,14 @@ class UsuarioJogosForm(forms.ModelForm):
             'cpf': forms.TextInput(attrs={'class': 'form-control mask-cpf'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'telefone': forms.TextInput(attrs={'class': 'form-control mask-telefone'}),
-            'perfil': forms.Select(attrs={'class': 'form-select', 'max_length': 14}),  
+            'perfil': forms.Select(attrs={'class': 'form-select'}),  
         }
+
+    def clean_nome(self):
+        nome = self.cleaned_data['nome']
+        if len(nome) < 3:
+            raise forms.ValidationError("O nome deve ter pelo menos 3 caracteres.")
+        return nome
 
     def clean_cpf(self):
         cpf = self.cleaned_data['cpf']
