@@ -9,6 +9,7 @@ from .forms import UsuarioJogosForm
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.core.paginator import Paginator
+from .utils import PERFIL_CHOICES
 import re
 # Create a new user
 
