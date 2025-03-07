@@ -17,32 +17,23 @@ import re
 @never_cache
 def create_usuario(request):
     if request.method == 'POST':
-        nome = request.POST.get('nome')
-        cpf = request.POST.get('cpf')
-        email = request.POST.get('email')
-        telefone = request.POST.get('telefone')
-        perfil_id = request.POST.get('perfil')
+        data = request.POST.copy()
+        cpf = re.sub(r'\D', '', request.POST.get('cpf'))  # Remove caracteres não numéricos do CPF
+        telefone = re.sub(r'\D', '', request.POST.get('telefone'))  # Remove caracteres não numéricos do telefone
+        data["cpf"] = cpf
+        data["telefone"] = telefone
+        form = UsuarioJogosForm(data)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Usuário criado com sucesso!')
+            return redirect('usuario_list')
+        else:
+            messages.error(request, form.errors)
+    else:
+        form = UsuarioJogosForm()
 
-        cpf = re.sub(r'\D', '', cpf)  # Remove caracteres não numéricos do CPF
-        telefone = re.sub(r'\D', '', telefone)  # Remove caracteres não numéricos do telefone
-
-        # Cria o usuário
-        UsuarioJogos.objects.create(
-            nome=nome,
-            cpf=cpf,
-            email=email,
-            telefone=telefone,
-            perfil=perfil_id
-        )
-
-        # UsuarioJogos.save()
-        messages.success(request, 'Usuário criado com sucesso!')
-        return redirect('usuario_list')
-
-    form = UsuarioJogosForm()
     titulo = 'Cadastrar Usuário'
     label_button = 'Cadastrar'
-
     return render(request, 'create_usuario.html', {'form': form, 'titulo': titulo, 'label_button': label_button})
 
 

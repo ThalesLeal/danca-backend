@@ -1,6 +1,7 @@
 from django import forms
 from .models import UsuarioJogos
 from .utils import PERFIL_CHOICES
+import re
 
 class UsuarioJogosForm(forms.ModelForm):
     class Meta:
@@ -24,5 +25,12 @@ class UsuarioJogosForm(forms.ModelForm):
             'cpf': forms.TextInput(attrs={'class': 'form-control mask-cpf'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'telefone': forms.TextInput(attrs={'class': 'form-control mask-telefone'}),
-            'perfil': forms.Select(attrs={'class': 'form-select'}),  
+            'perfil': forms.Select(attrs={'class': 'form-select', 'max_length': 14}),  
         }
+
+    def clean_cpf(self):
+        cpf = self.cleaned_data['cpf']
+        cpf = re.sub(r'\D', '', cpf)  # Remove caracteres não numéricos do CPF
+        if UsuarioJogos.objects.filter(cpf=cpf).exclude(id=self.instance.id).exists():
+            raise forms.ValidationError("CPF já cadastrado.")
+        return cpf
