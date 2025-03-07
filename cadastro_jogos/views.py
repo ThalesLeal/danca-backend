@@ -68,7 +68,7 @@ def update_usuario(request, id):
     else:
         form = UsuarioJogosForm(instance=usuario)
 
-    titulo = 'Atualizar Usuário'
+    titulo = 'Editar Usuário'
     label_button = 'Atualizar'
 
     return render(request, 'create_usuario.html', {'form': form, 'titulo': titulo, 'label_button': label_button})
