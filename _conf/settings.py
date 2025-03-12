@@ -236,8 +236,8 @@ LOGGING = {
     },
 }
 
-LOGIN_REDIRECT_URL = "index"
-LOGOUT_REDIRECT_URL = "index"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/oidc/login/"
 LOGIN_URL = '/oidc/login/'
 
 # SSO
