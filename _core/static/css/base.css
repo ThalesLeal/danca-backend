@@ -10,6 +10,117 @@ nav.navbar {
     max-height: 2.5ex;
 }
 
-footer div.footer-logos > img {
+footer div.footer-logos>img {
     max-height: 3em;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+label {
+    font-weight: bold;
+}
+
+label[for][for]:has(+ input[required])::after,
+label[for][for]:has(+ select[required])::after {
+    content: " *";
+    color: rgb(117, 6, 6);
+    font-weight: bold;
+}
+
+.alert-error {
+    --bs-alert-color: var(--bs-danger-text-emphasis);
+    --bs-alert-bg: var(--bs-danger-bg-subtle);
+    --bs-alert-border-color: var(--bs-danger-border-subtle);
+    --bs-alert-link-color: var(--bs-danger-text-emphasis);
+}
+
+/* CSS para a sidebar */
+.sidebar {
+    position: fixed;
+    top: 56px; /* Altura da navbar */
+    left: 0;
+    bottom: 0;
+    width: 200px;
+    z-index: 100;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    background-color: #0f2f4e;
+}
+
+.sidebar.collapsed {
+    width: 50px;
+}
+
+.sidebar.collapsed .nav-link span {
+    display: none;
+}
+
+.sidebar.collapsed .nav-link {
+    padding: 0.5rem;
+    margin: 0.5rem auto;
+    width: 40px;
+    text-align: center;
+}
+
+.sidebar-toggle {
+    position: absolute;
+    right: -15px;
+    top: 10px;
+    width: 30px;
+    height: 30px;
+    background: #0f2f4e;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 101;
+    padding: 0;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.sidebar .nav-link {
+    border-radius: 5px;
+    margin: 0 8px;
+    transition: all 0.3s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar .nav-link:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.sidebar .nav-link.active {
+    background-color: #0d6efd;
+}
+
+/* Ajuste para o conteúdo principal */
+.main-content {
+    margin-left: 200px;
+    padding: 20px;
+    transition: margin-left 0.3s ease;
+}
+
+.main-content.expanded {
+    margin-left: 50px;
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        position: relative;
+        top: 0;
+        height: auto;
+    }
+    .main-content {
+        margin-left: 0;
+    }
+    .sidebar-toggle {
+        display: none;
+    }
 }

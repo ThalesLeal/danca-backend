@@ -1,47 +1,126 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Listagem de Usuários</h1>
+<h1>Usuários</h1>
 
-<!-- Formulário de busca -->
-<form method="get" action="{% url 'usuario_list' %}" class="mb-3">
-    <label for="search" class="form-label">Filtro por Nome</label>
-    <input type="text" name="q" id="search" placeholder="Buscar por nome" class="form-control form-control-sm" value="{{ request.GET.q }}" />
-    <button type="submit" class="btn btn-primary mt-2">Buscar</button>
-    <a href="{% url 'usuario_list' %}" class="btn btn-secondary mt-2">Limpar Filtros</a>
-</form>
+<!-- Alert container when logged in -->
+{% if messages %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
 
-<a href="{% url 'create_usuario' %}" class="btn btn-primary">Cadastrar Novo Usuário</a> <!-- Botão para cadastrar novo usuário -->
-<h2>Este é o template do cadastro_jogos</h2>
+<div class="row">
+  <div class="col-9">
+    <!-- Formulário de busca -->
+    <form method="get" action="{% url 'usuario_list' %}" class="mb-3">
+      <label for="search" class="form-label">Filtro por Nome</label>
+      <div class="input-group">
+        <input type="text" name="q" id="search" placeholder="Filtrar por nome" class="form-control form-control-sm"
+          value="{{ request.GET.q }}" required />
+        <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-funnel"></i> Filtrar</button>
+        <a href="{% url 'usuario_list' %}" class="btn btn-sm btn-secondary"><i class="bi bi-trash3-fill"></i> Limpar</a>
+      </div>
+    </form>
+  </div>
+  <div class="col-3 mb-3 align-self-end ">
+    <!-- Botão para cadastrar novo usuário -->
+    <a href="{% url 'create_usuario' %}" class="btn btn-primary float-end"><i class="bi bi-plus"></i> Novo Usuário</a>
+  </div>
+</div>
+
 <table class="table">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Nome</th>
-            <th>CPF</th>
-            <th>Ações</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for usuario in usuarios %}
-        <tr>
-            <td>{{ usuario.id }}</td>
-            <td>{{ usuario.nome }}</td>
-            <td>{{ usuario.cpf }}</td>
-            <td>
-                <a href="{% url 'read_usuario' usuario.id %}" class="btn btn-info">Ver</a>
-                <a href="{% url 'update_usuario' usuario.id %}" class="btn btn-warning">Editar</a>
-                <form method="post" action="{% url 'delete_usuario' usuario.id %}" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">Deletar</button>
-                </form>
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="4">Nenhum usuário encontrado.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
+  <thead>
+    <tr>
+      <th>Nome</th>
+      <th class="text-center">Email</th>
+      <th class="text-center">Telefone</th>
+      <th class="text-center">Ações</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for usuario in page_obj %}
+    <tr>
+      <td class="align-middle">{{ usuario.nome }}</td>
+      <td class="col-3 text-center align-middle">{{ usuario.email }}</td>
+      <td class="col-2 text-center align-middle mask-telefone">{{ usuario.telefone }}</td>
+      <td class="col-3 text-center">
+        <a href="{% url 'read_usuario' usuario.id %}" class="btn btn-info"><i class="bi bi-eye-fill"></i></a>
+        <a href="{% url 'update_usuario' usuario.id %}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a>
+        <form method="post" action="{% url 'delete_usuario' usuario.id %}" style="display:inline;" class="delete-form">
+          {% csrf_token %}
+          <button type="submit" id="btn-delet" class="btn btn-danger"><i class="bi bi-trash3-fill"></i></button>
+        </form>
+      </td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="4">Nenhum usuário encontrado.</td>
+    </tr>
+    {% endfor %}
+  </tbody>
 </table>
+
+<!-- Exibir total de registros -->
+<p class="bold">Total de registros: {{ total_usuarios }}</p>
+
+<!-- Navegação da paginação -->
+<nav aria-label="Page navigation">
+  <ul class="pagination justify-content-center">
+    {% if page_obj.has_previous %}
+    <li class="page-item">
+      <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" aria-label="First">
+        <span aria-hidden="true">&laquo;&laquo;</span>
+      </a>
+    </li>
+    <li class="page-item">
+      <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+    {% endif %}
+    {% for num in page_obj.paginator.page_range %}
+    {% if page_obj.number == num %}
+    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+    <li class="page-item"><a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ num }}</a></li>
+    {% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}
+    <li class="page-item">
+      <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+    <li class="page-item">
+      <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" aria-label="Last">
+        <span aria-hidden="true">&raquo;&raquo;</span>
+      </a>
+    </li>
+    {% endif %}
+  </ul>
+</nav>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const deleteForms = document.querySelectorAll('.delete-form');
+    deleteForms.forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        const confirmed = confirm('Tem certeza que deseja remover o usuário?');
+        if (!confirmed) {
+          event.preventDefault();
+        }
+      });
+    });
+  });
+</script>
 {% endblock %}

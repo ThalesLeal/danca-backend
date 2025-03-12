@@ -8,7 +8,7 @@ from django.db import models
 from _core.models import User
 
 from .utils import PERFIL_CHOICES
-from .validators import validar_cpf
+from .validators import validar_cpf, validar_email
 from django.dispatch import receiver
 from django.db.models.signals import post_save, post_delete
 from django.conf import settings
@@ -26,8 +26,8 @@ class UsuarioJogos(models.Model):
     )
     nome = models.CharField(
         max_length=120, 
-        null=True, 
-        blank=True, 
+        null=False, 
+        blank=False, 
         verbose_name="Nome do usuário:",
     )
     cpf = models.CharField(
@@ -41,12 +41,13 @@ class UsuarioJogos(models.Model):
     )
     email = models.CharField(
         max_length=150, 
-        null=True, 
-        blank=True
+        null=False, 
+        blank=False,
+        validators=[validar_email]
     )
-    telefone = models.CharField(max_length=12, null=True, blank=True, verbose_name="Telefone")
+    telefone = models.CharField(max_length=12, null=False, blank=False, verbose_name="Telefone")
     perfil = models.CharField(
-        max_length=1,
+        max_length=1, null=False, blank=False,
         choices=PERFIL_CHOICES
     )
 

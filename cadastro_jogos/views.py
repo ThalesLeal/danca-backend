@@ -1,5 +1,6 @@
 from django.shortcuts import render
-
+from django.views.generic.edit import UpdateView
+from django.urls import reverse_lazy
 # Create your views here.
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import UsuarioJogos
@@ -7,33 +8,34 @@ from django.contrib import messages
 from .forms import UsuarioJogosForm
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
+from django.core.paginator import Paginator
+from .utils import PERFIL_CHOICES
+import re
+# Create a new user
 
 
 @login_required
 @never_cache
 def create_usuario(request):
     if request.method == 'POST':
-        nome = request.POST.get('nome')
-        cpf = request.POST.get('cpf')
-        email = request.POST.get('email')
-        telefone = request.POST.get('telefone')
-        perfil = request.POST.get('perfil')
+        data = request.POST.copy()
+        cpf = re.sub(r'\D', '', request.POST.get('cpf'))  # Remove caracteres não numéricos do CPF
+        telefone = re.sub(r'\D', '', request.POST.get('telefone'))  # Remove caracteres não numéricos do telefone
+        data["cpf"] = cpf
+        data["telefone"] = telefone
+        form = UsuarioJogosForm(data)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Usuário criado com sucesso!')
+            return redirect('usuario_list')
+        else:
+            messages.error(request, form.errors)
+    else:
+        form = UsuarioJogosForm()
 
-        # Cria o usuário
-        usuario = UsuarioJogos.objects.create(
-            nome=nome,  
-            cpf=cpf,
-            email=email,
-            telefone=telefone,
-            perfil=perfil
-        )
-
-        usuario.save()
-        messages.success(request, 'Usuário criado com sucesso!')
-        return redirect('usuario_list')
-    
-    form = UsuarioJogosForm()
-    return render(request, 'create_usuario.html', {'form': form})
+    titulo = 'Cadastrar Usuário'
+    label_button = 'Cadastrar'
+    return render(request, 'create_usuario.html', {'form': form, 'titulo': titulo, 'label_button': label_button})
 
 
 # Read user details
@@ -50,14 +52,26 @@ def read_usuario(request, id):
 def update_usuario(request, id):
     usuario = get_object_or_404(UsuarioJogos, id=id)
     if request.method == 'POST':
-        form = UsuarioJogosForm(request.POST, instance=usuario)
+        data = request.POST.copy()
+        cpf = re.sub(r'\D', '', request.POST.get('cpf'))  # Remove caracteres não numéricos do CPF
+        telefone = re.sub(r'\D', '', request.POST.get('telefone'))  # Remove caracteres não numéricos do telefone
+        data["cpf"] = cpf
+        data["telefone"] = telefone
+        form = UsuarioJogosForm(data, instance=usuario)
+        
         if form.is_valid():
             form.save()
             messages.success(request, 'Usuário atualizado com sucesso!')
             return redirect('usuario_list')
+        else:
+            messages.error(request, form.errors)
     else:
         form = UsuarioJogosForm(instance=usuario)
-    return render(request, 'update_usuario.html', {'form': form})
+
+    titulo = 'Editar Usuário'
+    label_button = 'Atualizar'
+
+    return render(request, 'create_usuario.html', {'form': form, 'titulo': titulo, 'label_button': label_button})
 
 
 # Delete a user
@@ -78,8 +92,15 @@ def delete_usuario(request, id):
 def usuario_list(request):
     query = request.GET.get('q')  # Obtém o parâmetro de busca da URL
     if query:
-        usuarios = UsuarioJogos.objects.filter(nome__icontains=query)  # Filtra usuários pelo nome
+        usuarios = UsuarioJogos.objects.filter(nome__icontains=query).order_by('nome')  # Filtra usuários pelo nome
     else:
-        usuarios = UsuarioJogos.objects.all()  # Retorna todos os usuários se não houver busca
+        usuarios = UsuarioJogos.objects.all().order_by('nome')  # Retorna todos os usuários se não houver busca
 
-    return render(request, 'index.html', {'usuarios': usuarios})
+    # Paginação
+    paginator = Paginator(usuarios, 10)  # Mostra 10 usuários por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    total_usuarios = usuarios.count()  # Total de registros
+
+    return render(request, 'index.html', {'page_obj': page_obj, 'total_usuarios': total_usuarios})

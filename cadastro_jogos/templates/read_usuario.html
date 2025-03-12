@@ -2,11 +2,30 @@
 
 {% block content %}
 <h1>Detalhes do Usuário</h1>
-<p><strong>Nome:</strong> {{ usuario.nome }}</p>
-<p><strong>CPF:</strong> {{ usuario.cpf }}</p>
-<p><strong>Email:</strong> {{ usuario.email }}</p>
-<p><strong>Telefone:</strong> {{ usuario.telefone }}</p>
 
-<a href="{% url 'update_usuario' usuario.id %}" class="btn btn-warning">Editar</a>
-<a href="{% url 'index' %}" class="btn btn-secondary" style="margin-left: 10px;">Voltar</a>
+<div class="row">
+  <div class="col-4 mb-3">
+    <label class="me-3">Nome Completo:</label><br />
+    {{ usuario.nome }}
+  </div>
+  <div class="col-4 mb-3">
+    <label class="me-3">CPF:</label><br />
+    <span class="mask-cpf">{{ usuario.cpf }}</span><br />
+  </div>
+  <div class="col-4 mb-3">
+    <label class="me-3">Email:</label><br />
+    {{ usuario.email }}
+  </div>
+  <div class="col-4 mb-3">
+    <label class="me-3">Telefone:</label><br />
+    <span class="mask-telefone">{{ usuario.telefone }}</span>
+  </div>
+  <div class="col-4 mb-3">
+    <label class="me-3">Perfil:</label><br />
+    {{ usuario.get_perfil_display }}
+  </div>
+</div>
+
+<a href="{% url 'update_usuario' usuario.id %}" class="btn btn-warning  float-end"><i class="bi bi-pencil-square"></i> Editar</a>
+<a href="{% url 'index' %}" class="btn btn-secondary"><i class="bi bi-box-arrow-in-left"></i> Voltar</a>
 {% endblock %}

@@ -1,6 +1,7 @@
 from django import forms
 from .models import UsuarioJogos
 from .utils import PERFIL_CHOICES
+import re
 
 class UsuarioJogosForm(forms.ModelForm):
     class Meta:
@@ -21,7 +22,21 @@ class UsuarioJogosForm(forms.ModelForm):
         
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
-            'cpf': forms.TextInput(attrs={'class': 'form-control'}),
+            'cpf': forms.TextInput(attrs={'class': 'form-control mask-cpf'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
-            'telefone': forms.TextInput(attrs={'class': 'form-control'}),
+            'telefone': forms.TextInput(attrs={'class': 'form-control mask-telefone'}),
+            'perfil': forms.Select(attrs={'class': 'form-select'}),  
         }
+
+    def clean_nome(self):
+        nome = self.cleaned_data['nome']
+        if len(nome) < 3:
+            raise forms.ValidationError("O nome deve ter pelo menos 3 caracteres.")
+        return nome
+
+    def clean_cpf(self):
+        cpf = self.cleaned_data['cpf']
+        cpf = re.sub(r'\D', '', cpf)  # Remove caracteres não numéricos do CPF
+        if UsuarioJogos.objects.filter(cpf=cpf).exclude(id=self.instance.id).exists():
+            raise forms.ValidationError("CPF já cadastrado.")
+        return cpf
