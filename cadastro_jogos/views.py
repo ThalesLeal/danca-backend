@@ -15,7 +15,7 @@ import re
 class UsuarioJogosListView(ListView):
     model = UsuarioJogos
     paginate_by = 10
-    template_name = "usuario_jogos/list.html"
+    template_name = "usuario/list.html"
 
     def get_queryset(self):
         query = self.request.GET.get('q')
@@ -33,20 +33,11 @@ class UsuarioJogosListView(ListView):
 @method_decorator(login_required, name='dispatch')
 class UsuarioJogosFormView(View):
     form_class = UsuarioJogosForm()
-    template_name = "usuario_jogos/form.html"
+    template_name = "usuario/form.html"
 
     def get(self, request):
-        query = request.GET.get('q')
-        if query:
-            usuarios = UsuarioJogos.objects.filter(nome__icontains=query).order_by('nome')
-        else:
-            usuarios = UsuarioJogos.objects.all().order_by('nome')
-
-        paginator = Paginator(usuarios, 10)
-        page_number = request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-
-        return render(request, self.template_list, {'page_obj': page_obj})
+        form = self.form_class
+        return render(request, self.template_name, {"form": form})
     
     def post(self, request):
         data = request.POST.copy()

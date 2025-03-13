@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{{ titulo }}</h1>
+
+<!-- Alert container when logged in -->
+{% if messages %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<form method="post">
+  {% csrf_token %}
+
+  <div class="row">
+    <div class="col-4 mb-3">
+      <label class="me-3" for="{{ form.nome.id_for_label }}">{{ form.nome.label }}</label>
+      {{ form.nome }}
+    </div>
+    <div class="col-4 mb-3">
+      <label class="me-3" for="{{ form.cpf.id_for_label }}">{{ form.cpf.label }}</label>
+      {{ form.cpf }}
+    </div>
+    <div class="col-4 mb-3">
+      <label class="me-3" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+      {{ form.email }}
+    </div>
+    <div class="col-4 mb-3">
+      <label class="me-3" for="{{ form.telefone.id_for_label }}">{{ form.telefone.label }}</label>
+      {{ form.telefone }}
+    </div>
+    <div class="col-4 mb-3">
+      <label class="me-3" for="{{ form.perfil.id_for_label }}">{{ form.perfil.label }}</label>
+      {{ form.perfil }}
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-success me-2 float-end"><i class="bi bi-floppy-fill"></i> Salvar</button>
+  <a href="{% url 'list_usuarios' %}" class="btn btn-secondary"><i class="bi bi-box-arrow-in-left"></i> Voltar</a>
+</form>
+
+{% endblock %}
