@@ -1,106 +1,98 @@
-from django.shortcuts import render
-from django.views.generic.edit import UpdateView
-from django.urls import reverse_lazy
-# Create your views here.
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse_lazy
 from .models import UsuarioJogos
 from django.contrib import messages
 from .forms import UsuarioJogosForm
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
-from django.core.paginator import Paginator
+from django.views import View
+from django.views.generic.list import ListView
+from django.views.generic.base import TemplateView
+from django.views.generic.edit import DeleteView
+from django.utils.decorators import method_decorator
 from .utils import PERFIL_CHOICES
 import re
-# Create a new user
 
 
-@login_required
-@never_cache
-def create_usuario(request):
-    if request.method == 'POST':
-        data = request.POST.copy()
-        cpf = re.sub(r'\D', '', request.POST.get('cpf'))  # Remove caracteres não numéricos do CPF
-        telefone = re.sub(r'\D', '', request.POST.get('telefone'))  # Remove caracteres não numéricos do telefone
-        data["cpf"] = cpf
-        data["telefone"] = telefone
-        form = UsuarioJogosForm(data)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Usuário criado com sucesso!')
-            return redirect('usuario_list')
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class UsuarioJogosListView(ListView):
+    model = UsuarioJogos
+    paginate_by = 10
+    template_name = "usuario/list.html"
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query:
+            return UsuarioJogos.objects.filter(nome__icontains=query).order_by('nome')
         else:
-            messages.error(request, form.errors)
-    else:
-        form = UsuarioJogosForm()
-
-    titulo = 'Cadastrar Usuário'
-    label_button = 'Cadastrar'
-    return render(request, 'create_usuario.html', {'form': form, 'titulo': titulo, 'label_button': label_button})
-
-
-# Read user details
-@login_required
-@never_cache
-def read_usuario(request, id):
-    usuario = get_object_or_404(UsuarioJogos, id=id)
-    return render(request, 'read_usuario.html', {'usuario': usuario})
-
-
-# Update user information
-@login_required
-@never_cache
-def update_usuario(request, id):
-    usuario = get_object_or_404(UsuarioJogos, id=id)
-    if request.method == 'POST':
-        data = request.POST.copy()
-        cpf = re.sub(r'\D', '', request.POST.get('cpf'))  # Remove caracteres não numéricos do CPF
-        telefone = re.sub(r'\D', '', request.POST.get('telefone'))  # Remove caracteres não numéricos do telefone
-        data["cpf"] = cpf
-        data["telefone"] = telefone
-        form = UsuarioJogosForm(data, instance=usuario)
+            return UsuarioJogos.objects.all().order_by('nome')
         
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['q'] = self.request.GET.get('q', '')
+        return context
+    
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class UsuarioJogosDetailView(TemplateView):
+    template_name = "usuario/usuario.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        usuario = get_object_or_404(UsuarioJogos, id=self.kwargs['id'])
+        context['usuario'] = usuario
+        return context
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class UsuarioJogosFormView(View):
+    form_class = UsuarioJogosForm
+    template_name = "usuario/form.html"
+
+    def get(self, request, id=None):
+        if id:
+            usuario = get_object_or_404(UsuarioJogos, id=id)
+            form = self.form_class(instance=usuario)
+        else:
+            form = self.form_class()
+
+        return render(request, self.template_name, {"form": form})
+    
+    def post(self, request, id=None):
+        data = request.POST.copy()
+        cpf = re.sub(r'\D', '', request.POST.get('cpf'))
+        telefone = re.sub(r'\D', '', request.POST.get('telefone'))
+
+        data["cpf"] = cpf
+        data["telefone"] = telefone
+
+        if id:
+            usuario = get_object_or_404(UsuarioJogos, id=id)
+            form = self.form_class(data, instance=usuario)
+            msg = 'Usuário atualizado com sucesso'
+        else:
+            form = self.form_class(data)
+            msg = 'Usuário cadastrado com sucesso'
+
         if form.is_valid():
             form.save()
-            messages.success(request, 'Usuário atualizado com sucesso!')
-            return redirect('usuario_list')
+            messages.success(request, msg)
+            return redirect('/')
         else:
             messages.error(request, form.errors)
-    else:
-        form = UsuarioJogosForm(instance=usuario)
 
-    titulo = 'Editar Usuário'
-    label_button = 'Atualizar'
+        return render(request, self.template_name, {"form": form})
+    
+    
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class UsuarioJogosDeleteView(DeleteView):
+    model = UsuarioJogos
+    pk_url_kwarg = "id"
 
-    return render(request, 'create_usuario.html', {'form': form, 'titulo': titulo, 'label_button': label_button})
-
-
-# Delete a user
-@login_required
-@never_cache
-def delete_usuario(request, id):
-    usuario = get_object_or_404(UsuarioJogos, id=id)
-    if request.method == 'POST':
-        usuario.delete()
-        messages.success(request, 'Usuário deletado com sucesso!')
-        return redirect('usuario_list')  # Redirect to user list after deletion
-    return render(request, 'delete_usuario.html', {'usuario': usuario})
-
-
-# List all users
-@login_required
-@never_cache
-def usuario_list(request):
-    query = request.GET.get('q')  # Obtém o parâmetro de busca da URL
-    if query:
-        usuarios = UsuarioJogos.objects.filter(nome__icontains=query).order_by('nome')  # Filtra usuários pelo nome
-    else:
-        usuarios = UsuarioJogos.objects.all().order_by('nome')  # Retorna todos os usuários se não houver busca
-
-    # Paginação
-    paginator = Paginator(usuarios, 10)  # Mostra 10 usuários por página
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    total_usuarios = usuarios.count()  # Total de registros
-
-    return render(request, 'index.html', {'page_obj': page_obj, 'total_usuarios': total_usuarios})
+    def get_success_url(self):
+        messages.success(self.request, "Usuário deletado com sucesso")
+        return reverse_lazy('list_usuarios')

@@ -1,10 +1,10 @@
 from django.urls import path
-from .views import usuario_list, create_usuario, read_usuario, update_usuario, delete_usuario
+from .views import *
 
 urlpatterns = [
-    path('', usuario_list, name='usuario_list'),
-    path('usuarios/create/', create_usuario, name='create_usuario'),
-    path('usuarios/<uuid:id>/', read_usuario, name='read_usuario'),
-    path('usuarios/<uuid:id>/update/', update_usuario, name='update_usuario'),
-    path('usuarios/<uuid:id>/delete/', delete_usuario, name='delete_usuario'),
+    path('', UsuarioJogosListView.as_view(), name='list_usuarios'),
+    path('usuarios/<uuid:id>/', UsuarioJogosDetailView.as_view(), name='detail_usuario'),
+    path('usuarios/create/', UsuarioJogosFormView.as_view(), name='create_usuario'),
+    path('usuarios/<uuid:id>/update/', UsuarioJogosFormView.as_view(), name='update_usuario'),
+    path('usuarios/<uuid:id>/delete/', UsuarioJogosDeleteView.as_view(), name='delete_usuario'),
 ]

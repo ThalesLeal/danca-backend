@@ -6,7 +6,7 @@
     <div class="d-flex flex-column flex-shrink-0 p-2 h-100">
         <ul class="nav nav-pills flex-column mb-auto">
             <li class="nav-item mb-2">
-                <a href="{% url 'usuario_list' %}" class="nav-link text-white {% if request.resolver_match.url_name == 'usuario_list' %}active{% endif %}">
+                <a href="{% url 'list_usuarios' %}" class="nav-link text-white {% if request.resolver_match.url_name == 'list_usuarios' %}active{% endif %}">
                     <i class="bi bi-person-fill me-2"></i>
                     Usuários
                 </a>

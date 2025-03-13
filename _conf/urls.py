@@ -27,12 +27,11 @@ admin.site.index_title = "Início"
 
 urlpatterns = [
     
-    path("", lambda request: redirect('usuario_list'), name="index"),
+    path("", include('cadastro_jogos.urls')),
     path("oidc/", include("mozilla_django_oidc.urls")),
     path("admin/", admin.site.urls),
     path("health/", include("watchman.urls")),
     path("__debug__/", include("debug_toolbar.urls")),
-    path('cadastro_jogos/', include('cadastro_jogos.urls')),
     path('oidc/login/', OIDCAuthenticationRequestView.as_view(), name='oidc_login'),
     path('oidc/logout/', OIDCLogoutView.as_view(), name='oidc_logout'),
 ]
