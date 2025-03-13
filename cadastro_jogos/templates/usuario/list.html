@@ -54,7 +54,7 @@
       <td class="col-3 text-center align-middle">{{ usuario.email }}</td>
       <td class="col-2 text-center align-middle mask-telefone">{{ usuario.telefone }}</td>
       <td class="col-3 text-center">
-        <a href="{% url 'read_usuario' usuario.id %}" class="btn btn-info"><i class="bi bi-eye-fill"></i></a>
+        <a href="{% url 'detail_usuario' usuario.id %}" class="btn btn-info"><i class="bi bi-eye-fill"></i></a>
         <a href="{% url 'update_usuario' usuario.id %}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a>
         <form method="post" action="{% url 'delete_usuario' usuario.id %}" style="display:inline;" class="delete-form">
           {% csrf_token %}

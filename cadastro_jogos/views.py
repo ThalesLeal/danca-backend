@@ -1,17 +1,21 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse_lazy
 from .models import UsuarioJogos
 from django.contrib import messages
 from .forms import UsuarioJogosForm
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
-from django.core.paginator import Paginator
 from django.views import View
 from django.views.generic.list import ListView
+from django.views.generic.base import TemplateView
+from django.views.generic.edit import DeleteView
 from django.utils.decorators import method_decorator
 from .utils import PERFIL_CHOICES
 import re
 
+
 @method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
 class UsuarioJogosListView(ListView):
     model = UsuarioJogos
     paginate_by = 10
@@ -28,99 +32,67 @@ class UsuarioJogosListView(ListView):
         context = super().get_context_data(**kwargs)
         context['q'] = self.request.GET.get('q', '')
         return context
+    
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class UsuarioJogosDetailView(TemplateView):
+    template_name = "usuario/usuario.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        usuario = get_object_or_404(UsuarioJogos, id=self.kwargs['id'])
+        context['usuario'] = usuario
+        return context
 
 
 @method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
 class UsuarioJogosFormView(View):
-    form_class = UsuarioJogosForm()
+    form_class = UsuarioJogosForm
     template_name = "usuario/form.html"
 
-    def get(self, request):
-        form = self.form_class
+    def get(self, request, id=None):
+        if id:
+            usuario = get_object_or_404(UsuarioJogos, id=id)
+            form = self.form_class(instance=usuario)
+        else:
+            form = self.form_class()
+
         return render(request, self.template_name, {"form": form})
     
-    def post(self, request):
+    def post(self, request, id=None):
         data = request.POST.copy()
-        cpf = re.sub(r'\D', '', request.POST.get('cpf'))  # Remove caracteres não numéricos do CPF
-        telefone = re.sub(r'\D', '', request.POST.get('telefone'))  # Remove caracteres não numéricos do telefone
+        cpf = re.sub(r'\D', '', request.POST.get('cpf'))
+        telefone = re.sub(r'\D', '', request.POST.get('telefone'))
 
         data["cpf"] = cpf
         data["telefone"] = telefone
 
-        form = self.form_class(data)
+        if id:
+            usuario = get_object_or_404(UsuarioJogos, id=id)
+            form = self.form_class(data, instance=usuario)
+            msg = 'Usuário atualizado com sucesso'
+        else:
+            form = self.form_class(data)
+            msg = 'Usuário cadastrado com sucesso'
 
         if form.is_valid():
             form.save()
-            messages.success(request, 'Usuário criado com sucesso')
+            messages.success(request, msg)
             return redirect('/')
-
-
-@login_required
-def create_usuario(request):
-    if request.method == 'POST':
-        data = request.POST.copy()
-        cpf = re.sub(r'\D', '', request.POST.get('cpf'))  # Remove caracteres não numéricos do CPF
-        telefone = re.sub(r'\D', '', request.POST.get('telefone'))  # Remove caracteres não numéricos do telefone
-        data["cpf"] = cpf
-        data["telefone"] = telefone
-        form = UsuarioJogosForm(data)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Usuário criado com sucesso!')
-            return redirect('usuario_list')
         else:
             messages.error(request, form.errors)
-    else:
-        form = UsuarioJogosForm()
 
-    titulo = 'Cadastrar Usuário'
-    label_button = 'Cadastrar'
-    return render(request, 'create_usuario.html', {'form': form, 'titulo': titulo, 'label_button': label_button})
+        return render(request, self.template_name, {"form": form})
+    
+    
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class UsuarioJogosDeleteView(DeleteView):
+    model = UsuarioJogos
+    pk_url_kwarg = "id"
 
-
-# Read user details
-@login_required
-@never_cache
-def read_usuario(request, id):
-    usuario = get_object_or_404(UsuarioJogos, id=id)
-    return render(request, 'read_usuario.html', {'usuario': usuario})
-
-
-# Update user information
-@login_required
-@never_cache
-def update_usuario(request, id):
-    usuario = get_object_or_404(UsuarioJogos, id=id)
-    if request.method == 'POST':
-        data = request.POST.copy()
-        cpf = re.sub(r'\D', '', request.POST.get('cpf'))  # Remove caracteres não numéricos do CPF
-        telefone = re.sub(r'\D', '', request.POST.get('telefone'))  # Remove caracteres não numéricos do telefone
-        data["cpf"] = cpf
-        data["telefone"] = telefone
-        form = UsuarioJogosForm(data, instance=usuario)
-        
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Usuário atualizado com sucesso!')
-            return redirect('usuario_list')
-        else:
-            messages.error(request, form.errors)
-    else:
-        form = UsuarioJogosForm(instance=usuario)
-
-    titulo = 'Editar Usuário'
-    label_button = 'Atualizar'
-
-    return render(request, 'create_usuario.html', {'form': form, 'titulo': titulo, 'label_button': label_button})
-
-
-# Delete a user
-@login_required
-@never_cache
-def delete_usuario(request, id):
-    usuario = get_object_or_404(UsuarioJogos, id=id)
-    if request.method == 'POST':
-        usuario.delete()
-        messages.success(request, 'Usuário deletado com sucesso!')
-        return redirect('usuario_list')  # Redirect to user list after deletion
-    return render(request, 'delete_usuario.html', {'usuario': usuario})
+    def get_success_url(self):
+        messages.success(self.request, "Usuário deletado com sucesso")
+        return reverse_lazy('list_usuarios')
