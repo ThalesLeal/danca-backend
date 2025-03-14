@@ -56,10 +56,12 @@ class UsuarioJogosFormView(View):
         if id:
             usuario = get_object_or_404(UsuarioJogos, id=id)
             form = self.form_class(instance=usuario)
+            titulo = 'Editar Usuário'
         else:
             form = self.form_class()
+            titulo = 'Cadastro de Usuário'
 
-        return render(request, self.template_name, {"form": form})
+        return render(request, self.template_name, {"form": form, "titulo": titulo})
     
     def post(self, request, id=None):
         data = request.POST.copy()
