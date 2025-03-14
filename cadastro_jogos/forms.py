@@ -1,5 +1,5 @@
 from django import forms
-from .models import UsuarioJogos
+from .models import UsuarioJogos, Regional
 from .utils import PERFIL_CHOICES
 import re
 
@@ -40,3 +40,20 @@ class UsuarioJogosForm(forms.ModelForm):
         if UsuarioJogos.objects.filter(cpf=cpf).exclude(id=self.instance.id).exists():
             raise forms.ValidationError("CPF já cadastrado.")
         return cpf
+
+class RegionalForm(forms.ModelForm):
+    class Meta:
+        model = Regional
+        fields = ['nome', 'numero', 'cidade', 'tipo_regional']
+        widgets = {
+            'tipo_regional': forms.Select(attrs={'class': 'form-control'}),
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'numero': forms.NumberInput(attrs={'class': 'form-control'}),
+            'cidade': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'nome': 'Nome da Regional',
+            'numero': 'Número',
+            'cidade': 'Cidade',
+            'tipo_regional': 'Tipo de Regional',
+        }
