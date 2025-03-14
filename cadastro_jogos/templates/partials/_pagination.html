@@ -1,5 +1,5 @@
 <!-- Numero de registros / paginas -->
- <div class="row pb-2">
+ <div class="row py-2">
   <div class="col-6">
     <span class="bold">Total de registros: {{ page_obj.paginator.count }}</span>
   </div>
@@ -9,7 +9,7 @@
  </div>
 
 <!-- Navegação da paginação -->
-<nav aria-label="Page navigation">
+<nav aria-label="Paginação">
   <ul class="pagination justify-content-center">
     {% if page_obj.has_previous %}
       <li class="page-item">

@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from .models import UsuarioJogos
 from django.contrib import messages
 from .forms import UsuarioJogosForm
@@ -31,6 +31,7 @@ class UsuarioJogosListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['q'] = self.request.GET.get('q', '')
+        context['create_url'] = reverse('create_usuario')
         return context
     
 
