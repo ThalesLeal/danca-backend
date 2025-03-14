@@ -5,3 +5,8 @@ PERFIL_CHOICES = [
     ("3", "Responsável Sejel"),
 ]
 
+TIPO_REGIONAL_CHOICES = [
+    ('escolar', 'Escolar'),
+    ('amador', 'Amador'),
+    ('profissional', 'Profissional'),
+]
