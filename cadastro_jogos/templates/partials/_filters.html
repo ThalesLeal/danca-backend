@@ -5,10 +5,10 @@
     <form method="get" action="{{ search_url }}" class="mb-3">
       <label for="search" class="form-label">Filtro por Nome</label>
       <div class="input-group">
-        <input type="text" name="q" id="search" placeholder="Filtrar por nome" class="form-control form-control-sm"
+        <input type="text" name="q" id="search" placeholder="Filtrar por nome" class="form-control"
           value="{{ request.GET.q }}" required />
-        <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-funnel"></i><span class="esconder-sm"> Filtrar</span></button>
-        <a href="{{ search_url }}" class="btn btn-sm btn-secondary"><i class="bi bi-trash3-fill"></i><span class="esconder-sm"> Limpar</span></a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-funnel"></i><span class="esconder-sm"> Filtrar</span></button>
+        <a href="{{ search_url }}" class="btn btn-secondary"><i class="bi bi-trash3-fill"></i><span class="esconder-sm"> Limpar</span></a>
       </div>
     </form>
   </div>
