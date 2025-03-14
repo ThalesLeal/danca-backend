@@ -108,13 +108,14 @@
     document.addEventListener('DOMContentLoaded', function () {
         const deleteForms = document.querySelectorAll('.delete-form');
         deleteForms.forEach(function (form) {
-        form.addEventListener('submit', function (event) {
-            const confirmed = confirm('Tem certeza que deseja remover o usuário?');
-            if (!confirmed) {
-            event.preventDefault();
-            }
-        });
+            form.addEventListener('submit', function (event) {
+                const confirmed = confirm('Tem certeza que deseja remover a regional?');
+                if (!confirmed) {
+                    event.preventDefault();
+                }
+            });
         });
     });
 </script>
+
 {% endblock %}

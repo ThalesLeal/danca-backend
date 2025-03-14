@@ -3,7 +3,6 @@
 {% block content %}
 <h1>{% if form.instance.pk %}Editar{% else %}Criar{% endif %} Regional</h1>
 
-
 {% if messages %}
 <div class="container">
   <div class="row">
@@ -21,7 +20,25 @@
 
 <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
+    <div class="row">
+        <div class="col-4 mb-3">
+            <label class="me-3" for="{{ form.nome.id_for_label }}">{{ form.nome.label }}</label>
+            {{ form.nome }}
+        </div>
+        <div class="col-4 mb-3">
+            <label class="me-3" for="{{ form.numero.id_for_label }}">{{ form.numero.label }}</label>
+            {{ form.numero }}
+        </div>
+        <div class="col-4 mb-3">
+            <label class="me-3" for="{{ form.cidade.id_for_label }}">{{ form.cidade.label }}</label>
+            {{ form.cidade }}
+        </div>
+        <div class="col-4 mb-3">
+            <label class="me-3" for="{{ form.tipo_regional.id_for_label }}">{{ form.tipo_regional.label }}</label>
+            {{ form.tipo_regional }}
+        </div>
+    </div>
+    
     <button type="submit" class="btn btn-success">{% if form.instance.pk %}Atualizar{% else %}Cadastrar{% endif %}</button>
 </form>
 

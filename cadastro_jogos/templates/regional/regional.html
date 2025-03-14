@@ -25,7 +25,7 @@
 <a href="{% url 'update_regional' regional.pk %}" class="btn btn-warning"><i class="bi bi-pencil-square"></i> Editar</a>
 <form method="post" action="{% url 'delete_regional' regional.pk %}" style="display:inline;">
     {% csrf_token %}
-    <button type="submit" class="btn btn-danger"><i class="bi bi-trash3-fill"></i> Excluir</button>
+    
 </form>
 <a href="{% url 'list_regional' %}" class="btn btn-secondary"><i class="bi bi-box-arrow-in-left"></i> Voltar</a>
 {% endblock %}
