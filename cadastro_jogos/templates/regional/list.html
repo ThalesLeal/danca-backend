@@ -20,12 +20,12 @@
 
 <div class="row">
   <div class="col-9">
-    <form method="get" action="{% url 'list_regional' %}" class="mb-3">
+    <form method="get" action="{% url 'list_regionais' %}" class="mb-3">
       <label for="search" class="form-label">Filtro por Nome</label>
       <div class="input-group">
         <input type="text" name="q" id="search" placeholder="Filtrar por nome" class="form-control form-control-sm" value="{{ request.GET.q }}" />
         <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-funnel"></i> Filtrar</button>
-        <a href="{% url 'list_regional' %}" class="btn btn-sm btn-secondary"><i class="bi bi-trash3-fill"></i> Limpar</a>
+        <a href="{% url 'list_regionais' %}" class="btn btn-sm btn-secondary"><i class="bi bi-trash3-fill"></i> Limpar</a>
       </div>
     </form>
   </div>

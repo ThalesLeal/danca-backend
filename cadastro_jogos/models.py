@@ -86,11 +86,7 @@ class Regional(models.Model):
         verbose_name_plural = "Regionais"
 
     def __str__(self):
-        return f"{self.nome} - {self.cidade}"
-    def clean(self):        
-        if self.numero < 1 or self.numero > 99:           
-            raise ValidationError(_('O número deve estar entre 1 e 99.'))
-
+        return f"{self.nome} - {self.cidade}"  
 
 class UsuarioRegional(models.Model):
     usuario = models.ForeignKey(UsuarioJogos, on_delete=models.CASCADE)
