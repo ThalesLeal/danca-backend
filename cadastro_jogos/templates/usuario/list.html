@@ -19,26 +19,10 @@
 </div>
 {% endif %}
 
-<div class="row">
-  <div class="col-9">
-    <!-- Formulário de busca -->
-    <form method="get" action="{% url 'list_usuarios' %}" class="mb-3">
-      <label for="search" class="form-label">Filtro por Nome</label>
-      <div class="input-group">
-        <input type="text" name="q" id="search" placeholder="Filtrar por nome" class="form-control form-control-sm"
-          value="{{ request.GET.q }}" required />
-        <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-funnel"></i> Filtrar</button>
-        <a href="{% url 'list_usuarios' %}" class="btn btn-sm btn-secondary"><i class="bi bi-trash3-fill"></i> Limpar</a>
-      </div>
-    </form>
-  </div>
-  <div class="col-3 mb-3 align-self-end ">
-    <!-- Botão para cadastrar novo usuário -->
-    <a href="{% url 'create_usuario' %}" class="btn btn-primary float-end"><i class="bi bi-plus"></i> Novo Usuário</a>
-  </div>
-</div>
+<!-- Inclua o partial de busca e criação de registro -->
+{% include "partials/_filters.html" with search_url=request.path create_url=create_url %}
 
-<table class="table">
+<table class="table table-striped table-hover">
   <thead>
     <tr>
       <th>Nome</th>
@@ -70,42 +54,8 @@
   </tbody>
 </table>
 
-<!-- Navegação da paginação -->
-<nav aria-label="Page navigation">
-  <ul class="pagination justify-content-center">
-    {% if page_obj.has_previous %}
-    <li class="page-item">
-      <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" aria-label="First">
-        <span aria-hidden="true">&laquo;&laquo;</span>
-      </a>
-    </li>
-    <li class="page-item">
-      <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" aria-label="Previous">
-        <span aria-hidden="true">&laquo;</span>
-      </a>
-    </li>
-    {% endif %}
-    {% for num in page_obj.paginator.page_range %}
-    {% if page_obj.number == num %}
-    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-    <li class="page-item"><a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ num }}</a></li>
-    {% endif %}
-    {% endfor %}
-    {% if page_obj.has_next %}
-    <li class="page-item">
-      <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" aria-label="Next">
-        <span aria-hidden="true">&raquo;</span>
-      </a>
-    </li>
-    <li class="page-item">
-      <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" aria-label="Last">
-        <span aria-hidden="true">&raquo;&raquo;</span>
-      </a>
-    </li>
-    {% endif %}
-  </ul>
-</nav>
+<!-- Inclua o partial de paginação -->
+{% include "partials/_pagination.html" %}
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
