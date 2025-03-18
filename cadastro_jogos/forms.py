@@ -1,5 +1,5 @@
 from django import forms
-from .models import UsuarioJogos, Regional
+from .models import UsuarioJogos, Regional, UsuarioRegional
 from .utils import PERFIL_CHOICES
 import re
 
@@ -56,4 +56,22 @@ class RegionalForm(forms.ModelForm):
             'numero': 'Número',
             'cidade': 'Cidade',
             'tipo_regional': 'Tipo de Regional',
+        }
+
+
+class UsuarioRegionalForm(forms.ModelForm):
+    class Meta:
+        model = UsuarioRegional
+        fields = ['usuario', 'data_inicio', 'data_fim', 'regional']
+        labels = {
+            'usuario': 'Usuário',
+            'data_inicio': 'Data de Início',
+            'data_fim': 'Data de Fim',
+            'regional': 'Regional',
+        }
+        widgets = {
+            'usuario': forms.Select(attrs={'class': 'form-control'}),
+            'data_inicio': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'data_fim': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'regional': forms.Select(attrs={'class': 'form-control'}),
         }
