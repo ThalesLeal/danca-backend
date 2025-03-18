@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{% if usuario_regional %}Editar Usuário Regional{% else %}Adicionar Usuário Regional{% endif %}</h1>
+
+{% if messages %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="container">
+  <form method="post" action="{% if usuario_regional %}{% url 'update_usuario_regional' usuario_regional.id %}{% else %}{% url 'create_usuario_regional' regional.id %}{% endif %}">
+      {% csrf_token %}
+      <input type="hidden" name="regional_id" value="{{ regional_id }}">
+      <div class="mb-3">
+          <label for="usuario" class="form-label">Usuário</label>
+          {{ form.usuario }}
+      </div>
+      <div class="mb-3">
+          <label for="data_inicio" class="form-label">Data de Início</label>
+          {{ form.data_inicio }}
+      </div>
+      <div class="mb-3">
+          <label for="data_fim" class="form-label">Data de Fim</label>
+          {{ form.data_fim }}
+      </div>
+      <div class="mb-3">
+          <label for="regional" class="form-label">Regional</label>
+          <select name="regional" class="form-control">
+              <option value="{{ regional_id }}" selected>{{ regional_id }}</option>
+          </select>
+      </div>
+      <button type="submit" class="btn btn-primary">Salvar</button>
+  </form>
+</div>
+
+{% endblock %}

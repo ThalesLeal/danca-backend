@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Lista de Regionais</h1>
+<h1>Usuários Regionais</h1>
+
 
 {% if messages %}
 <div class="container">
@@ -20,54 +21,57 @@
 
 <div class="row">
   <div class="col-9">
-    <form method="get" action="{% url 'list_regional' %}" class="mb-3">
+    
+    <form method="get" action="{% url 'list_usuario_regional' regional.id %}" class="mb-3">
       <label for="search" class="form-label">Filtro por Nome</label>
       <div class="input-group">
-        <input type="text" name="q" id="search" placeholder="Filtrar por nome" class="form-control form-control-sm" value="{{ request.GET.q }}" />
+        <input type="text" name="q" id="search" placeholder="Filtrar por nome" class="form-control form-control-sm"
+          value="{{ request.GET.q }}" required />
         <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-funnel"></i> Filtrar</button>
-        <a href="{% url 'list_regional' %}" class="btn btn-sm btn-secondary"><i class="bi bi-trash3-fill"></i> Limpar</a>
+        <a href="{% url 'list_usuario_regional' regional.id %}" class="btn btn-sm btn-secondary"><i class="bi bi-trash3-fill"></i> Limpar</a>
       </div>
     </form>
   </div>
-  <div class="col-3 mb-3 align-self-end">
-    <a href="{% url 'create_regional' %}" class="btn btn-primary float-end"><i class="bi bi-plus"></i> Nova Regional</a>
+  <div class="col-3 mb-3 align-self-end ">
+      <a href="{% url 'create_usuario_regional' regional.id %}" class="btn btn-primary float-end">
+          <i class="bi bi-plus"></i> Novo Usuário Regional
+      </a>
   </div>
-</div>
 
 <table class="table">
   <thead>
     <tr>
       <th>Nome</th>
-      <th>Número</th>
-      <th>Cidade</th>
-      <th>Tipo de Regional</th>
-      <th>Ações</th>
+      <th class="text-center">CPF</th>
+      <th class="text-center">Email</th>
+      <th class="text-center">Telefone</th>
+      <th class="text-center">Ações</th>
     </tr>
   </thead>
   <tbody>
-    {% for regional in page_obj %}
+    {% for usuario_regional in page_obj %}
     <tr>
-      <td>{{ regional.nome }}</td>
-      <td>{{ regional.numero }}</td>
-      <td>{{ regional.cidade }}</td>
-      <td>{{ regional.get_tipo_regional_display }}</td>
-      <td>
-        <a href="{% url 'list_usuario_regional' regional.pk %}" class="btn btn-success"><i class="bi bi-person-fill-add"></i>
-        <a href="{% url 'detail_regional' regional.pk %}" class="btn btn-info"><i class="bi bi-eye-fill"></i></a>
-        <a href="{% url 'update_regional' regional.pk %}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a>
-        <form method="post" action="{% url 'delete_regional' regional.pk %}" style="display:inline;" class="delete-form">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger"><i class="bi bi-trash3-fill"></i></button>
+      <td class="align-middle">{{ usuario_regional.nome }}</td>
+      <td class="col-3 text-center align-middle">{{ usuario_regional.cpf }}</td>
+      <td class="col-3 text-center align-middle">{{ usuario_regional.email }}</td>
+      <td class="col-2 text-center align-middle mask-telefone">{{ usuario_regional.telefone }}</td>
+      <td class="col-3 text-center">
+        <a href="{% url 'detail_usuario_regional' usuario_regional.id %}" class="btn btn-info"><i class="bi bi-eye-fill"></i></a>
+        <a href="{% url 'update_usuario_regional' usuario_regional.id %}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a>
+        <form method="post" action="{% url 'delete_usuario_regional' usuario_regional.id %}" style="display:inline;" class="delete-form">
+          {% csrf_token %}
+          <button type="submit" id="btn-delet" class="btn btn-danger"><i class="bi bi-trash3-fill"></i></button>
         </form>
       </td>
     </tr>
     {% empty %}
     <tr>
-      <td colspan="5">Nenhuma regional encontrada.</td>
+      <td colspan="5">Nenhum usuário regional encontrado.</td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
+
 
 <nav aria-label="Page navigation">
   <ul class="pagination justify-content-center">
@@ -106,17 +110,16 @@
 </nav>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const deleteForms = document.querySelectorAll('.delete-form');
-        deleteForms.forEach(function (form) {
-            form.addEventListener('submit', function (event) {
-                const confirmed = confirm('Tem certeza que deseja remover a regional?');
-                if (!confirmed) {
-                    event.preventDefault();
-                }
-            });
-        });
+  document.addEventListener('DOMContentLoaded', function () {
+    const deleteForms = document.querySelectorAll('.delete-form');
+    deleteForms.forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        const confirmed = confirm('Tem certeza que deseja remover o usuário regional?');
+        if (!confirmed) {
+          event.preventDefault();
+        }
+      });
     });
+  });
 </script>
-
 {% endblock %}

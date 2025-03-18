@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Detalhes do Usuário Regional</h1>
+
+<div class="row">
+  <div class="col-4 mb-3">
+    <label class="me-3">Nome Completo:</label><br />
+    {{ usuario_regional.nome }}
+  </div>
+  <div class="col-4 mb-3">
+    <label class="me-3">CPF:</label><br />
+    <span class="mask-cpf">{{ usuario_regional.cpf }}</span><br />
+  </div>
+  <div class="col-4 mb-3">
+    <label class="me-3">Email:</label><br />
+    {{ usuario_regional.email }}
+  </div>
+  <div class="col-4 mb-3">
+    <label class="me-3">Telefone:</label><br />
+    <span class="mask-telefone">{{ usuario_regional.telefone }}</span>
+  </div>
+  <div class="col-4 mb-3">
+    <label class="me-3">Perfil:</label><br />
+    {{ usuario_regional.get_perfil_display }}
+  </div>
+</div>
+
+<a href="{% url 'update_usuario_regional' usuario_regional.id %}" class="btn btn-warning float-end"><i class="bi bi-pencil-square"></i> Editar</a>
+<a href="{% url 'list_usuario_regional' %}" class="btn btn-secondary"><i class="bi bi-box-arrow-in-left"></i> Voltar</a>
+{% endblock %}
