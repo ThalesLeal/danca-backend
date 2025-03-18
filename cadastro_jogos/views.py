@@ -158,7 +158,7 @@ class RegionalFormView(View):
         if form.is_valid():
             form.save()
             messages.success(request, msg)
-            return redirect('list_regional')
+            return redirect('list_regionais')
         else:
             messages.error(request, form.errors)
 
@@ -171,4 +171,4 @@ class RegionalDeleteView(DeleteView):
     pk_url_kwarg = "id"
     def get_success_url(self):
         messages.success(self.request, "Regional deletada com sucesso")
-        return reverse_lazy('list_regional')
+        return reverse_lazy('list_regionais')

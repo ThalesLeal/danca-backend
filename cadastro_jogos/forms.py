@@ -39,7 +39,9 @@ class UsuarioJogosForm(forms.ModelForm):
         cpf = re.sub(r'\D', '', cpf)  # Remove caracteres não numéricos do CPF
         if UsuarioJogos.objects.filter(cpf=cpf).exclude(id=self.instance.id).exists():
             raise forms.ValidationError("CPF já cadastrado.")
-        return cpf
+        return cpf  
+    
+
 
 class RegionalForm(forms.ModelForm):
     class Meta:
@@ -57,3 +59,8 @@ class RegionalForm(forms.ModelForm):
             'cidade': 'Cidade',
             'tipo_regional': 'Tipo de Regional',
         }
+    def clean_numero(self):
+        numero = self.cleaned_data.get('numero')
+        if numero is not None and (numero < 1 or numero > 99):
+            raise forms.ValidationError("Erro: O número da regional deve estar entre 1 e 99, e deve ser inteiro.")
+        return numero
