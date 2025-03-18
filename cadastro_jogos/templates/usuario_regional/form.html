@@ -21,7 +21,11 @@
 <div class="container">
   <form method="post" action="{% if usuario_regional %}{% url 'update_usuario_regional' usuario_regional.id %}{% else %}{% url 'create_usuario_regional' regional.id %}{% endif %}">
       {% csrf_token %}
-      <input type="hidden" name="regional_id" value="{{ regional_id }}">
+      
+      <input type="hidden" name="regional" value="{{ regional.id }}">
+
+      <p><strong>Regional Selecionada:</strong> {{ regional.nome }}</p>
+
       <div class="mb-3">
           <label for="usuario" class="form-label">Usuário</label>
           {{ form.usuario }}
@@ -34,12 +38,7 @@
           <label for="data_fim" class="form-label">Data de Fim</label>
           {{ form.data_fim }}
       </div>
-      <div class="mb-3">
-          <label for="regional" class="form-label">Regional</label>
-          <select name="regional" class="form-control">
-              <option value="{{ regional_id }}" selected>{{ regional_id }}</option>
-          </select>
-      </div>
+
       <button type="submit" class="btn btn-primary">Salvar</button>
   </form>
 </div>

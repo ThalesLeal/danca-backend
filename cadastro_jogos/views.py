@@ -220,26 +220,22 @@ class UsuarioRegionalFormView(TemplateView):
             usuario_regional = get_object_or_404(UsuarioRegional, id=usuario_regional_id, regional=regional)
             form = self.form_class(instance=usuario_regional)
         else:
-            form = self.form_class()
+           form = self.form_class(initial={"regional": regional.id})
         return render(request, self.template_name, {"form": form, "regional": regional})
+    def post(self, request, id):
+        regional = get_object_or_404(Regional, id=id)
+        form = self.form_class(request.POST)
 
-    def post(self, request, id=None):
-        if id:
-            usuario_regional = get_object_or_404(UsuarioRegional, id=id)
-            form = self.form_class(request.POST, instance=usuario_regional)
-            msg = 'Usuário Regional atualizado com sucesso!'
-        else:
-            form = self.form_class(request.POST)
-            msg = 'Usuário Regional criado com sucesso!'
-        
         if form.is_valid():
-            form.save()
-            messages.success(request, msg)
-            return redirect('list_usuario_regional', id=request.POST.get('regional_id')) 
+            usuario_regional = form.save(commit=False)
+            usuario_regional.regional = regional
+            usuario_regional.save()
+            messages.success(request, 'Usuário Regional criado com sucesso!')
+            return redirect('list_usuario_regional', id=regional.id)
         else:
             messages.error(request, form.errors)
 
-        return render(request, self.template_name, {"form": form})
+        return render(request, self.template_name, {"form": form, "regional": regional})
         
 @method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name="dispatch")

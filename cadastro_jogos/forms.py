@@ -80,3 +80,8 @@ class UsuarioRegionalForm(forms.ModelForm):
             'data_fim': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'regional': forms.Select(attrs={'class': 'form-control'}),
         }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if "instance" in kwargs and kwargs["instance"]:
+            self.fields["regional"].initial = kwargs["instance"].regional
+        self.fields["regional"].widget = forms.HiddenInput()

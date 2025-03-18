@@ -56,7 +56,7 @@
       <td class="col-3 text-center align-middle">{{ usuario_regional.email }}</td>
       <td class="col-2 text-center align-middle mask-telefone">{{ usuario_regional.telefone }}</td>
       <td class="col-3 text-center">
-        <a href="{% url 'detail_usuario_regional' usuario_regional.id %}" class="btn btn-info"><i class="bi bi-eye-fill"></i></a>
+        <a href="{% url 'detail_usuario_regional' regional.id usuario_regional.id %}" class="btn btn-info"><i class="bi bi-eye-fill"></i></a>
         <a href="{% url 'update_usuario_regional' usuario_regional.id %}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a>
         <form method="post" action="{% url 'delete_usuario_regional' usuario_regional.id %}" style="display:inline;" class="delete-form">
           {% csrf_token %}
