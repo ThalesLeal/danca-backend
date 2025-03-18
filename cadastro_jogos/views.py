@@ -1,8 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
-from .models import UsuarioJogos, Regional
+from .models import UsuarioJogos, Regional, UsuarioRegional
 from django.contrib import messages
-from .forms import UsuarioJogosForm, RegionalForm
+from .forms import UsuarioJogosForm, RegionalForm, UsuarioRegionalForm
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.views import View
@@ -169,3 +169,81 @@ class RegionalDeleteView(DeleteView):
     def get_success_url(self):
         messages.success(self.request, "Regional deletada com sucesso")
         return reverse_lazy('list_regional')
+
+
+#Crud Usuario Regional
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class UsuarioRegionalListView(ListView):
+    model = UsuarioRegional
+    paginate_by = 10
+    template_name = "usuario_regional/list.html"
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query:
+            return UsuarioRegional.objects.filter(usuario__icontains=query).order_by('usuario')
+        else:
+            return UsuarioRegional.objects.all().order_by('usuario')
+        
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['q'] = self.request.GET.get('q', '')
+        context['regional'] = get_object_or_404(Regional, id=self.kwargs['id'])
+        return context    
+    
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class UsuarioRegionalDetailView(TemplateView):
+    template_name = "usuario_regional/regional.html" 
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        usuario_regional = get_object_or_404(UsuarioRegional, id=self.kwargs['id'])
+        context['usuario_regional'] = usuario_regional
+        return context
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class UsuarioRegionalFormView(TemplateView):
+    form_class = UsuarioRegionalForm
+    template_name = "usuario_regional/form.html"
+
+    def get(self, request, id, usuario_regional_id=None):
+        regional = get_object_or_404(Regional, id=id)
+        if usuario_regional_id:
+            usuario_regional = get_object_or_404(UsuarioRegional, id=usuario_regional_id, regional=regional)
+            form = self.form_class(instance=usuario_regional)
+        else:
+            form = self.form_class()
+        return render(request, self.template_name, {"form": form, "regional": regional})
+
+    def post(self, request, id=None):
+        if id:
+            usuario_regional = get_object_or_404(UsuarioRegional, id=id)
+            form = self.form_class(request.POST, instance=usuario_regional)
+            msg = 'Usuário Regional atualizado com sucesso!'
+        else:
+            form = self.form_class(request.POST)
+            msg = 'Usuário Regional criado com sucesso!'
+        
+        if form.is_valid():
+            form.save()
+            messages.success(request, msg)
+            return redirect('list_usuario_regional', id=request.POST.get('regional_id')) 
+        else:
+            messages.error(request, form.errors)
+
+        return render(request, self.template_name, {"form": form})
+        
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class UsuarioRegionalDeleteView(DeleteView):
+    model = UsuarioRegional
+    pk_url_kwarg = "id"
+    def get_success_url(self):
+        messages.success(self.request, "Usuario Regional deletado com sucesso")
+        return reverse_lazy('list_usuario_regional')
+
