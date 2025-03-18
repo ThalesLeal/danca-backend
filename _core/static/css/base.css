@@ -44,11 +44,53 @@ label[for][for]:has(+ select[required])::after {
     bottom: 0;
     width: 200px;
     z-index: 100;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
     background-color: #0f2f4e;
+    color: white;
 }
 
+.sidebar a {
+    color: white;
+    /* padding: 10px; */
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+.sidebar a i {
+    margin-right: 0;
+    font-size: 1.2em;
+}
+.sidebar a:hover {
+    background: #093d70;
+    color: white;
+}
+.sidebar a span {
+    margin-left: 10px;
+}
+.content {
+    margin-left: 250px;
+    padding: 10px;
+    transition: margin-left 0.3s;
+}
+@media (max-width: 768px) {
+    .sidebar {
+        width: 70px;
+    }
+    .sidebar a {
+        justify-content: center;
+    }
+    .sidebar a span, .esconder-sm {
+        display: none;
+    }
+    .content, .main-content {
+        margin-left: 70px !important;
+    }
+    footer {
+        padding-left: 60px !important;
+    }
+}
+/* 
 .sidebar.collapsed {
     width: 50px;
 }
@@ -78,7 +120,7 @@ label[for][for]:has(+ select[required])::after {
     cursor: pointer;
     z-index: 101;
     padding: 0;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .sidebar .nav-link {
@@ -91,12 +133,12 @@ label[for][for]:has(+ select[required])::after {
 }
 
 .sidebar .nav-link:hover {
-    background-color: rgba(255,255,255,0.1);
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .sidebar .nav-link.active {
     background-color: #0d6efd;
-}
+} */
 
 /* Ajuste para o conteúdo principal */
 .main-content {
@@ -110,17 +152,23 @@ label[for][for]:has(+ select[required])::after {
 }
 
 /* Responsividade para telas menores */
-@media (max-width: 768px) {
+/* @media (max-width: 768px) {
     .sidebar {
         width: 100%;
         position: relative;
         top: 0;
         height: auto;
     }
+
     .main-content {
-        margin-left: 0;
+        margin-left: 0 !important;
     }
-    .sidebar-toggle {
+
+    .sidebar.collapsed {
         display: none;
     }
-}
+
+    .sidebar-toggle {
+        display: block;
+    }
+} */

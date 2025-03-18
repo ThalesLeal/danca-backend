@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from .models import UsuarioJogos, Regional, UsuarioRegional
 from django.contrib import messages
 from .forms import UsuarioJogosForm, RegionalForm, UsuarioRegionalForm
@@ -31,6 +31,7 @@ class UsuarioJogosListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['q'] = self.request.GET.get('q', '')
+        context['create_url'] = reverse('create_usuario')
         return context
     
 
@@ -56,10 +57,12 @@ class UsuarioJogosFormView(View):
         if id:
             usuario = get_object_or_404(UsuarioJogos, id=id)
             form = self.form_class(instance=usuario)
+            titulo = 'Editar Usuário'
         else:
             form = self.form_class()
+            titulo = 'Cadastro de Usuário'
 
-        return render(request, self.template_name, {"form": form})
+        return render(request, self.template_name, {"form": form, "titulo": titulo})
     
     def post(self, request, id=None):
         data = request.POST.copy()
