@@ -183,30 +183,58 @@ class UsuarioRegionalListView(ListView):
     paginate_by = 10
     template_name = "usuario_regional/list.html"
 
+    # def get_queryset(self):
+    # query = self.request.GET.get('q')
+    # if query:
+    #     return UsuarioRegional.objects.filter(usuario__icontains=query).order_by('usuario')
+    # else:
+    #     return UsuarioRegional.objects.all().order_by('usuario')
+
     def get_queryset(self):
+        regional_id = self.kwargs.get('id')
         query = self.request.GET.get('q')
+
+        queryset = UsuarioRegional.objects.filter(regional_id=regional_id)
+
         if query:
-            return UsuarioRegional.objects.filter(usuario__icontains=query).order_by('usuario')
-        else:
-            return UsuarioRegional.objects.all().order_by('usuario')
-        
+            queryset = queryset.filter(usuario__icontains=query)
+
+        return queryset.order_by('usuario')
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['q'] = self.request.GET.get('q', '')
         context['regional'] = get_object_or_404(Regional, id=self.kwargs['id'])
-        return context    
+        return context
+    
     
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name="dispatch")
 class UsuarioRegionalDetailView(TemplateView):
-    template_name = "usuario_regional/regional.html" 
+    template_name = "usuario_regional/usuario_regional.html" 
+
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     usuario_regional = get_object_or_404(UsuarioRegional, id=self.kwargs['id'])
+    #     context['usuario_regional'] = usuario_regional
+    #     return context
+
+
+    def get_object(self):
+        regional_id = self.kwargs.get('id')
+        usuario_regional_id = self.kwargs.get('usuario_regional_id')
+
+        if not usuario_regional_id:
+            raise Http404("Usuário Regional não encontrado.")
+
+        return get_object_or_404(UsuarioRegional, id=usuario_regional_id, regional_id=regional_id)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        usuario_regional = get_object_or_404(UsuarioRegional, id=self.kwargs['id'])
-        context['usuario_regional'] = usuario_regional
+        context['usuario_regional'] = self.get_object()
         return context
+
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name="dispatch")
@@ -221,7 +249,12 @@ class UsuarioRegionalFormView(TemplateView):
             form = self.form_class(instance=usuario_regional)
         else:
            form = self.form_class(initial={"regional": regional.id})
-        return render(request, self.template_name, {"form": form, "regional": regional})
+        return render(request, self.template_name, {
+            "form": form, 
+            "regional": regional, 
+            "usuario_regional": usuario_regional if usuario_regional_id else None
+        })
+    
     def post(self, request, id):
         regional = get_object_or_404(Regional, id=id)
         form = self.form_class(request.POST)
@@ -231,7 +264,8 @@ class UsuarioRegionalFormView(TemplateView):
             usuario_regional.regional = regional
             usuario_regional.save()
             messages.success(request, 'Usuário Regional criado com sucesso!')
-            return redirect('list_usuario_regional', id=regional.id)
+            return redirect('detail_usuario_regional', id=regional.id, usuario_regional_id=usuario_regional.id)
+
         else:
             messages.error(request, form.errors)
 
