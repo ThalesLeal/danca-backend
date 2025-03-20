@@ -1,5 +1,5 @@
 from django import forms
-from .models import UsuarioJogos
+from .models import UsuarioJogos, Regional
 from .utils import PERFIL_CHOICES
 import re
 
@@ -39,4 +39,28 @@ class UsuarioJogosForm(forms.ModelForm):
         cpf = re.sub(r'\D', '', cpf)  # Remove caracteres não numéricos do CPF
         if UsuarioJogos.objects.filter(cpf=cpf).exclude(id=self.instance.id).exists():
             raise forms.ValidationError("CPF já cadastrado.")
-        return cpf
+        return cpf  
+    
+
+
+class RegionalForm(forms.ModelForm):
+    class Meta:
+        model = Regional
+        fields = ['nome', 'numero', 'cidade', 'tipo_regional']
+        widgets = {
+            'tipo_regional': forms.Select(attrs={'class': 'form-select'}),
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'numero': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 99}),
+            'cidade': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'nome': 'Nome da Regional',
+            'numero': 'Número',
+            'cidade': 'Cidade',
+            'tipo_regional': 'Tipo de Regional',
+        }
+    def clean_numero(self):
+        numero = self.cleaned_data.get('numero')
+        if numero is not None and (numero < 1 or numero > 99):
+            raise forms.ValidationError("Erro: O número da regional deve estar entre 1 e 99, e deve ser inteiro.")
+        return numero

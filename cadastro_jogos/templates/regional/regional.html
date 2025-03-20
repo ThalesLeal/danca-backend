@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="pb-2">Detalhes da Regional</h1>
+
+<div class="row">
+  <div class="col-4 mb-3">
+    <label class="me-3">Nome:</label><br />
+    {{ regional.nome }}
+  </div>
+  <div class="col-4 mb-3">
+    <label class="me-3">Número:</label><br />
+    {{ regional.numero }}
+  </div>
+  <div class="col-4 mb-3">
+    <label class="me-3">Cidade:</label><br />
+    {{ regional.cidade }}
+  </div>
+  <div class="col-4 mb-3">
+    <label class="me-3">Tipo de Regional:</label><br />
+    {{ regional.get_tipo_regional_display }}
+  </div>
+</div>
+
+<a href="{% url 'update_regional' regional.pk %}" class="btn btn-warning  float-end"><i class="bi bi-pencil-square"></i> Editar</a>
+<a href="{% url 'list_regionais' %}" class="btn btn-secondary"><i class="bi bi-box-arrow-in-left"></i> Voltar</a>
+{% endblock %}
