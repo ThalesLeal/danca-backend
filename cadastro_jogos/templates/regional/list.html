@@ -27,20 +27,20 @@
   <thead>
     <tr>
       <th>Nome</th>
-      <th>Número</th>
-      <th>Cidade</th>
-      <th>Tipo de Regional</th>
-      <th>Ações</th>
+      <th class="col-1 text-center">Número</th>
+      <th class="col-2">Cidade</th>
+      <th class="col-2">Tipo de Regional</th>
+      <th class="col-3 text-center">Ações</th>
     </tr>
   </thead>
   <tbody>
     {% for regional in page_obj %}
     <tr>
       <td>{{ regional.nome }}</td>
-      <td>{{ regional.numero }}</td>
+      <td class="text-center">{{ regional.numero }}</td>
       <td>{{ regional.cidade }}</td>
       <td>{{ regional.get_tipo_regional_display }}</td>
-      <td class="botoes">
+      <td class="text-center botoes">
         <a href="{% url 'detail_regional' regional.pk %}" class="btn btn-info"><i class="bi bi-eye-fill"></i></a>
         <a href="{% url 'update_regional' regional.pk %}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a>
         <form method="post" action="{% url 'delete_regional' regional.pk %}" style="display:inline;" class="delete-form">
