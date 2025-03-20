@@ -50,7 +50,7 @@ class RegionalForm(forms.ModelForm):
         widgets = {
             'tipo_regional': forms.Select(attrs={'class': 'form-select'}),
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
-            'numero': forms.NumberInput(attrs={'class': 'form-control'}),
+            'numero': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 99}),
             'cidade': forms.TextInput(attrs={'class': 'form-control'}),
         }
         labels = {

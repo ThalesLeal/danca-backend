@@ -60,7 +60,7 @@ class UsuarioJogosFormView(View):
             titulo = 'Editar Usuário'
         else:
             form = self.form_class()
-            titulo = 'Cadastro de Usuário'
+            titulo = 'Cadastrar Usuário'
 
         return render(request, self.template_name, {"form": form, "titulo": titulo})
     
