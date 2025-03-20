@@ -19,7 +19,7 @@
 {% endif %}
 
 <div class="container">
-  <form method="post" action="{% if usuario_regional %}{% url 'update_usuario_regional' usuario_regional.id %}{% else %}{% url 'create_usuario_regional' regional.id %}{% endif %}">
+  <form method="post" action="{% if usuario_regional %}{% url 'update_usuario_regional' usuario_regional.regional.id usuario_regional.id %}{% else %}{% url 'create_usuario_regional' regional.id %}{% endif %}">
       {% csrf_token %}
       
       <input type="hidden" name="regional" value="{{ regional.id }}">
@@ -31,12 +31,13 @@
           {{ form.usuario }}
       </div>
       <div class="mb-3">
-          <label for="data_inicio" class="form-label">Data de Início</label>
-          {{ form.data_inicio }}
+        <label for="data_inicio" class="form-label">Data de Início:</label>
+        <input type="date" class="form-control" id="data_inicio" name="data_inicio" value="{{ form.data_inicio.value|default:usuario_regional.data_inicio }}">
       </div>
+      
       <div class="mb-3">
-          <label for="data_fim" class="form-label">Data de Fim</label>
-          {{ form.data_fim }}
+        <label for="data_fim" class="form-label">Data de Fim:</label>
+        <input type="date" class="form-control" id="data_fim" name="data_fim" value="{{ form.data_fim.value|default:usuario_regional.data_fim }}">
       </div>
 
       <button type="submit" class="btn btn-primary">Salvar</button>

@@ -183,13 +183,6 @@ class UsuarioRegionalListView(ListView):
     paginate_by = 10
     template_name = "usuario_regional/list.html"
 
-    # def get_queryset(self):
-    # query = self.request.GET.get('q')
-    # if query:
-    #     return UsuarioRegional.objects.filter(usuario__icontains=query).order_by('usuario')
-    # else:
-    #     return UsuarioRegional.objects.all().order_by('usuario')
-
     def get_queryset(self):
         regional_id = self.kwargs.get('id')
         query = self.request.GET.get('q')
@@ -212,14 +205,7 @@ class UsuarioRegionalListView(ListView):
 @method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name="dispatch")
 class UsuarioRegionalDetailView(TemplateView):
-    template_name = "usuario_regional/usuario_regional.html" 
-
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     usuario_regional = get_object_or_404(UsuarioRegional, id=self.kwargs['id'])
-    #     context['usuario_regional'] = usuario_regional
-    #     return context
-
+    template_name = "usuario_regional/usuario_regional.html"  
 
     def get_object(self):
         regional_id = self.kwargs.get('id')
@@ -255,22 +241,22 @@ class UsuarioRegionalFormView(TemplateView):
             "usuario_regional": usuario_regional if usuario_regional_id else None
         })
     
-    def post(self, request, id):
+    def post(self, request, id, usuario_regional_id=None):
         regional = get_object_or_404(Regional, id=id)
-        form = self.form_class(request.POST)
-
+        usuario_regional = get_object_or_404(UsuarioRegional, id=usuario_regional_id, regional=regional)
+        form = self.form_class(request.POST, instance=usuario_regional)  
+    
         if form.is_valid():
-            usuario_regional = form.save(commit=False)
+            usuario_regional = form.save(commit=False) 
             usuario_regional.regional = regional
             usuario_regional.save()
-            messages.success(request, 'Usuário Regional criado com sucesso!')
+            messages.success(request, 'Usuário Regional atualizado com sucesso!')
             return redirect('detail_usuario_regional', id=regional.id, usuario_regional_id=usuario_regional.id)
-
+    
         else:
             messages.error(request, form.errors)
-
-        return render(request, self.template_name, {"form": form, "regional": regional})
-        
+    
+        return render(request, self.template_name, {"form": form, "regional": regional, "usuario_regional": usuario_regional})
 @method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name="dispatch")
 class UsuarioRegionalDeleteView(DeleteView):
