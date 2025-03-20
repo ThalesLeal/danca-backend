@@ -48,7 +48,7 @@ class RegionalForm(forms.ModelForm):
         model = Regional
         fields = ['nome', 'numero', 'cidade', 'tipo_regional']
         widgets = {
-            'tipo_regional': forms.Select(attrs={'class': 'form-control'}),
+            'tipo_regional': forms.Select(attrs={'class': 'form-select'}),
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
             'numero': forms.NumberInput(attrs={'class': 'form-control'}),
             'cidade': forms.TextInput(attrs={'class': 'form-control'}),

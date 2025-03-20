@@ -1,7 +1,9 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>{{ titulo }}</h1>
+<h1 class="bold">Usuários</h1>
+<hr>
+<h2>{% if form.instance.pk %}Editar{% else %}Cadastro de{% endif %} Usuário</h2>
 
 <!-- Alert container when logged in -->
 {% if messages %}

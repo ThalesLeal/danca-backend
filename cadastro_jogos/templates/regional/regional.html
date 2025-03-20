@@ -1,7 +1,9 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Detalhes da Regional</h1>
+<h1 class="bold">Regionais</h1>
+<hr>
+<h2>Detalhes da Regional</h2>
 
 <div class="row">
   <div class="col-4 mb-3">
@@ -22,10 +24,6 @@
   </div>
 </div>
 
-<a href="{% url 'update_regional' regional.pk %}" class="btn btn-warning"><i class="bi bi-pencil-square"></i> Editar</a>
-<form method="post" action="{% url 'delete_regional' regional.pk %}" style="display:inline;">
-    {% csrf_token %}
-    
-</form>
+<a href="{% url 'update_regional' regional.pk %}" class="btn btn-warning  float-end"><i class="bi bi-pencil-square"></i> Editar</a>
 <a href="{% url 'list_regionais' %}" class="btn btn-secondary"><i class="bi bi-box-arrow-in-left"></i> Voltar</a>
 {% endblock %}

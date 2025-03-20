@@ -118,6 +118,7 @@ class RegionalListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['q'] = self.request.GET.get('q', '')
+        context['create_url'] = reverse('create_regional')
         return context
 
 @method_decorator(login_required, name='dispatch')
