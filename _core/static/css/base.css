@@ -161,25 +161,3 @@ label[for][for]:has(+ select[required])::after {
 .main-content.expanded {
     margin-left: 50px;
 }
-
-/* Responsividade para telas menores */
-/* @media (max-width: 768px) {
-    .sidebar {
-        width: 100%;
-        position: relative;
-        top: 0;
-        height: auto;
-    }
-
-    .main-content {
-        margin-left: 0 !important;
-    }
-
-    .sidebar.collapsed {
-        display: none;
-    }
-
-    .sidebar-toggle {
-        display: block;
-    }
-} */
