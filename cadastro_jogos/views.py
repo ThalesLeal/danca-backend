@@ -12,6 +12,7 @@ from django.views.generic.edit import DeleteView
 from django.utils.decorators import method_decorator
 from .utils import PERFIL_CHOICES, TIPO_REGIONAL_CHOICES
 import re
+from django.db.models.functions import Lower
 
 
 @method_decorator(login_required, name='dispatch')
@@ -24,9 +25,9 @@ class UsuarioJogosListView(ListView):
     def get_queryset(self):
         query = self.request.GET.get('q')
         if query:
-            return UsuarioJogos.objects.filter(nome__icontains=query).order_by('nome')
+            return UsuarioJogos.objects.filter(nome__icontains=query).order_by(Lower('nome'))
         else:
-            return UsuarioJogos.objects.all().order_by('nome')
+            return UsuarioJogos.objects.all().order_by(Lower('nome'))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -111,9 +112,9 @@ class RegionalListView(ListView):
     def get_queryset(self):
         query = self.request.GET.get('q')
         if query:
-            return Regional.objects.filter(nome__icontains=query).order_by('nome')
+            return Regional.objects.filter(nome__icontains=query).order_by(Lower('nome'))
         else:
-            return Regional.objects.all().order_by('nome')
+            return Regional.objects.all().order_by(Lower('nome'))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -195,9 +196,9 @@ class UsuarioRegionalListView(ListView):
         queryset = UsuarioRegional.objects.filter(regional_id=regional_id)
 
         if query:
-            queryset = queryset.filter(usuario__icontains=query)
+            queryset = queryset.filter(usuario__nome__icontains=query)
 
-        return queryset.order_by('usuario')
+        return queryset.order_by(Lower('usuario__nome'))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
