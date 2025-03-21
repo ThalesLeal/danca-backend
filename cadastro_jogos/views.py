@@ -60,7 +60,7 @@ class UsuarioJogosFormView(View):
             titulo = 'Editar Usuário'
         else:
             form = self.form_class()
-            titulo = 'Cadastro de Usuário'
+            titulo = 'Cadastrar Usuário'
 
         return render(request, self.template_name, {"form": form, "titulo": titulo})
 
@@ -118,6 +118,7 @@ class RegionalListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['q'] = self.request.GET.get('q', '')
+        context['create_url'] = reverse('create_regional')
         return context
 
 
