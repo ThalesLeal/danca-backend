@@ -75,7 +75,7 @@ class UsuarioRegionalForm(forms.ModelForm):
             'regional': 'Regional',
         }
         widgets = {
-            'usuario': forms.Select(attrs={'class': 'form-control'}),
+            'usuario': forms.Select(attrs={'class': 'form-select'}),
             'data_inicio': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'data_fim': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'regional': forms.Select(attrs={'class': 'form-control'}),
