@@ -68,6 +68,9 @@ class UsuarioRegionalForm(forms.ModelForm):
     class Meta:
         model = UsuarioRegional
         fields = ['usuario', 'data_inicio', 'data_fim', 'regional']
+        widgets = {
+            'regional': forms.HiddenInput(),
+        }
         labels = {
             'usuario': 'Usuário',
             'data_inicio': 'Data de Início',

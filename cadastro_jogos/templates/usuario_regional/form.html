@@ -19,37 +19,41 @@
 {% endif %}
 
 <div class="container">
-  <form method="post" action="{% if usuario_regional %}{% url 'update_usuario_regional' usuario_regional.regional.id usuario_regional.id %}{% else %}{% url 'create_usuario_regional' regional.id %}{% endif %}">
-      {% csrf_token %}
-      
-      <input type="hidden" name="regional" value="{{ regional.id }}">
+  <form method="post"
+    action="{% if usuario_regional %}{% url 'update_usuario_regional' regional.id usuario_regional.id %}{% else %}{% url 'create_usuario_regional' regional.id %}{% endif %}">
+    {% csrf_token %}
 
-      <div class="row">
+    <input type="hidden" name="regional" value="{{ regional.id }}">
 
-        <div class="col-4 mb-3">
-            <label for="{{ form.usuario.id_for_label }}" class="form-label">{{ form.usuario.label }}</label>
-            {{ form.usuario }}
-        </div>
-        <div class="col-4 mb-3">
-            <label for="{{ form.data_inicio.id_for_label }}" class="form-label">{{ form.data_inicio.label }}</label>
-            {{ form.data_inicio }}
-        </div>
-        <div class="col-4 mb-3">
-            <label for="{{ form.data_fim.id_for_label }}" class="form-label">{{ form.data_fim.label }}</label>
-            {{ form.data_fim }}
-        </div>
+    <div class="row">
 
-        <div class="col-4 mb-3">
-          <label class="form-label">Nome Regional:</label>
-          <input class="form-control" type="text" value="{{ regional.nome }}" disabled readonly>
-        </div>
+      <div class="col-4 mb-3">
+        <label for="{{ form.usuario.id_for_label }}" class="form-label">{{ form.usuario.label }}</label>
+        {{ form.usuario }}
+      </div>
+      <div class="col-4 mb-3">
+        <label for="{{ form.data_inicio.id_for_label }}" class="form-label">{{ form.data_inicio.label }}</label>
+        {{ form.data_inicio }}
+      </div>
+      <div class="col-4 mb-3">
+        <label for="{{ form.data_fim.id_for_label }}" class="form-label">{{ form.data_fim.label }}</label>
+        {{ form.data_fim }}
       </div>
 
-      <button type="submit" class="btn btn-success me-2 float-end"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-floppy" viewBox="0 0 16 16">
-        <path d="M11 2H9v3h2z"/>
-        <path d="M1.5 0h11.586a1.5 1.5 0 0 1 1.06.44l1.415 1.414A1.5 1.5 0 0 1 16 2.914V14.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 14.5v-13A1.5 1.5 0 0 1 1.5 0M1 1.5v13a.5.5 0 0 0 .5.5H2v-4.5A1.5 1.5 0 0 1 3.5 9h9a1.5 1.5 0 0 1 1.5 1.5V15h.5a.5.5 0 0 0 .5-.5V2.914a.5.5 0 0 0-.146-.353l-1.415-1.415A.5.5 0 0 0 13.086 1H13v4.5A1.5 1.5 0 0 1 11.5 7h-7A1.5 1.5 0 0 1 3 5.5V1H1.5a.5.5 0 0 0-.5.5m3 4a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5V1H4zM3 15h10v-4.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5z"/>
+      <div class="col-4 mb-3">
+        <label class="form-label">Nome Regional:</label>
+        <input class="form-control" type="text" value="{{ regional.nome }}" disabled readonly>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-success me-2 float-end"><svg xmlns="http://www.w3.org/2000/svg" width="16"
+        height="16" fill="currentColor" class="bi bi-floppy" viewBox="0 0 16 16">
+        <path d="M11 2H9v3h2z" />
+        <path
+          d="M1.5 0h11.586a1.5 1.5 0 0 1 1.06.44l1.415 1.414A1.5 1.5 0 0 1 16 2.914V14.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 14.5v-13A1.5 1.5 0 0 1 1.5 0M1 1.5v13a.5.5 0 0 0 .5.5H2v-4.5A1.5 1.5 0 0 1 3.5 9h9a1.5 1.5 0 0 1 1.5 1.5V15h.5a.5.5 0 0 0 .5-.5V2.914a.5.5 0 0 0-.146-.353l-1.415-1.415A.5.5 0 0 0 13.086 1H13v4.5A1.5 1.5 0 0 1 11.5 7h-7A1.5 1.5 0 0 1 3 5.5V1H1.5a.5.5 0 0 0-.5.5m3 4a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5V1H4zM3 15h10v-4.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5z" />
       </svg> &nbsp; Salvar</button>
-      <a href="{% url 'list_usuario_regional' regional.id %}" class="btn btn-secondary"><i class="bi bi-arrow-90deg-left"></i> Voltar</a>
+    <a href="{% url 'list_usuario_regional' regional.id %}" class="btn btn-secondary"><i
+        class="bi bi-arrow-90deg-left"></i> Voltar</a>
   </form>
 </div>
 
