@@ -264,7 +264,9 @@ class UsuarioRegionalFormView(View):
             messages.success(request, "Usuário Regional salvo com sucesso!")
             return redirect('list_usuario_regional', id=regional.id)
 
-        messages.error(request, "Erro ao salvar o Usuário Regional.")
+        for error in form.non_field_errors():
+            messages.error(request, error)
+
         return render(request, self.template_name, {
             "form": form,
             "regional": regional,

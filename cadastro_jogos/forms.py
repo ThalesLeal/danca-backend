@@ -2,6 +2,7 @@ from django import forms
 from .models import UsuarioJogos, Regional, UsuarioRegional
 from .utils import PERFIL_CHOICES
 import re
+from django.core.exceptions import ValidationError
 
 class UsuarioJogosForm(forms.ModelForm):
     class Meta:
@@ -90,3 +91,13 @@ class UsuarioRegionalForm(forms.ModelForm):
         if "instance" in kwargs and kwargs["instance"]:
             self.fields["regional"].initial = kwargs["instance"].regional
         self.fields["regional"].widget = forms.HiddenInput()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        data_inicio = cleaned_data.get("data_inicio")
+        data_fim = cleaned_data.get("data_fim")
+
+        if data_inicio and data_fim and data_fim <= data_inicio:
+            raise ValidationError("A data de fim deve ser maior que a data de início.")
+
+        return cleaned_data
