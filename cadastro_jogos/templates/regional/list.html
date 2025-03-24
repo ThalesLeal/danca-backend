@@ -39,7 +39,7 @@
       <td>{{ regional.get_tipo_regional_display }}</td>      
 
       <td class="text-center botoes">
-        <a href="{% url 'list_usuario_regional' regional.pk %}" class="btn btn-success"><i class="bi bi-person-fill-add"></i>
+        <a href="{% url 'list_usuario_regional' regional.pk %}" class="btn btn-success me-1"><i class="bi bi-person-fill-add"></i>
         <a href="{% url 'detail_regional' regional.pk %}" class="btn btn-info"><i class="bi bi-eye-fill"></i></a>
         <a href="{% url 'update_regional' regional.pk %}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a>
         <form method="post" action="{% url 'delete_regional' regional.pk %}" style="display:inline;" class="delete-form">
