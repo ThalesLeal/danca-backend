@@ -91,7 +91,7 @@ class Regional(models.Model):
 class UsuarioRegional(models.Model):
     usuario = models.ForeignKey(UsuarioJogos, on_delete=models.CASCADE)
     data_inicio = models.DateField(null=False, blank=False, verbose_name="Data de Início")
-    data_fim = models.DateField(null=False, blank=False, verbose_name="Data de Fim")
+    data_fim = models.DateField(null=True, blank=True, verbose_name="Data de Fim")
     regional = models.ForeignKey(Regional, on_delete=models.CASCADE)
 
     class Meta:
