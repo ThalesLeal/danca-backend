@@ -202,8 +202,12 @@ class UsuarioRegionalListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        regional = get_object_or_404(Regional, id=self.kwargs['id'])
+        
         context['q'] = self.request.GET.get('q', '')
         context['regional'] = get_object_or_404(Regional, id=self.kwargs['id'])
+        context['regional_nome'] = regional.nome
+        context['regional_numero'] = regional.numero
         return context
 
 
