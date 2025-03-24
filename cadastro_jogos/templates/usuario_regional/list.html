@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>
+<h2 class="pb-2">
   <a href="{% url 'list_regionais' %}" class="btn btn-secondary float-end"><i class="bi bi-arrow-90deg-left"></i>
     Voltar</a>
 
   Usuários da Regional :: {{ regional_numero|stringformat:"02d" }} - {{ regional_nome }}
-</h1>
+</h2>
 
 
 {% if messages %}
