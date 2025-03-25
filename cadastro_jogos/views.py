@@ -1,17 +1,18 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.urls import reverse_lazy,reverse
-from .models import UsuarioJogos, Regional
+from django.urls import reverse_lazy, reverse
+from .models import UsuarioJogos, Regional, UsuarioRegional
 from django.contrib import messages
-from .forms import UsuarioJogosForm, RegionalForm
+from .forms import UsuarioJogosForm, RegionalForm, UsuarioRegionalForm
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.views import View
 from django.views.generic.list import ListView
 from django.views.generic.base import TemplateView
-from django.views.generic.edit import  DeleteView
+from django.views.generic.edit import DeleteView
 from django.utils.decorators import method_decorator
 from .utils import PERFIL_CHOICES, TIPO_REGIONAL_CHOICES
 import re
+from django.db.models.functions import Lower
 
 
 @method_decorator(login_required, name='dispatch')
@@ -24,22 +25,22 @@ class UsuarioJogosListView(ListView):
     def get_queryset(self):
         query = self.request.GET.get('q')
         if query:
-            return UsuarioJogos.objects.filter(nome__icontains=query).order_by('nome')
+            return UsuarioJogos.objects.filter(nome__icontains=query).order_by(Lower('nome'))
         else:
-            return UsuarioJogos.objects.all().order_by('nome')
-        
+            return UsuarioJogos.objects.all().order_by(Lower('nome'))
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['q'] = self.request.GET.get('q', '')
         context['create_url'] = reverse('create_usuario')
         return context
-    
+
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name="dispatch")
 class UsuarioJogosDetailView(TemplateView):
     template_name = "usuario/usuario.html"
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         usuario = get_object_or_404(UsuarioJogos, id=self.kwargs['id'])
@@ -63,7 +64,7 @@ class UsuarioJogosFormView(View):
             titulo = 'Cadastrar Usuário'
 
         return render(request, self.template_name, {"form": form, "titulo": titulo})
-    
+
     def post(self, request, id=None):
         data = request.POST.copy()
         cpf = re.sub(r'\D', '', request.POST.get('cpf'))
@@ -88,8 +89,8 @@ class UsuarioJogosFormView(View):
             messages.error(request, form.errors)
 
         return render(request, self.template_name, {"form": form})
-    
-    
+
+
 @method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name="dispatch")
 class UsuarioJogosDeleteView(DeleteView):
@@ -106,25 +107,26 @@ class UsuarioJogosDeleteView(DeleteView):
 class RegionalListView(ListView):
     model = Regional
     paginate_by = 10
-    template_name = "regional/list.html"  
+    template_name = "regional/list.html"
 
     def get_queryset(self):
         query = self.request.GET.get('q')
         if query:
-            return Regional.objects.filter(nome__icontains=query).order_by('nome')
+            return Regional.objects.filter(nome__icontains=query).order_by(Lower('nome'))
         else:
-            return Regional.objects.all().order_by('nome')
-        
+            return Regional.objects.all().order_by(Lower('nome'))
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['q'] = self.request.GET.get('q', '')
         context['create_url'] = reverse('create_regional')
         return context
 
+
 @method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name="dispatch")
 class RegionalDetailView(TemplateView):
-    template_name = "regional/regional.html" 
+    template_name = "regional/regional.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -132,11 +134,12 @@ class RegionalDetailView(TemplateView):
         context['regional'] = regional
         return context
 
+
 @method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name="dispatch")
 class RegionalFormView(View):
     form_class = RegionalForm
-    template_name = "regional/form.html"  
+    template_name = "regional/form.html"
 
     def get(self, request, id=None):
         if id:
@@ -165,11 +168,108 @@ class RegionalFormView(View):
 
         return render(request, self.template_name, {"form": form})
 
+
 @method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name="dispatch")
 class RegionalDeleteView(DeleteView):
     model = Regional
     pk_url_kwarg = "id"
+
     def get_success_url(self):
         messages.success(self.request, "Regional deletada com sucesso")
         return reverse_lazy('list_regionais')
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class UsuarioRegionalListView(ListView):
+    model = UsuarioRegional
+    paginate_by = 10
+    template_name = "usuario_regional/list.html"
+
+    def get_queryset(self):
+        regional_id = self.kwargs.get('id')
+        query = self.request.GET.get('q')
+
+        queryset = UsuarioRegional.objects.filter(regional_id=regional_id)
+
+        if query:
+            queryset = queryset.filter(usuario__nome__icontains=query)
+
+        return queryset.order_by(Lower('usuario__nome'))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        regional = get_object_or_404(Regional, id=self.kwargs['id'])
+        
+        context['q'] = self.request.GET.get('q', '')
+        context['regional'] = get_object_or_404(Regional, id=self.kwargs['id'])
+        context['regional_nome'] = regional.nome
+        context['regional_numero'] = regional.numero
+        return context
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class UsuarioRegionalDetailView(TemplateView):
+    template_name = "usuario_regional/usuario_regional.html"
+
+    def get_object(self):
+        regional_id = self.kwargs.get('id')
+        usuario_regional_id = self.kwargs.get('usuario_regional_id')
+
+        return get_object_or_404(UsuarioRegional, id=usuario_regional_id, regional_id=regional_id)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['usuario_regional'] = self.get_object()
+        return context
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class UsuarioRegionalFormView(View):
+    form_class = UsuarioRegionalForm
+    template_name = "usuario_regional/form.html"
+
+    def get(self, request, id, usuario_regional_id=None):
+        regional = get_object_or_404(Regional, id=id)
+        if usuario_regional_id:
+            usuario_regional = get_object_or_404(
+                UsuarioRegional, id=usuario_regional_id, regional=regional
+            )
+            form = self.form_class(instance=usuario_regional)
+        else:
+            form = self.form_class(regional=regional)
+        
+        return render(request, self.template_name, {"form": form, "regional": regional})
+
+    def post(self, request, id, usuario_regional_id=None):
+        regional = get_object_or_404(Regional, id=id)
+
+        form = self.form_class(request.POST)
+
+        if usuario_regional_id:
+            usuario_regional = get_object_or_404(
+                UsuarioRegional, id=usuario_regional_id, regional=regional
+            )
+            form = self.form_class(request.POST, instance=usuario_regional)
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Usuário Regional salvo com sucesso!")
+            return redirect('list_usuario_regional', id=regional.id)
+
+        return render(request, self.template_name, {"form": form, "regional": regional})
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class UsuarioRegionalDeleteView(DeleteView):
+    model = UsuarioRegional
+    pk_url_kwarg = "usuario_regional_id"
+
+    def get_success_url(self):
+        messages.success(self.request, "Usuario Regional deletado com sucesso")
+        regional_id = self.object.regional.id
+        return reverse('list_usuario_regional', args=[regional_id])

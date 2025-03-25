@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="pb-2">Detalhes do Usuário Regional</h2>
+
+<div class="row">
+  <div class="col-4 mb-3">
+    <label class="me-3">Nome Completo:</label><br />
+    {{ usuario_regional.usuario.nome }}
+  </div>
+  <div class="col-4 mb-3">
+    <label class="me-3">Data de Início:</label><br />
+    {{ usuario_regional.data_inicio }}
+  </div>
+  <div class="col-4 mb-3">
+    <label class="me-3">Data de Fim:</label><br />
+    {{ usuario_regional.data_fim }}
+  </div>
+  <div class="col-4 mb-3">
+    <label class="me-3">Regional:</label><br />
+    {{ usuario_regional.regional.nome }}
+  </div>
+</div>
+
+<a href="{% url 'update_usuario_regional' usuario_regional.regional.id usuario_regional.id %}" class="btn btn-warning float-end"><i class="bi bi-pencil-square"></i> Editar</a>
+
+<a href="{% url 'list_usuario_regional' usuario_regional.regional.id %}" class="btn btn-secondary"><i class="bi bi-box-arrow-in-left"></i> Voltar</a>
+{% endblock %}

@@ -86,4 +86,17 @@ class Regional(models.Model):
         verbose_name_plural = "Regionais"
 
     def __str__(self):
-        return f"{self.nome} - {self.cidade}"
+        return f"{self.nome} - {self.cidade}"  
+
+class UsuarioRegional(models.Model):
+    usuario = models.ForeignKey(UsuarioJogos, on_delete=models.CASCADE)
+    data_inicio = models.DateField(null=False, blank=False, verbose_name="Data de Início")
+    data_fim = models.DateField(null=True, blank=True, verbose_name="Data de Fim")
+    regional = models.ForeignKey(Regional, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = "Usuário Regional"
+        verbose_name_plural = "Usuários Regionais"
+
+    def __str__(self):
+        return f"{self.usuario.nome} - {self.regional.nome}"
