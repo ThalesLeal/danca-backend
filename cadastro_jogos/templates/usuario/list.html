@@ -41,7 +41,29 @@
         <a href="{% url 'update_usuario' usuario.id %}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a>
         <form method="post" action="{% url 'delete_usuario' usuario.id %}" style="display:inline;" class="delete-form">
           {% csrf_token %}
-          <button type="submit" id="btn-delet" class="btn btn-danger"><i class="bi bi-trash3-fill"></i></button>
+          <!-- Botão que aciona o modal -->
+          <button type="button" id="btn-delet" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+            <i class="bi bi-trash3-fill"></i>
+          </button>
+
+          <!-- Modal -->
+          <div class="modal fade" id="deleteModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="staticBackdropLabel">Confirmar exclusão</h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <p>Tem certeza que deseja excluir o usuário?</p>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                  <button type="submit" id="btn-delet" class="btn btn-danger">Excluir</i></button>
+                </div>
+              </div>
+            </div>
+          </div>
         </form>
       </td>
     </tr>
@@ -54,18 +76,4 @@
 </table>
 
 {% include "partials/_pagination.html" %}
-
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const deleteForms = document.querySelectorAll('.delete-form');
-    deleteForms.forEach(function (form) {
-      form.addEventListener('submit', function (event) {
-        const confirmed = confirm('Tem certeza que deseja remover o usuário?');
-        if (!confirmed) {
-          event.preventDefault();
-        }
-      });
-    });
-  });
-</script>
 {% endblock %}
