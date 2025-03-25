@@ -246,20 +246,19 @@ class UsuarioRegionalFormView(View):
 
     def post(self, request, id, usuario_regional_id=None):
         regional = get_object_or_404(Regional, id=id)
+
+        form = self.form_class(request.POST)
+
         if usuario_regional_id:
             usuario_regional = get_object_or_404(
                 UsuarioRegional, id=usuario_regional_id, regional=regional
             )
             form = self.form_class(request.POST, instance=usuario_regional)
-        else:
-            form = self.form_class(request.POST)
 
         if form.is_valid():
             form.save()
             messages.success(request, "Usuário Regional salvo com sucesso!")
             return redirect('list_usuario_regional', id=regional.id)
-        else:
-            messages.error(request, form.errors)
 
         return render(request, self.template_name, {"form": form, "regional": regional})
 
