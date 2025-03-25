@@ -43,7 +43,6 @@ class UsuarioJogosForm(forms.ModelForm):
         return cpf  
     
 
-
 class RegionalForm(forms.ModelForm):
     class Meta:
         model = Regional
@@ -71,9 +70,6 @@ class UsuarioRegionalForm(forms.ModelForm):
     class Meta:
         model = UsuarioRegional
         fields = ['usuario', 'data_inicio', 'data_fim', 'regional']
-        widgets = {
-            'regional': forms.HiddenInput(),
-        }
         labels = {
             'usuario': 'Usuário',
             'data_inicio': 'Data de Início',
@@ -82,22 +78,40 @@ class UsuarioRegionalForm(forms.ModelForm):
         }
         widgets = {
             'usuario': forms.Select(attrs={'class': 'form-select'}),
-            'data_inicio': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'data_fim': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'regional': forms.Select(attrs={'class': 'form-control'}),
+            'data_inicio': forms.DateInput(format=('%Y-%m-%d'), attrs={'class': 'form-control', 'type': 'date'}),
+            'data_fim': forms.DateInput(format=('%Y-%m-%d'), attrs={'class': 'form-control', 'type': 'date'}),
+            'regional': forms.Select(attrs={'class': 'form-select disabled'}),
         }
     def __init__(self, *args, **kwargs):
+        regional = kwargs.pop('regional', None)
+        instance = kwargs.get("instance", None)
+
         super().__init__(*args, **kwargs)
-        if "instance" in kwargs and kwargs["instance"]:
-            self.fields["regional"].initial = kwargs["instance"].regional
-        self.fields["regional"].widget = forms.HiddenInput()
+
+        self.fields["regional"].initial = regional
+
+        if instance:
+            self.fields['usuario'].initial = instance.usuario
+        else:
+            self.fields["usuario"].queryset = UsuarioJogos.objects.exclude(
+                id__in=UsuarioRegional.objects.values_list("usuario", flat=True)
+            )
 
     def clean(self):
         cleaned_data = super().clean()
         data_inicio = cleaned_data.get("data_inicio")
         data_fim = cleaned_data.get("data_fim")
+        usuario = cleaned_data.get("usuario")
+        regional = cleaned_data.get("regional")
+    
+        if self.instance.pk:
+            if usuario != self.instance.usuario:
+                raise ValidationError("Você não pode alterar o usuário associado a este registro.")
+            if regional != self.instance.regional:
+                raise ValidationError("Você não pode alterar a regional associada a este registro.")
 
         if data_inicio and data_fim and data_fim <= data_inicio:
             raise ValidationError("A data de fim deve ser maior que a data de início.")
+   
 
         return cleaned_data

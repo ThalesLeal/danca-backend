@@ -180,8 +180,6 @@ class RegionalDeleteView(DeleteView):
         return reverse_lazy('list_regionais')
 
 
-# Crud Usuario Regional
-
 @method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name="dispatch")
 class UsuarioRegionalListView(ListView):
@@ -220,9 +218,6 @@ class UsuarioRegionalDetailView(TemplateView):
         regional_id = self.kwargs.get('id')
         usuario_regional_id = self.kwargs.get('usuario_regional_id')
 
-        if not usuario_regional_id:
-            raise Http404("Usuário Regional não encontrado.")
-
         return get_object_or_404(UsuarioRegional, id=usuario_regional_id, regional_id=regional_id)
 
     def get_context_data(self, **kwargs):
@@ -241,41 +236,32 @@ class UsuarioRegionalFormView(View):
         regional = get_object_or_404(Regional, id=id)
         if usuario_regional_id:
             usuario_regional = get_object_or_404(
-                UsuarioRegional, id=usuario_regional_id, regional=regional)
+                UsuarioRegional, id=usuario_regional_id, regional=regional
+            )
             form = self.form_class(instance=usuario_regional)
         else:
-            usuario_regional = None
-            form = self.form_class()
-        return render(request, self.template_name, {
-            "form": form,
-            "regional": regional,
-            "usuario_regional": usuario_regional,
-        })
+            form = self.form_class(regional=regional)
+        
+        return render(request, self.template_name, {"form": form, "regional": regional})
 
     def post(self, request, id, usuario_regional_id=None):
         regional = get_object_or_404(Regional, id=id)
         if usuario_regional_id:
             usuario_regional = get_object_or_404(
-                UsuarioRegional, id=usuario_regional_id, regional=regional)
+                UsuarioRegional, id=usuario_regional_id, regional=regional
+            )
             form = self.form_class(request.POST, instance=usuario_regional)
         else:
             form = self.form_class(request.POST)
 
         if form.is_valid():
-            usuario_regional = form.save(commit=False)
-            usuario_regional.regional = regional
-            usuario_regional.save()
+            form.save()
             messages.success(request, "Usuário Regional salvo com sucesso!")
             return redirect('list_usuario_regional', id=regional.id)
+        else:
+            messages.error(request, form.errors)
 
-        for error in form.non_field_errors():
-            messages.error(request, error)
-
-        return render(request, self.template_name, {
-            "form": form,
-            "regional": regional,
-            "usuario_regional": usuario_regional_id,
-        })
+        return render(request, self.template_name, {"form": form, "regional": regional})
 
 
 @method_decorator(login_required, name='dispatch')
@@ -288,4 +274,3 @@ class UsuarioRegionalDeleteView(DeleteView):
         messages.success(self.request, "Usuario Regional deletado com sucesso")
         regional_id = self.object.regional.id
         return reverse('list_usuario_regional', args=[regional_id])
-        # return reverse_lazy('list_usuario_regional')

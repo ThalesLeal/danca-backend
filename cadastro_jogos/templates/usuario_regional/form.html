@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<h1>{% if usuario_regional %}Editar Usuário da Regional{% else %}Cadastrar Usuário da Regional{% endif %}</h1>
+<h1>{% if form.instance.pk %}Editar Usuário da Regional{% else %}Cadastrar Usuário da Regional{% endif %}</h1>
 
 {% if messages %}
 <div class="container">
@@ -18,14 +19,10 @@
 </div>
 {% endif %}
 
-<form method="post"
-  action="{% if usuario_regional %}{% url 'update_usuario_regional' regional.id usuario_regional.id %}{% else %}{% url 'create_usuario_regional' regional.id %}{% endif %}">
+<form method="post" id="usuario-regional-form">
   {% csrf_token %}
 
-  <input type="hidden" name="regional" value="{{ regional.id }}">
-
   <div class="row">
-
     <div class="col-4 mb-3">
       <label for="{{ form.usuario.id_for_label }}" class="form-label">{{ form.usuario.label }}</label>
       {{ form.usuario }}
@@ -40,8 +37,8 @@
     </div>
 
     <div class="col-4 mb-3">
-      <label class="form-label">Nome Regional:</label>
-      <input class="form-control" type="text" value="{{ regional.nome }}" disabled readonly>
+      <label class="form-label">Regional:</label>
+      {{ form.regional }}
     </div>
   </div>
 
@@ -54,5 +51,23 @@
   <a href="{% url 'list_usuario_regional' regional.id %}" class="btn btn-secondary"><i
       class="bi bi-arrow-90deg-left"></i> Voltar</a>
 </form>
-
 {% endblock %}
+
+{% block extra_js %}
+<script>
+  $(document).ready(function() {
+    if ($('#id_usuario').val()) {
+      $('#id_usuario').prop('disabled', true);
+    }
+    $('#id_regional').prop('disabled', true);
+    $("#usuario-regional-form").on("submit", function() {
+      $(this).find(":disabled").prop("disabled", false);
+    });
+  })
+</script>
+{% endblock %}
+
+
+
+
+
