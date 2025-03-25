@@ -44,8 +44,8 @@ class UsuarioJogos(models.Model):
     )
     email = models.CharField(
         max_length=150, 
-        null=False, 
-        blank=False,
+        null=True, 
+        blank=True,
         validators=[validar_email]
     )
     telefone = models.CharField(max_length=12, null=False, blank=False, verbose_name="Telefone")

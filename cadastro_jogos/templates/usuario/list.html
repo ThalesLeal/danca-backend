@@ -25,7 +25,7 @@
   <thead>
     <tr>
       <th>Nome</th>
-      <th class="text-center">Email</th>
+      <th class="text-center">E-mail</th>
       <th class="text-center">Telefone</th>
       <th class="text-center">Ações</th>
     </tr>
@@ -34,7 +34,7 @@
     {% for usuario in page_obj %}
     <tr>
       <td class="align-middle">{{ usuario.nome }}</td>
-      <td class="col-3 text-center align-middle">{{ usuario.email }}</td>
+      <td class="col-3 text-center align-middle">{{ usuario.email|default:'-' }}</td>
       <td class="col-2 text-center align-middle mask-telefone">{{ usuario.telefone }}</td>
       <td class="col-3 text-center botoes">
         <a href="{% url 'detail_usuario' usuario.id %}" class="btn btn-info"><i class="bi bi-eye-fill"></i></a>
