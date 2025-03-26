@@ -11,9 +11,9 @@ class UsuarioJogosForm(forms.ModelForm):
         labels = {
             'nome': 'Nome Completo',
             'cpf': 'CPF',
-            'email': 'Email',
+            'email': 'E-mail',
             'telefone': 'Telefone',
-            'perfil': 'perfil',
+            'perfil': 'Perfil',
         }
 
         perfil = forms.ChoiceField(

@@ -10,7 +10,6 @@ from django.views.generic.list import ListView
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import DeleteView
 from django.utils.decorators import method_decorator
-from .utils import PERFIL_CHOICES, TIPO_REGIONAL_CHOICES
 import re
 from django.db.models.functions import Lower
 
@@ -26,8 +25,7 @@ class UsuarioJogosListView(ListView):
         query = self.request.GET.get('q')
         if query:
             return UsuarioJogos.objects.filter(nome__icontains=query).order_by(Lower('nome'))
-        else:
-            return UsuarioJogos.objects.all().order_by(Lower('nome'))
+        return UsuarioJogos.objects.all().order_by(Lower('nome'))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -43,7 +41,7 @@ class UsuarioJogosDetailView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        usuario = get_object_or_404(UsuarioJogos, id=self.kwargs['id'])
+        usuario = get_object_or_404(UsuarioJogos, id=self.kwargs['usuario_id'])
         context['usuario'] = usuario
         return context
 
@@ -54,18 +52,17 @@ class UsuarioJogosFormView(View):
     form_class = UsuarioJogosForm
     template_name = "usuario/form.html"
 
-    def get(self, request, id=None):
-        if id:
-            usuario = get_object_or_404(UsuarioJogos, id=id)
+    def get(self, request, usuario_id=None):
+        form = self.form_class()
+        titulo = 'Cadastrar Usuário'
+
+        if usuario_id:
+            usuario = get_object_or_404(UsuarioJogos, id=usuario_id)
             form = self.form_class(instance=usuario)
             titulo = 'Editar Usuário'
-        else:
-            form = self.form_class()
-            titulo = 'Cadastrar Usuário'
-
         return render(request, self.template_name, {"form": form, "titulo": titulo})
 
-    def post(self, request, id=None):
+    def post(self, request, usuario_id=None):
         data = request.POST.copy()
         cpf = re.sub(r'\D', '', request.POST.get('cpf'))
         telefone = re.sub(r'\D', '', request.POST.get('telefone'))
@@ -73,21 +70,20 @@ class UsuarioJogosFormView(View):
         data["cpf"] = cpf
         data["telefone"] = telefone
 
-        if id:
-            usuario = get_object_or_404(UsuarioJogos, id=id)
+        form = self.form_class(data)
+        msg = 'Usuário criado com sucesso'
+
+        if usuario_id:
+            usuario = get_object_or_404(UsuarioJogos, id=usuario_id)
             form = self.form_class(data, instance=usuario)
-            msg = 'Usuário atualizado com sucesso'
-        else:
-            form = self.form_class(data)
-            msg = 'Usuário cadastrado com sucesso'
+            msg = 'Usuário modificado com sucesso'
 
         if form.is_valid():
             form.save()
             messages.success(request, msg)
             return redirect('/')
-        else:
-            messages.error(request, form.errors)
-
+        
+        messages.error(request, form.errors)
         return render(request, self.template_name, {"form": form})
 
 
@@ -95,10 +91,10 @@ class UsuarioJogosFormView(View):
 @method_decorator(never_cache, name="dispatch")
 class UsuarioJogosDeleteView(DeleteView):
     model = UsuarioJogos
-    pk_url_kwarg = "id"
+    pk_url_kwarg = "usuario_id"
 
     def get_success_url(self):
-        messages.success(self.request, "Usuário deletado com sucesso")
+        messages.success(self.request, "Usuário removido com sucesso")
         return reverse_lazy('list_usuarios')
 
 
@@ -113,8 +109,7 @@ class RegionalListView(ListView):
         query = self.request.GET.get('q')
         if query:
             return Regional.objects.filter(nome__icontains=query).order_by(Lower('nome'))
-        else:
-            return Regional.objects.all().order_by(Lower('nome'))
+        return Regional.objects.all().order_by(Lower('nome'))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -130,7 +125,7 @@ class RegionalDetailView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        regional = get_object_or_404(Regional, id=self.kwargs['id'])
+        regional = get_object_or_404(Regional, id=self.kwargs['regional_id'])
         context['regional'] = regional
         return context
 
@@ -141,31 +136,28 @@ class RegionalFormView(View):
     form_class = RegionalForm
     template_name = "regional/form.html"
 
-    def get(self, request, id=None):
-        if id:
-            regional = get_object_or_404(Regional, id=id)
+    def get(self, request, regional_id=None):
+        form = self.form_class()
+        if regional_id:
+            regional = get_object_or_404(Regional, id=regional_id)
             form = self.form_class(instance=regional)
-        else:
-            form = self.form_class()
-
         return render(request, self.template_name, {"form": form})
 
-    def post(self, request, id=None):
-        if id:
-            regional = get_object_or_404(Regional, id=id)
-            form = self.form_class(request.POST, instance=regional)
-            msg = 'Regional atualizada com sucesso!'
-        else:
-            form = self.form_class(request.POST)
-            msg = 'Regional criada com sucesso!'
+    def post(self, request, regional_id=None):
+        form = self.form_class(request.POST)
+        msg = 'Regional criada com sucesso'
 
+        if regional_id:
+            regional = get_object_or_404(Regional, id=regional_id)
+            form = self.form_class(request.POST, instance=regional)
+            msg = 'Regional modificada com sucesso'
+    
         if form.is_valid():
             form.save()
             messages.success(request, msg)
             return redirect('list_regionais')
-        else:
-            messages.error(request, form.errors)
-
+        
+        messages.error(request, form.errors)
         return render(request, self.template_name, {"form": form})
 
 
@@ -173,10 +165,10 @@ class RegionalFormView(View):
 @method_decorator(never_cache, name="dispatch")
 class RegionalDeleteView(DeleteView):
     model = Regional
-    pk_url_kwarg = "id"
+    pk_url_kwarg = "regional_id"
 
     def get_success_url(self):
-        messages.success(self.request, "Regional deletada com sucesso")
+        messages.success(self.request, "Regional removida com sucesso")
         return reverse_lazy('list_regionais')
 
 
@@ -188,22 +180,21 @@ class UsuarioRegionalListView(ListView):
     template_name = "usuario_regional/list.html"
 
     def get_queryset(self):
-        regional_id = self.kwargs.get('id')
+        regional_id = self.kwargs.get('regional_id')
         query = self.request.GET.get('q')
 
         queryset = UsuarioRegional.objects.filter(regional_id=regional_id)
 
         if query:
             queryset = queryset.filter(usuario__nome__icontains=query)
-
         return queryset.order_by(Lower('usuario__nome'))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        regional = get_object_or_404(Regional, id=self.kwargs['id'])
+        regional = get_object_or_404(Regional, id=self.kwargs['regional_id'])
         
         context['q'] = self.request.GET.get('q', '')
-        context['regional'] = get_object_or_404(Regional, id=self.kwargs['id'])
+        context['regional'] = get_object_or_404(Regional, id=self.kwargs['regional_id'])
         context['regional_nome'] = regional.nome
         context['regional_numero'] = regional.numero
         return context
@@ -215,9 +206,8 @@ class UsuarioRegionalDetailView(TemplateView):
     template_name = "usuario_regional/usuario_regional.html"
 
     def get_object(self):
-        regional_id = self.kwargs.get('id')
+        regional_id = self.kwargs.get('regional_id')
         usuario_regional_id = self.kwargs.get('usuario_regional_id')
-
         return get_object_or_404(UsuarioRegional, id=usuario_regional_id, regional_id=regional_id)
 
     def get_context_data(self, **kwargs):
@@ -232,21 +222,19 @@ class UsuarioRegionalFormView(View):
     form_class = UsuarioRegionalForm
     template_name = "usuario_regional/form.html"
 
-    def get(self, request, id, usuario_regional_id=None):
-        regional = get_object_or_404(Regional, id=id)
+    def get(self, request, regional_id, usuario_regional_id=None):
+        regional = get_object_or_404(Regional, id=regional_id)
+        form = self.form_class(regional=regional)
+
         if usuario_regional_id:
             usuario_regional = get_object_or_404(
                 UsuarioRegional, id=usuario_regional_id, regional=regional
             )
             form = self.form_class(instance=usuario_regional)
-        else:
-            form = self.form_class(regional=regional)
-        
         return render(request, self.template_name, {"form": form, "regional": regional})
 
-    def post(self, request, id, usuario_regional_id=None):
-        regional = get_object_or_404(Regional, id=id)
-
+    def post(self, request, regional_id, usuario_regional_id=None):
+        regional = get_object_or_404(Regional, id=regional_id)
         form = self.form_class(request.POST)
 
         if usuario_regional_id:
@@ -257,9 +245,8 @@ class UsuarioRegionalFormView(View):
 
         if form.is_valid():
             form.save()
-            messages.success(request, "Usuário Regional salvo com sucesso!")
-            return redirect('list_usuario_regional', id=regional.id)
-
+            messages.success(request, "Usuário Regional criado com sucesso")
+            return redirect('list_usuario_regional', regional_id=regional.id)
         return render(request, self.template_name, {"form": form, "regional": regional})
 
 
@@ -270,6 +257,6 @@ class UsuarioRegionalDeleteView(DeleteView):
     pk_url_kwarg = "usuario_regional_id"
 
     def get_success_url(self):
-        messages.success(self.request, "Usuario Regional deletado com sucesso")
+        messages.success(self.request, "Usuario Regional removido com sucesso")
         regional_id = self.object.regional.id
         return reverse('list_usuario_regional', args=[regional_id])
