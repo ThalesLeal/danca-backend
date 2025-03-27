@@ -32,14 +32,14 @@ class UsuarioJogosForm(forms.ModelForm):
     def clean_nome(self):
         nome = self.cleaned_data['nome']
         if len(nome) < 3:
-            raise forms.ValidationError("O nome deve ter pelo menos 3 caracteres.")
+            raise ValidationError("O nome deve ter pelo menos 3 caracteres.")
         return nome
 
     def clean_cpf(self):
         cpf = self.cleaned_data['cpf']
         cpf = re.sub(r'\D', '', cpf)  # Remove caracteres não numéricos do CPF
         if UsuarioJogos.objects.filter(cpf=cpf).exclude(id=self.instance.id).exists():
-            raise forms.ValidationError("CPF já cadastrado.")
+            raise ValidationError("CPF já cadastrado.")
         return cpf  
     
 
@@ -62,7 +62,7 @@ class RegionalForm(forms.ModelForm):
     def clean_numero(self):
         numero = self.cleaned_data.get('numero')
         if numero is not None and (numero < 1 or numero > 99):
-            raise forms.ValidationError("Erro: O número da regional deve estar entre 1 e 99, e deve ser inteiro.")
+            raise ValidationError("O número da regional deve estar entre 1 e 99, e deve ser inteiro.")
         return numero
 
 
@@ -113,5 +113,4 @@ class UsuarioRegionalForm(forms.ModelForm):
         if data_inicio and data_fim and data_fim <= data_inicio:
             raise ValidationError("A data de fim deve ser maior que a data de início.")
    
-
         return cleaned_data

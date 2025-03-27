@@ -82,8 +82,6 @@ class UsuarioJogosFormView(View):
             form.save()
             messages.success(request, msg)
             return redirect('/')
-        
-        messages.error(request, form.errors)
         return render(request, self.template_name, {"form": form})
 
 
@@ -156,8 +154,6 @@ class RegionalFormView(View):
             form.save()
             messages.success(request, msg)
             return redirect('list_regionais')
-        
-        messages.error(request, form.errors)
         return render(request, self.template_name, {"form": form})
 
 
@@ -236,16 +232,18 @@ class UsuarioRegionalFormView(View):
     def post(self, request, regional_id, usuario_regional_id=None):
         regional = get_object_or_404(Regional, id=regional_id)
         form = self.form_class(request.POST)
+        msg = 'Usuário Regional criado com sucesso'
 
         if usuario_regional_id:
             usuario_regional = get_object_or_404(
                 UsuarioRegional, id=usuario_regional_id, regional=regional
             )
             form = self.form_class(request.POST, instance=usuario_regional)
+            msg = "Usuário Regional modificado com sucesso"
 
         if form.is_valid():
             form.save()
-            messages.success(request, "Usuário Regional criado com sucesso")
+            messages.success(request, msg)
             return redirect('list_usuario_regional', regional_id=regional.id)
         return render(request, self.template_name, {"form": form, "regional": regional})
 
