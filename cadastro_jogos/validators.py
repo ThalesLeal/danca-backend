@@ -26,6 +26,40 @@ def validar_cpf(cpf):
         resto = 0
     if resto != int(cpf[10]):
         raise ValidationError(mensagem)
+    
+def validar_cnpj(cnpj):
+    cnpj = "".join(filter(str.isdigit, str(cnpj)))
+    mensagem = "O CNPJ informado é inválido"
+
+    if len(set(cnpj)) == 1 or len(cnpj) != 14:
+        raise ValidationError(mensagem)
+
+    pesos1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+    pesos2 = [6] + pesos1
+
+    soma = sum(int(cnpj[i]) * pesos1[i] for i in range(12))
+    resto = 11 - (soma % 11)
+    if resto >= 10:
+        resto = 0
+    if resto != int(cnpj[12]):
+        raise ValidationError(mensagem)
+
+    soma = sum(int(cnpj[i]) * pesos2[i] for i in range(13))
+    resto = 11 - (soma % 11)
+    if resto >= 10:
+        resto = 0
+    if resto != int(cnpj[13]):
+        raise ValidationError(mensagem)
+
+def validar_cpf_cnpj(valor):
+    valor = "".join(filter(str.isdigit, str(valor)))
+
+    if len(valor) == 11:
+        validar_cpf(valor)
+    elif len(valor) == 14:
+        validar_cnpj(valor)
+    else:
+        raise ValidationError("O CPF ou CNPJ informado é inválido")
 
 def validar_email(email):
     try:
