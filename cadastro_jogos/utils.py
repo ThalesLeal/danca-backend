@@ -10,3 +10,10 @@ TIPO_REGIONAL_CHOICES = [
     ('amador', 'Amador'),
     ('profissional', 'Profissional'),
 ]
+
+REDE_DE_ENSINO_CHOICES = [
+    ('privada', 'Privada'),
+    ('estadual', 'Estadual'),
+    ('municipal', 'Municipal'),
+    ('federal', 'Federal'),
+]

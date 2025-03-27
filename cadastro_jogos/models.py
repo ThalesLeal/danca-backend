@@ -7,14 +7,12 @@ from django.db import models
 from django.db import models
 from _core.models import User
 
-from .utils import PERFIL_CHOICES, TIPO_REGIONAL_CHOICES
-from .validators import validar_cpf, validar_email
+from .utils import PERFIL_CHOICES, TIPO_REGIONAL_CHOICES, REDE_DE_ENSINO_CHOICES
+from .validators import validar_cpf, validar_email, validar_cpf_cnpj
 from django.dispatch import receiver
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from django.contrib import messages
 
 LOGGER = logging.getLogger("django")
 
@@ -100,3 +98,37 @@ class UsuarioRegional(models.Model):
 
     def __str__(self):
         return f"{self.usuario.nome} - {self.regional.nome}"
+    
+
+class Instituicao(models.Model):
+    nome = models.CharField(max_length=120, null=False, blank=False, verbose_name="Nome da Instituição")
+    cep = models.CharField(max_length=10, null=False, blank=False)
+    bairro = models.CharField(max_length=120, null=False, blank=False)
+    logradouro = models.CharField(max_length=120, null=False, blank=False)
+    numero = models.CharField(max_length=10, null=False, blank=False)
+    complemento = models.CharField(max_length=60, null=True, blank=True)
+    municipio = models.CharField(max_length=60, null=False, blank=False)
+    pertence_a_regional = models.BooleanField()
+    tipo_regional = models.CharField(
+        max_length=20, 
+        choices=TIPO_REGIONAL_CHOICES, 
+        null=False, 
+        blank=False, 
+        verbose_name="Tipo de Regional"
+    )
+    regional = models.ForeignKey(Regional, on_delete=models.CASCADE)
+    rede = models.CharField(
+        max_length=10,
+        choices=REDE_DE_ENSINO_CHOICES,
+        null=False,
+        blank=False,
+    )
+    cpf_cnpj = models.CharField(
+        max_length=14, 
+        null=True, 
+        blank=True, 
+        validators=[validar_cpf_cnpj]
+    )
+
+    def __str__(self):
+        return self.nome

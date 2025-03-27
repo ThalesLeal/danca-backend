@@ -114,3 +114,7 @@ class UsuarioRegionalForm(forms.ModelForm):
             raise ValidationError("A data de fim deve ser maior que a data de início.")
    
         return cleaned_data
+
+
+class InstituicaoForm(forms.ModelForm):
+    pass
