@@ -31,6 +31,7 @@ env = environ.Env(
     STATIC_ROOT=(Path, BASE_DIR / "staticfiles"),
     MEDIA_URL=(str, "media/"),
     MEDIA_ROOT=(Path, BASE_DIR / "media"),
+    LOGOUT_REDIRECT_URL=(str, "/oidc/login/")
 )
 
 environ.Env.read_env(BASE_DIR / ".env")
@@ -237,7 +238,7 @@ LOGGING = {
 }
 
 LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = "/oidc/login/"
+LOGOUT_REDIRECT_URL = env("LOGOUT_REDIRECT_URL")
 LOGIN_URL = '/oidc/login/'
 
 # SSO
