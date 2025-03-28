@@ -73,7 +73,6 @@ def atualizar_usuario_jogos(sender, instance, **kwargs):
 
 
 class Regional(models.Model):  
-
     nome = models.CharField(max_length=120, null=False, blank=False, verbose_name="Nome da Regional")
     numero = models.IntegerField(null=False, blank=False, verbose_name="Número")
     cidade = models.CharField(max_length=100, null=False, blank=False, verbose_name="Cidade")
@@ -117,7 +116,7 @@ class Instituicao(models.Model):
         verbose_name="Tipo de Regional"
     )
     regional = models.ForeignKey(Regional, on_delete=models.CASCADE)
-    rede = models.CharField(
+    rede_ensino = models.CharField(
         max_length=10,
         choices=REDE_DE_ENSINO_CHOICES,
         null=False,

@@ -1,8 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
-from .models import UsuarioJogos, Regional, UsuarioRegional
+from .models import Instituicao, UsuarioJogos, Regional, UsuarioRegional
 from django.contrib import messages
-from .forms import UsuarioJogosForm, RegionalForm, UsuarioRegionalForm
+from .forms import InstituicaoForm, UsuarioJogosForm, RegionalForm, UsuarioRegionalForm
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.views import View
@@ -258,3 +258,34 @@ class UsuarioRegionalDeleteView(DeleteView):
         messages.success(self.request, "Usuario Regional removido com sucesso")
         regional_id = self.object.regional.id
         return reverse('list_usuario_regional', args=[regional_id])
+    
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class InstituicaoFormView(View):
+    form_class = InstituicaoForm
+    template_name = "instituicao/form.html"
+
+    def get(self, request, instituicao_id=None):
+        form = self.form_class()
+        if instituicao_id:
+            instituicao = get_object_or_404(Instituicao, id=instituicao_id)
+            form = self.form_class(instance=instituicao)
+        return render(request, self.template_name, {"form": form})
+
+    def post(self, request, instituicao_id=None):
+        form = self.form_class(request.POST)
+        msg = 'Instituição criada com sucesso'
+
+        if instituicao_id:
+            regional = get_object_or_404(Instituicao, id=instituicao_id)
+            form = self.form_class(request.POST, instance=regional)
+            msg = 'Instituição modificada com sucesso'
+    
+        if form.is_valid():
+            form.save()
+            messages.success(request, msg)
+            # return redirect('list_instituicoes')
+        return render(request, self.template_name, {"form": form})
+
+
