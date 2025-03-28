@@ -147,7 +147,7 @@ class InstituicaoForm(forms.ModelForm):
             'bairro': forms.TextInput(attrs={'class': 'form-control'}),
             'municipio': forms.TextInput(attrs={'class': 'form-control'}),
             'complemento': forms.TextInput(attrs={'class': 'form-control'}),
-            'pertence_a_regional': forms.RadioSelect(choices=[(True, "Sim"), (False, "Não")]),
+            'pertence_a_regional': forms.Select(attrs={'class': 'form-select'}, choices=[(True, "Sim"), (False, "Não")]),
             'cpf_cnpj': forms.TextInput(attrs={'class': 'form-control'}),
             'tipo_regional': forms.Select(attrs={'class': 'form-select'}),
             'regional': forms.Select(attrs={'class': 'form-select'}),
