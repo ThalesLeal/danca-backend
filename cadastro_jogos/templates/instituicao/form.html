@@ -28,7 +28,7 @@
 </div>
 {% endif %}
 
-<form method="post">
+<form method="post" id="instituicao-form">
     {% csrf_token %}
     <div class="row">
         <div class="col-4 mb-3">
@@ -72,6 +72,10 @@
           {{ form.regional }}
         </div>
         <div class="col-4 mb-3">
+          <label class="me-3" for="{{ form.cpf_cnpj.id_for_label }}">{{ form.cpf_cnpj.label }}</label>
+          {{ form.cpf_cnpj }}
+        </div>
+        <div class="col-4 mb-3">
           <label class="me-3" for="{{ form.rede_ensino.id_for_label }}">{{ form.rede_ensino.label }}</label>
           {{ form.rede_ensino }}
         </div>
@@ -84,4 +88,69 @@
     <a href="{% url 'list_regionais' %}" class="btn btn-secondary"><i class="bi bi-arrow-90deg-left"></i> Voltar</a>
 </form>
 
+{% endblock %}
+
+
+{% block extra_js %}
+<script> 
+$(document).ready(function() {
+    // Função para alternar a visibilidade dos campos
+    // Se pertencer a regional, os campos tipo de regional e regional
+    // Serão exibidos. Se não, o campo CPF/CNPJ será exibido
+    function exibirCamposRegional() {
+      var pertenceRegional = $('#{{ form.pertence_a_regional.id_for_label }}').val();
+      var tipoRegional = $('#{{ form.tipo_regional.id_for_label }}').closest('.col-4')
+      var regional = $('#{{ form.regional.id_for_label }}').closest('.col-4')
+      var cpfCnpj = $('#{{ form.cpf_cnpj.id_for_label }}').closest('.col-4')
+    
+      if (pertenceRegional === 'False') {
+        // Esconde os campos de regional
+        tipoRegional.hide();
+        regional.hide();
+        // Mostra o campo CPF/CNPJ
+        cpfCnpj.show();
+      } else {
+        // Mostra os campos de regional
+        tipoRegional.show();
+        regional.show();
+        // Esconde o campo CPF/CNPJ
+        cpfCnpj.hide();
+      }
+    }
+
+    exibirCamposRegional();
+
+    $('#{{ form.pertence_a_regional.id_for_label }}').on('change', exibirCamposRegional);
+
+    // Desabilita os campos que serão preenchidos via CEP
+    $('#id_logradouro').prop('disabled', true);
+    $('#id_bairro').prop('disabled', true);
+    $('#id_municipio').prop('disabled', true);
+
+    function alterarMascaraCpfCnpj() {
+      var cpfCnpj = $('#{{ form.cpf_cnpj.id_for_label }}');
+      var valor = cpfCnpj.val().replace(/\D/g, '');
+
+      if (valor.length > 11) {
+          cpfCnpj.unmask().mask('00.000.000/0000-00');
+      } else {
+          cpfCnpj.unmask().mask('000.000.000-00');
+      }
+    }
+
+    $('#{{ form.cpf_cnpj.id_for_label }}').on('input paste', function () {
+        setTimeout(alterarMascaraCpfCnpj, 0);
+    });
+
+    alterarMascaraCpfCnpj();
+   
+    // Habilita novamente os campos antes de submeter o formulário
+    $('#instituicao-form').on('submit', function() {
+      $('#id_logradouro').prop('disabled', false);
+      $('#id_bairro').prop('disabled', false);
+      $('#id_municipio').prop('disabled', false);
+    })
+
+});
+</script>
 {% endblock %}
