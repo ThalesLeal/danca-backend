@@ -286,11 +286,12 @@ class InstituicaoFormView(View):
         if form.is_valid():
             form.save()
             messages.success(request, msg)
-            print("FORMULARIO SALVO COM SUCESSO")
             # return redirect('list_instituicoes')
         return render(request, self.template_name, {"form": form})
     
 
+@login_required
+@never_cache
 def get_regionais(request):
     tipo_regional = request.GET.get('tipo_regional')
     regionais = Regional.objects.filter(tipo_regional=tipo_regional).values('id', 'nome')

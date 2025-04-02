@@ -142,9 +142,10 @@ $(document).ready(function() {
     $('#id_municipio').prop('disabled', true);
 
     // Desabilita o campo regional, que vai ser autocompletado
-    $('#id_regional').prop('disabled', true);
-
-
+    if (!$('#id_tipo_regional').val()) {
+      $('#id_regional').prop('disabled', true);
+    }
+    
     // Torna a máscara do campo CPF/CNPJ dinâmica
     function alterarMascaraCpfCnpj() {
       var cpfCnpj = $('#{{ form.cpf_cnpj.id_for_label }}');

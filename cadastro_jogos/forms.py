@@ -193,4 +193,17 @@ class InstituicaoForm(forms.ModelForm):
             )
         return cpf_cnpj
 
+    def save(self, commit=True):
+        instance = super().save(commit=False)
 
+        pertence_a_regional = self.cleaned_data['pertence_a_regional']
+
+        if not pertence_a_regional:
+            instance.tipo_regional = None
+            instance.regional = None
+        else:
+            instance.cpf_cnpj = None
+
+        if commit:
+            instance.save()
+        return instance
