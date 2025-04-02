@@ -94,29 +94,31 @@
 {% block extra_js %}
 <script> 
 $(document).ready(function() {
-    // Função para alternar a visibilidade dos campos
-    // Se pertencer a regional, os campos tipo de regional e regional
-    // Serão exibidos. Se não, o campo CPF/CNPJ será exibido
-    function exibirCamposRegional() {
-      var pertenceRegional = $('#{{ form.pertence_a_regional.id_for_label }}').val();
-      var tipoRegional = $('#{{ form.tipo_regional.id_for_label }}').closest('.col-4')
-      var regional = $('#{{ form.regional.id_for_label }}').closest('.col-4')
-      var cpfCnpj = $('#{{ form.cpf_cnpj.id_for_label }}').closest('.col-4')
-    
-      if (pertenceRegional === 'False') {
-        // Esconde os campos de regional
-        tipoRegional.hide();
-        regional.hide();
-        // Mostra o campo CPF/CNPJ
-        cpfCnpj.show();
-      } else {
-        // Mostra os campos de regional
-        tipoRegional.show();
-        regional.show();
-        // Esconde o campo CPF/CNPJ
-        cpfCnpj.hide();
-      }
+  var tipoRegional = $('#id_tipo_regional');
+  var regional = $('#id_regional');
+  // Função para alternar a visibilidade dos campos
+  // Se pertencer a regional, os campos tipo de regional e regional
+  // Serão exibidos. Se não, o campo CPF/CNPJ será exibido
+  function exibirCamposRegional() {
+    var pertenceRegional = $('#{{ form.pertence_a_regional.id_for_label }}').val();
+    var tipoRegional = $('#{{ form.tipo_regional.id_for_label }}').closest('.col-4')
+    var regional = $('#{{ form.regional.id_for_label }}').closest('.col-4')
+    var cpfCnpj = $('#{{ form.cpf_cnpj.id_for_label }}').closest('.col-4')
+  
+    if (pertenceRegional === 'False') {
+      // Esconde os campos de regional
+      tipoRegional.hide();
+      regional.hide();
+      // Mostra o campo CPF/CNPJ
+      cpfCnpj.show();
+    } else {
+      // Mostra os campos de regional
+      tipoRegional.show();
+      regional.show();
+      // Esconde o campo CPF/CNPJ
+      cpfCnpj.hide();
     }
+  }
 
     exibirCamposRegional();
 
@@ -142,10 +144,10 @@ $(document).ready(function() {
     $('#id_municipio').prop('disabled', true);
 
     // Desabilita o campo regional, que vai ser autocompletado
-    if (!$('#id_tipo_regional').val()) {
-      $('#id_regional').prop('disabled', true);
+    if (!tipoRegional.val()) {
+      regional.prop('disabled', true);
     }
-    
+
     // Torna a máscara do campo CPF/CNPJ dinâmica
     function alterarMascaraCpfCnpj() {
       var cpfCnpj = $('#{{ form.cpf_cnpj.id_for_label }}');

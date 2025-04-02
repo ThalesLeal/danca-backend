@@ -15,6 +15,12 @@
               </a>
           </li>
           <li class="nav-item mb-2">
+            <a href="{% url 'list_instituicoes' %}" class="nav-link {% if request.resolver_match.url_name == 'list_instituicoes' %}active{% endif %}">
+                <i class="bi bi-building"></i>
+                <span>Instituições</span> 
+            </a>
+        </li>
+          <li class="nav-item mb-2">
               <a href="#" class="nav-link">
                   <i class="bi bi-tag-fill"></i>
                   <span>Categorias</span>

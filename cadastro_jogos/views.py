@@ -263,6 +263,38 @@ class UsuarioRegionalDeleteView(DeleteView):
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name="dispatch")
+class InstituicaoListView(ListView):
+    model = Instituicao
+    paginate_by = 10
+    template_name = "instituicao/list.html"
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query:
+            return Instituicao.objects.filter(nome__icontains=query).order_by(Lower('nome'))
+        return Instituicao.objects.all().order_by(Lower('nome'))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['q'] = self.request.GET.get('q', '')
+        context['create_url'] = reverse('create_instituicao')
+        return context
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class InstituicaoDetailView(TemplateView):
+    template_name = "instituicao/instituicao.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        instituicao = get_object_or_404(Instituicao, id=self.kwargs['instituicao_id'])
+        context['instituicao'] = instituicao
+        return context
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
 class InstituicaoFormView(View):
     form_class = InstituicaoForm
     template_name = "instituicao/form.html"
@@ -286,7 +318,7 @@ class InstituicaoFormView(View):
         if form.is_valid():
             form.save()
             messages.success(request, msg)
-            # return redirect('list_instituicoes')
+            return redirect('list_instituicoes')
         return render(request, self.template_name, {"form": form})
     
 
@@ -296,5 +328,16 @@ def get_regionais(request):
     tipo_regional = request.GET.get('tipo_regional')
     regionais = Regional.objects.filter(tipo_regional=tipo_regional).values('id', 'nome')
     return JsonResponse(list(regionais), safe=False)
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class InstituicaoDeleteView(DeleteView):
+    model = Instituicao
+    pk_url_kwarg = "instituicao_id"
+
+    def get_success_url(self):
+        messages.success(self.request, "Instituição removida com sucesso")
+        return reverse('list_instituicoes')
 
 
