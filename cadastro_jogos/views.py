@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from .models import Instituicao, UsuarioJogos, Regional, UsuarioRegional
@@ -285,7 +286,14 @@ class InstituicaoFormView(View):
         if form.is_valid():
             form.save()
             messages.success(request, msg)
+            print("FORMULARIO SALVO COM SUCESSO")
             # return redirect('list_instituicoes')
         return render(request, self.template_name, {"form": form})
+    
+
+def get_regionais(request):
+    tipo_regional = request.GET.get('tipo_regional')
+    regionais = Regional.objects.filter(tipo_regional=tipo_regional).values('id', 'nome')
+    return JsonResponse(list(regionais), safe=False)
 
 

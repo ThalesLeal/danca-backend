@@ -120,22 +120,37 @@ $(document).ready(function() {
 
     exibirCamposRegional();
 
+    function alterarAtributoCamposRegional() {
+      var pertenceRegional = $('#{{ form.pertence_a_regional.id_for_label }}').val();
+      if (pertenceRegional === 'False') {
+        $('#id_tipo_regional, #id_regional').removeAttr('required');
+        $('#id_cpf_cnpj').attr('required');
+      } else {
+        $('#id_tipo_regional, #id_regional').attr('required', 'required');
+        $('#id_cpf_cnpj').removeAttr('required');
+      }
+    }
+
+    alterarAtributoCamposRegional();
+
     $('#{{ form.pertence_a_regional.id_for_label }}').on('change', exibirCamposRegional);
+    $('#{{ form.pertence_a_regional.id_for_label }}').on('change', alterarAtributoCamposRegional);
 
     // Desabilita os campos que serão preenchidos via CEP
     $('#id_logradouro').prop('disabled', true);
     $('#id_bairro').prop('disabled', true);
     $('#id_municipio').prop('disabled', true);
 
+    // Desabilita o campo regional, que vai ser autocompletado
+    $('#id_regional').prop('disabled', true);
+
+
+    // Torna a máscara do campo CPF/CNPJ dinâmica
     function alterarMascaraCpfCnpj() {
       var cpfCnpj = $('#{{ form.cpf_cnpj.id_for_label }}');
       var valor = cpfCnpj.val().replace(/\D/g, '');
 
-      if (valor.length > 11) {
-          cpfCnpj.unmask().mask('00.000.000/0000-00');
-      } else {
-          cpfCnpj.unmask().mask('000.000.000-00');
-      }
+      cpfCnpj.mask(valor.length > 11 ? '00.000.000/0000-00' : '000.000.000-000');
     }
 
     $('#{{ form.cpf_cnpj.id_for_label }}').on('input paste', function () {
@@ -144,13 +159,36 @@ $(document).ready(function() {
 
     alterarMascaraCpfCnpj();
    
-    // Habilita novamente os campos antes de submeter o formulário
-    $('#instituicao-form').on('submit', function() {
+    $('#id_tipo_regional').change(function() {
+      var tipo_regional = $(this).val();
+      var regionalSelect = $('#id_regional');
+
+      if (tipo_regional) {
+        $.ajax({
+          url: "{% url 'get_regionais' %}",
+          data: {'tipo_regional': tipo_regional},
+          dataType: 'json',
+          success: function(data) {
+            regionalSelect.prop('disabled', false);
+            regionalSelect.empty();
+            regionalSelect.append('<option value="">---------</option>');
+            $.each(data, function(index, item) {
+              regionalSelect.append('<option value="' + item.id + '">' + item.nome + '</option>');
+            });
+          }
+        });
+      } else {
+        regionalSelect.prop('disabled', true);
+        regionalSelect.empty().append('<option value="">---------</option>');
+      }
+    });
+
+     // Habilita novamente os campos antes de submeter o formulário.
+     $('#instituicao-form').on('submit', function() {
       $('#id_logradouro').prop('disabled', false);
       $('#id_bairro').prop('disabled', false);
       $('#id_municipio').prop('disabled', false);
     })
-
 });
 </script>
 {% endblock %}

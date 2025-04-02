@@ -29,4 +29,6 @@ urlpatterns = [
     path('instituicoes/create/', InstituicaoFormView.as_view(), name='create_usuario_regional'),
     path('instituicoes/<int:instituicao_id>/update/', InstituicaoFormView.as_view(), name='update_usuario_regional'),
     # path('instituicoes/<int:instituicao_id>/delete/', InstituicaoDeleteView.as_view(), name='delete_usuario_regional'),
+
+    path('get-regionais/', get_regionais, name='get_regionais'),
 ]

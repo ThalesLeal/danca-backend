@@ -111,19 +111,19 @@ class Instituicao(models.Model):
     tipo_regional = models.CharField(
         max_length=20, 
         choices=TIPO_REGIONAL_CHOICES, 
-        null=False, 
-        blank=False, 
+        null=True, 
+        blank=True, 
         verbose_name="Tipo de Regional"
     )
-    regional = models.ForeignKey(Regional, on_delete=models.CASCADE)
+    regional = models.ForeignKey(Regional, on_delete=models.CASCADE, null=True, blank=True)
     rede_ensino = models.CharField(
         max_length=10,
         choices=REDE_DE_ENSINO_CHOICES,
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
     )
     cpf_cnpj = models.CharField(
-        max_length=14, 
+        max_length=18, 
         null=True, 
         blank=True, 
         validators=[validar_cpf_cnpj]

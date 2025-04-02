@@ -154,32 +154,43 @@ class InstituicaoForm(forms.ModelForm):
             'rede_ensino': forms.Select(attrs={'class': 'form-select'}),
         }
 
-        def clean(self):
-            cleaned_data = super().clean()
-            pertence_a_regional = cleaned_data.get('pertence_a_regional')
-            cpf_cnpj = cleaned_data.get('cpf_cnpj')
-            tipo_regional = cleaned_data.get('tipo_regional')
-            regional = cleaned_data.get('regional')
-            rede_ensino = cleaned_data.get('rede_ensino')
+    def clean(self):
+        cleaned_data = super().clean()
+        pertence_a_regional = cleaned_data.get('pertence_a_regional')
+        cpf_cnpj = cleaned_data.get('cpf_cnpj')
+        tipo_regional = cleaned_data.get('tipo_regional')
+        regional = cleaned_data.get('regional')
+        rede_ensino = cleaned_data.get('rede_ensino')
 
-            if pertence_a_regional:
-                if not tipo_regional:
-                    raise ValidationError(
-                        "Se a instituição pertence à uma regional, o tipo de regional é obrigatório."
-                    )
-                if not regional:
-                    raise ValidationError(
-                        "Se a instituição pertence à uma regional, a regional é obrigatória."
-                    )
-                if not rede_ensino:
-                    raise ValidationError(
-                        "Se a instituição pertence à uma regional, a rede de ensino é obrigatória."
-                    )
-            else:
-                if not cpf_cnpj:
-                    raise ValidationError(
-                        "O CPF/CNPJ é obrigatório se a instituição não pertence à uma regional."
-                    )
-            return cleaned_data
+        if cpf_cnpj:
+            cpf_cnpj = re.sub(r'\D', '', cpf_cnpj)
+
+        if pertence_a_regional:
+            if not tipo_regional:
+                raise ValidationError(
+                    "Se a instituição pertence à uma regional, o tipo de regional é obrigatório."
+                )
+            if not regional:
+                raise ValidationError(
+                    "Se a instituição pertence à uma regional, a regional é obrigatória."
+                )
+            if not rede_ensino:
+                raise ValidationError(
+                    "Se a instituição pertence à uma regional, a rede de ensino é obrigatória."
+                )
+        return cleaned_data
+    
+
+    def clean_cpf_cnpj(self):
+        cpf_cnpj = self.cleaned_data['cpf_cnpj']
+        pertence_a_regional = self.cleaned_data['pertence_a_regional']
+
+        if cpf_cnpj:
+            cpf_cnpj = re.sub(r'\D', '', cpf_cnpj)
+        if not pertence_a_regional and not cpf_cnpj:
+            raise ValidationError(
+                "O CPF/CNPJ é obrigatório se a instituição não pertence à uma regional."
+            )
+        return cpf_cnpj
 
 
