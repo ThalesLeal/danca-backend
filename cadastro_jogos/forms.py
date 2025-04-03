@@ -192,6 +192,12 @@ class InstituicaoForm(forms.ModelForm):
                 "O CPF/CNPJ é obrigatório se a instituição não pertence à uma regional."
             )
         return cpf_cnpj
+    
+    def clean_cep(self):
+        cep = self.cleaned_data['cep']
+        if cep:
+            cep = re.sub(r'\D', '', cep)
+        return cep
 
     def save(self, commit=True):
         instance = super().save(commit=False)
