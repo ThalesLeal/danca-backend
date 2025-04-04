@@ -34,7 +34,7 @@
   </div>
   <div class="col-4 mb-3">
     <label class="me-3">Pertence à Regional?:</label><br />
-    {{ instituicao.pertence_a_regional }}
+    {{ instituicao.pertence_a_regional|yesno:"Sim,Não" }}
   </div>
   <div class="col-4 mb-3">
     <label class="me-3">Tipo de Regional:</label><br />
@@ -50,7 +50,7 @@
   </div>
   <div class="col-4 mb-3">
     <label class="me-3">Rede de Ensino:</label><br />
-    {{ instituicao.rede_ensino }}
+    {{ instituicao.rede_ensino|capfirst }}
   </div>
 </div>
 

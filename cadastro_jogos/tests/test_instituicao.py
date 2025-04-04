@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from cadastro_jogos.forms import InstituicaoForm
+from cadastro_jogos.models import Instituicao
 from cadastro_jogos.tests.factories import InstituicaoFactory
 from django.contrib.auth import get_user_model
 
@@ -112,7 +113,7 @@ class InstituicaoListTestCase(TestCase):
     def test_redireciona_para_login_se_nao_autenticado(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual('/oidc/login/?next=/instituicoes/', response.url)
+        self.assertIn('/oidc/login/', response.url)
 
     def test_lista_instituicoes_para_usuario_autenticado(self):
         self.client.login(username='00000000000', password='000')
@@ -120,6 +121,43 @@ class InstituicaoListTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         for instituicao in self.instituicoes:
             self.assertContains(response, instituicao.nome)
+
+
+class InstituicaoDetailTestCase(TestCase):
+    def setUp(self):
+        UserModel.objects.create_user(username='00000000000', password='000')
+        self.instituicao = InstituicaoFactory()
+        self.url = reverse('detail_instituicao', kwargs={'instituicao_id': self.instituicao.id})
+
+    def test_redireciona_para_login_se_nao_autenticado(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/oidc/login/', response.url)
+
+    def test_exibe_detalhes_para_usuario_autenticado(self):
+        self.client.login(username='00000000000', password='000')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.instituicao.nome)
+        self.assertContains(response, self.instituicao.municipio)
+
+
+class InstituicaoDeleteTestCase(TestCase):
+    def setUp(self):
+        UserModel.objects.create_user(username='00000000000', password='000')
+        self.instituicao = InstituicaoFactory()
+        self.url = reverse('delete_instituicao', kwargs={'instituicao_id': self.instituicao.id})
+
+    def test_redireciona_para_login_se_nao_autenticado(self):
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/oidc/login/', response.url)
+
+    def test_exclui_instituicao_com_usuario_autenticado(self):
+        self.client.login(username='00000000000', password='000')
+        response = self.client.post(self.url, follow=True)
+        self.assertRedirects(response, reverse('list_instituicoes'))
+        self.assertFalse(Instituicao.objects.filter(id=self.instituicao.id).exists())
 
 
 

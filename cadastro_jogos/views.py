@@ -322,14 +322,6 @@ class InstituicaoFormView(View):
         return render(request, self.template_name, {"form": form})
     
 
-@login_required
-@never_cache
-def get_regionais(request):
-    tipo_regional = request.GET.get('tipo_regional')
-    regionais = Regional.objects.filter(tipo_regional=tipo_regional).values('id', 'nome')
-    return JsonResponse(list(regionais), safe=False)
-
-
 @method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name="dispatch")
 class InstituicaoDeleteView(DeleteView):
@@ -339,5 +331,14 @@ class InstituicaoDeleteView(DeleteView):
     def get_success_url(self):
         messages.success(self.request, "Instituição removida com sucesso")
         return reverse('list_instituicoes')
+    
+
+@login_required
+@never_cache
+def get_regionais(request):
+    tipo_regional = request.GET.get('tipo_regional')
+    regionais = Regional.objects.filter(tipo_regional=tipo_regional).values('id', 'nome')
+    return JsonResponse(list(regionais), safe=False)
+
 
 
