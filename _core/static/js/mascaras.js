@@ -26,3 +26,34 @@ function cpf(v){
     v=v.replace(/(\d{3})(\d{1,2})$/,"$1-$2") //Coloca um hífen entre o terceiro e o quarto dígitos
     return v
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    var inputCep = document.getElementById('id_cep');
+    
+    inputCep.addEventListener('input', function() {
+        if (document.activeElement === inputCep) {
+            var CEP = inputCep.value.replace(/\D/g, '');
+    
+            if (CEP.length === 8) {
+                var url = 'https://viacep.com.br/ws/' + CEP + '/json/';
+    
+                fetch(url)
+                    .then(response => response.json())
+                    .then(dados => {
+                        if (!dados.erro) {
+                            document.getElementById("id_logradouro").value = dados.logradouro
+                            document.getElementById("id_bairro").value = dados.bairro    
+                            document.getElementById("id_municipio").value = dados.localidade
+                            document.getElementById('id_numero').focus()      
+                        } else {
+                            alert("CEP não encontrado")
+                            document.getElementById("id_logradouro").value = ""
+                            document.getElementById("id_bairro").value = ""
+                            document.getElementById("id_municipio").value = ""
+                        }
+                    })
+            }
+        }
+    });
+});
+    

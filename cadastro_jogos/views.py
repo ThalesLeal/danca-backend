@@ -1,8 +1,9 @@
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
-from .models import UsuarioJogos, Regional, UsuarioRegional
+from .models import Instituicao, UsuarioJogos, Regional, UsuarioRegional
 from django.contrib import messages
-from .forms import UsuarioJogosForm, RegionalForm, UsuarioRegionalForm
+from .forms import InstituicaoForm, UsuarioJogosForm, RegionalForm, UsuarioRegionalForm
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.views import View
@@ -258,3 +259,86 @@ class UsuarioRegionalDeleteView(DeleteView):
         messages.success(self.request, "Usuario Regional removido com sucesso")
         regional_id = self.object.regional.id
         return reverse('list_usuario_regional', args=[regional_id])
+    
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class InstituicaoListView(ListView):
+    model = Instituicao
+    paginate_by = 10
+    template_name = "instituicao/list.html"
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query:
+            return Instituicao.objects.filter(nome__icontains=query).order_by(Lower('nome'))
+        return Instituicao.objects.all().order_by(Lower('nome'))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['q'] = self.request.GET.get('q', '')
+        context['create_url'] = reverse('create_instituicao')
+        return context
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class InstituicaoDetailView(TemplateView):
+    template_name = "instituicao/instituicao.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        instituicao = get_object_or_404(Instituicao, id=self.kwargs['instituicao_id'])
+        context['instituicao'] = instituicao
+        return context
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class InstituicaoFormView(View):
+    form_class = InstituicaoForm
+    template_name = "instituicao/form.html"
+
+    def get(self, request, instituicao_id=None):
+        form = self.form_class()
+        if instituicao_id:
+            instituicao = get_object_or_404(Instituicao, id=instituicao_id)
+            form = self.form_class(instance=instituicao)
+        return render(request, self.template_name, {"form": form})
+
+    def post(self, request, instituicao_id=None):
+        form = self.form_class(request.POST)
+        msg = 'Instituição criada com sucesso'
+
+        if instituicao_id:
+            regional = get_object_or_404(Instituicao, id=instituicao_id)
+            form = self.form_class(request.POST, instance=regional)
+            msg = 'Instituição modificada com sucesso'
+    
+        if form.is_valid():
+            form.save()
+            messages.success(request, msg)
+            return redirect('list_instituicoes')
+        return render(request, self.template_name, {"form": form})
+    
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class InstituicaoDeleteView(DeleteView):
+    model = Instituicao
+    pk_url_kwarg = "instituicao_id"
+
+    def get_success_url(self):
+        messages.success(self.request, "Instituição removida com sucesso")
+        return reverse('list_instituicoes')
+    
+
+@login_required
+@never_cache
+def get_regionais(request):
+    tipo_regional = request.GET.get('tipo_regional')
+    regionais = Regional.objects.filter(tipo_regional=tipo_regional).values('id', 'nome')
+    return JsonResponse(list(regionais), safe=False)
+
+
+

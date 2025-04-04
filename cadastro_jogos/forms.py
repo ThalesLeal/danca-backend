@@ -1,5 +1,5 @@
 from django import forms
-from .models import UsuarioJogos, Regional, UsuarioRegional
+from .models import Instituicao, UsuarioJogos, Regional, UsuarioRegional
 from .utils import PERFIL_CHOICES
 import re
 from django.core.exceptions import ValidationError
@@ -114,3 +114,102 @@ class UsuarioRegionalForm(forms.ModelForm):
             raise ValidationError("A data de fim deve ser maior que a data de início.")
    
         return cleaned_data
+
+
+class InstituicaoForm(forms.ModelForm):
+    class Meta:
+        model = Instituicao
+        fields = [
+            'nome', 'cep', 'logradouro', 
+            'numero', 'bairro', 'municipio',
+            'complemento', 'pertence_a_regional',
+            'cpf_cnpj', 'tipo_regional', 'regional', 'rede_ensino'
+        ]
+        labels = {
+            'nome': 'Nome da Instituição',
+            'cep': 'CEP',
+            'logradouro': 'Logradouro',
+            'numero': 'Número',
+            'bairro': 'Bairro',
+            'municipio': 'Município',
+            'complemento': 'Complemento',
+            'pertence_a_regional': 'Pertence à Regional?',
+            'cpf_cnpj': 'CPF/CNPJ',
+            'tipo_regional': 'Tipo de Regional',
+            'regional': 'Regional',
+            'rede_ensino': 'Rede de Ensino'
+        }
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'cep': forms.TextInput(attrs={'class': 'form-control mask-cep'}),
+            'logradouro': forms.TextInput(attrs={'class': 'form-control'}),
+            'numero': forms.TextInput(attrs={'class': 'form-control'}),
+            'bairro': forms.TextInput(attrs={'class': 'form-control'}),
+            'municipio': forms.TextInput(attrs={'class': 'form-control'}),
+            'complemento': forms.TextInput(attrs={'class': 'form-control'}),
+            'pertence_a_regional': forms.Select(attrs={'class': 'form-select'}, choices=[(True, "Sim"), (False, "Não")]),
+            'cpf_cnpj': forms.TextInput(attrs={'class': 'form-control'}),
+            'tipo_regional': forms.Select(attrs={'class': 'form-select'}),
+            'regional': forms.Select(attrs={'class': 'form-select'}),
+            'rede_ensino': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        pertence_a_regional = cleaned_data.get('pertence_a_regional')
+        cpf_cnpj = cleaned_data.get('cpf_cnpj')
+        tipo_regional = cleaned_data.get('tipo_regional')
+        regional = cleaned_data.get('regional')
+        rede_ensino = cleaned_data.get('rede_ensino')
+
+        if cpf_cnpj:
+            cpf_cnpj = re.sub(r'\D', '', cpf_cnpj)
+
+        if pertence_a_regional:
+            if not tipo_regional:
+                raise ValidationError(
+                    "Se a instituição pertence à uma regional, o tipo de regional é obrigatório."
+                )
+            if not regional:
+                raise ValidationError(
+                    "Se a instituição pertence à uma regional, a regional é obrigatória."
+                )
+            if not rede_ensino:
+                raise ValidationError(
+                    "Se a instituição pertence à uma regional, a rede de ensino é obrigatória."
+                )
+        return cleaned_data
+    
+
+    def clean_cpf_cnpj(self):
+        cpf_cnpj = self.cleaned_data['cpf_cnpj']
+        pertence_a_regional = self.cleaned_data['pertence_a_regional']
+
+        if cpf_cnpj:
+            cpf_cnpj = re.sub(r'\D', '', cpf_cnpj)
+        if not pertence_a_regional and not cpf_cnpj:
+            raise ValidationError(
+                "O CPF/CNPJ é obrigatório se a instituição não pertence à uma regional."
+            )
+        return cpf_cnpj
+    
+    def clean_cep(self):
+        cep = self.cleaned_data['cep']
+        if cep:
+            cep = re.sub(r'\D', '', cep)
+        return cep
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        pertence_a_regional = self.cleaned_data['pertence_a_regional']
+
+        if not pertence_a_regional:
+            instance.tipo_regional = None
+            instance.regional = None
+        else:
+            instance.cpf_cnpj = None
+
+        if commit:
+            instance.save()
+        return instance

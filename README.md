@@ -86,3 +86,12 @@ necessário que sejam informados os seguintes parâmetros:
 * SSO_CLIENT_ID - O id de cadastro da aplicação no Keycloak
 * SSO_CLIENT_SECRET - A senha referente ao id de cadastro da aplicação no Keycloack
 
+## Configuração dos testes
+
+Para rodar os testes da aplicação, primeiramente é necessário instalar as dependencias
+necessárias no arquivo `requirements-test.txt`.
+
+Após isso, executar os testes por meio do comando `pytest` no shell do django.
+
+O pytest reconhece os tipos de teste escritos com o django.test.
+

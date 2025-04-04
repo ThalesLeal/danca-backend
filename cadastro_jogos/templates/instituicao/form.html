@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2 class="pb-2">{% if form.instance.pk %}Editar{% else %}Cadastrar{% endif %} Instituição</h2>
+
+<!--- Mensagens de erro -->
+{% if form.errors %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      {% for error in form.non_field_errors %}
+        <div class="alert alert-error alert-dismissible fade show" role="alert">
+          {{ error }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+      {% for field in form %}
+        {% for error in field.errors %}
+        <div class="alert alert-error alert-dismissible fade show" role="alert">
+          {{ error }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<form method="post" id="instituicao-form">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-4 mb-3">
+            <label class="me-3" for="{{ form.nome.id_for_label }}">{{ form.nome.label }}</label>
+            {{ form.nome }}
+        </div>
+        <div class="col-4 mb-3">
+            <label class="me-3" for="{{ form.cep.id_for_label }}">{{ form.cep.label }}</label>
+            {{ form.cep }}
+        </div>
+        <div class="col-4 mb-3">
+            <label class="me-3" for="{{ form.logradouro.id_for_label }}">{{ form.logradouro.label }}</label>
+            {{ form.logradouro }}
+        </div>
+        <div class="col-4 mb-3">
+            <label class="me-3" for="{{ form.numero.id_for_label }}">{{ form.numero.label }}</label>
+            {{ form.numero }}
+        </div>
+        <div class="col-4 mb-3">
+            <label class="me-3" for="{{ form.bairro.id_for_label }}">{{ form.bairro.label }}</label>
+            {{ form.bairro }}
+        </div>
+        <div class="col-4 mb-3">
+            <label class="me-3" for="{{ form.municipio.id_for_label }}">{{ form.municipio.label }}</label>
+            {{ form.municipio }}
+        </div>
+        <div class="col-4 mb-3">
+            <label class="me-3" for="{{ form.complemento.id_for_label }}">{{ form.complemento.label }}</label>
+            {{ form.complemento }}
+        </div>
+        <div class="col-4 mb-3">
+            <label class="me-3" for="{{ form.pertence_a_regional.id_for_label }}">{{ form.pertence_a_regional.label }}</label>
+            {{ form.pertence_a_regional }}
+        </div>
+        <div class="col-4 mb-3">
+          <label class="me-3" for="{{ form.tipo_regional.id_for_label }}">{{ form.tipo_regional.label }}</label>
+          {{ form.tipo_regional }}
+        </div>
+        <div class="col-4 mb-3">
+          <label class="me-3" for="{{ form.regional.id_for_label }}">{{ form.regional.label }}</label>
+          {{ form.regional }}
+        </div>
+        <div class="col-4 mb-3">
+          <label class="me-3" for="{{ form.cpf_cnpj.id_for_label }}">{{ form.cpf_cnpj.label }}</label>
+          {{ form.cpf_cnpj }}
+        </div>
+        <div class="col-4 mb-3">
+          <label class="me-3" for="{{ form.rede_ensino.id_for_label }}">{{ form.rede_ensino.label }}</label>
+          {{ form.rede_ensino }}
+        </div>
+    </div>
+    
+    <button type="submit" class="btn btn-success me-2 float-end"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-floppy" viewBox="0 0 16 16">
+      <path d="M11 2H9v3h2z"/>
+      <path d="M1.5 0h11.586a1.5 1.5 0 0 1 1.06.44l1.415 1.414A1.5 1.5 0 0 1 16 2.914V14.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 14.5v-13A1.5 1.5 0 0 1 1.5 0M1 1.5v13a.5.5 0 0 0 .5.5H2v-4.5A1.5 1.5 0 0 1 3.5 9h9a1.5 1.5 0 0 1 1.5 1.5V15h.5a.5.5 0 0 0 .5-.5V2.914a.5.5 0 0 0-.146-.353l-1.415-1.415A.5.5 0 0 0 13.086 1H13v4.5A1.5 1.5 0 0 1 11.5 7h-7A1.5 1.5 0 0 1 3 5.5V1H1.5a.5.5 0 0 0-.5.5m3 4a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5V1H4zM3 15h10v-4.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5z"/>
+    </svg> &nbsp; Salvar</button>
+    <a href="{% url 'list_instituicoes' %}" class="btn btn-secondary"><i class="bi bi-arrow-90deg-left"></i> Voltar</a>
+</form>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script> 
+$(document).ready(function() {
+  var tipoRegional = $('#id_tipo_regional');
+  var regional = $('#id_regional');
+  // Função para alternar a visibilidade dos campos
+  // Se pertencer a regional, os campos tipo de regional e regional
+  // Serão exibidos. Se não, o campo CPF/CNPJ será exibido
+  function exibirCamposRegional() {
+    var pertenceRegional = $('#{{ form.pertence_a_regional.id_for_label }}').val();
+    var tipoRegional = $('#{{ form.tipo_regional.id_for_label }}').closest('.col-4')
+    var regional = $('#{{ form.regional.id_for_label }}').closest('.col-4')
+    var cpfCnpj = $('#{{ form.cpf_cnpj.id_for_label }}').closest('.col-4')
+  
+    if (pertenceRegional === 'False') {
+      // Esconde os campos de regional
+      tipoRegional.hide();
+      regional.hide();
+      // Mostra o campo CPF/CNPJ
+      cpfCnpj.show();
+    } else {
+      // Mostra os campos de regional
+      tipoRegional.show();
+      regional.show();
+      // Esconde o campo CPF/CNPJ
+      cpfCnpj.hide();
+    }
+  }
+
+    exibirCamposRegional();
+
+    function alterarAtributoCamposRegional() {
+      var pertenceRegional = $('#{{ form.pertence_a_regional.id_for_label }}').val();
+      if (pertenceRegional === 'False') {
+        $('#id_tipo_regional, #id_regional').removeAttr('required');
+        $('#id_cpf_cnpj').attr('required');
+      } else {
+        $('#id_tipo_regional, #id_regional').attr('required', 'required');
+        $('#id_cpf_cnpj').removeAttr('required');
+      }
+    }
+
+    alterarAtributoCamposRegional();
+
+    $('#{{ form.pertence_a_regional.id_for_label }}').on('change', exibirCamposRegional);
+    $('#{{ form.pertence_a_regional.id_for_label }}').on('change', alterarAtributoCamposRegional);
+
+    // Desabilita os campos que serão preenchidos via CEP
+    $('#id_logradouro').prop('disabled', true);
+    $('#id_bairro').prop('disabled', true);
+    $('#id_municipio').prop('disabled', true);
+
+    // Desabilita o campo regional, que vai ser autocompletado
+    if (!tipoRegional.val()) {
+      regional.prop('disabled', true);
+    }
+
+    // Torna a máscara do campo CPF/CNPJ dinâmica
+    function alterarMascaraCpfCnpj() {
+      var cpfCnpj = $('#{{ form.cpf_cnpj.id_for_label }}');
+      var valor = cpfCnpj.val().replace(/\D/g, '');
+
+      cpfCnpj.mask(valor.length > 11 ? '00.000.000/0000-00' : '000.000.000-000');
+    }
+
+    $('#{{ form.cpf_cnpj.id_for_label }}').on('input paste', function () {
+        setTimeout(alterarMascaraCpfCnpj, 0);
+    });
+
+    alterarMascaraCpfCnpj();
+   
+    $('#id_tipo_regional').change(function() {
+      var tipo_regional = $(this).val();
+      var regionalSelect = $('#id_regional');
+
+      if (tipo_regional) {
+        $.ajax({
+          url: "{% url 'get_regionais' %}",
+          data: {'tipo_regional': tipo_regional},
+          dataType: 'json',
+          success: function(data) {
+            regionalSelect.prop('disabled', false);
+            regionalSelect.empty();
+            regionalSelect.append('<option value="">---------</option>');
+            $.each(data, function(index, item) {
+              regionalSelect.append('<option value="' + item.id + '">' + item.nome + '</option>');
+            });
+          }
+        });
+      } else {
+        regionalSelect.prop('disabled', true);
+        regionalSelect.empty().append('<option value="">---------</option>');
+      }
+    });
+
+     // Habilita novamente os campos antes de submeter o formulário.
+     $('#instituicao-form').on('submit', function() {
+      $('#id_logradouro').prop('disabled', false);
+      $('#id_bairro').prop('disabled', false);
+      $('#id_municipio').prop('disabled', false);
+    })
+});
+</script>
+{% endblock %}

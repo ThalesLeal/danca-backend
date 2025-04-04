@@ -1,0 +1,6 @@
+[run]
+omit =
+    ./_conf/*
+    ./_core/*
+    ./*/tests/*
+    ./*/migrations/*
