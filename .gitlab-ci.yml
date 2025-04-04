@@ -24,4 +24,5 @@ test:
     DATABASE_USERNAME: postgres
     DATABASE_PASSWORD: postgres
     SECRET_KEY: fdhaiselkltus
+    SSO_CLIENTE_SECRET: tGnQyF2oPNeQosLS1bF31253AKWrKcwk
 
