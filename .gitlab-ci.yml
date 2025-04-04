@@ -1,5 +1,26 @@
 variables:
   AMBIENTE_DEV: 1
-  CI: "true"
 include:
   - component: $CI_SERVER_FQDN/cicd/components/pipeline@1
+  - component: $CI_SERVER_FQDN/cicd/components/test@1
+    inputs:
+      image: dockercodata.pb.gov.br/ci-base-images/python:3.13
+      script: |-
+        pip install -r requirements-test.txt
+        pytest --junit-xml test-report/report.xml --cov-report xml:coverage-report/coverage.xml
+
+test:
+  services:
+    - name: $DOCKER_HUB_PROXY/postgres:16.8-alpine
+      alias: postgres
+      variables:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: test
+  variables:
+    DATABASE_HOST: postgres
+    DATABASE_PORT: 5432
+    DATABASE_NAME: test
+    DATABASE_USERNAME: postgres
+    DATABASE_PASSWORD: postgres
+

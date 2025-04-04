@@ -1,10 +1,8 @@
 from django.test import TestCase
 from django.urls import reverse
 from cadastro_jogos.forms import InstituicaoForm
-from cadastro_jogos.models import Instituicao
 from cadastro_jogos.tests.factories import InstituicaoFactory
 from django.contrib.auth import get_user_model
-import factory
 
 UserModel = get_user_model()
 
@@ -82,6 +80,49 @@ class InstituicaoFormTestCase(TestCase):
         }
         form = InstituicaoForm(data=dados)
         self.assertTrue(form.is_valid())
+
+    def test_editar_instituicao(self):
+        nome_atualizado = 'Nome da Instituição Atualizado'
+        dados_atualizados = {
+            'nome': nome_atualizado,
+            'cep': self.instituicao.cep,
+            'bairro': self.instituicao.bairro,
+            'logradouro': self.instituicao.logradouro,
+            'numero': self.instituicao.numero,
+            'complemento': self.instituicao.complemento,
+            'municipio': self.instituicao.municipio,
+            'pertence_a_regional': self.instituicao.pertence_a_regional,
+            'tipo_regional': self.instituicao.tipo_regional,
+            'regional': self.instituicao.regional,
+            'rede_ensino': self.instituicao.rede_ensino,
+            'cpf_cnpj': '41.296.870/0001-37',
+        }
+        form = InstituicaoForm(data=dados_atualizados, instance=self.instituicao)
+        self.assertTrue(form.is_valid())
+        instituicao_editada = form.save()
+        self.assertEqual(instituicao_editada.nome, nome_atualizado)
+
+
+class InstituicaoListTestCase(TestCase):
+    def setUp(self):
+        UserModel.objects.create_user(username='00000000000', password='000')
+        self.instituicoes = InstituicaoFactory.create_batch(3)
+        self.url = reverse('list_instituicoes')
+
+    def test_redireciona_para_login_se_nao_autenticado(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual('/oidc/login/?next=/instituicoes/', response.url)
+
+    def test_lista_instituicoes_para_usuario_autenticado(self):
+        self.client.login(username='00000000000', password='000')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        for instituicao in self.instituicoes:
+            self.assertContains(response, instituicao.nome)
+
+
+
 
 
         
