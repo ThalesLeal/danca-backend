@@ -133,6 +133,39 @@ label[for][for]:has(+ select[required])::after {
     padding: 10px;
     transition: margin-left 0.3s;
 }
+/* Ajuste do dropdown dentro da sidebar */
+.sidebar .dropdown {
+    position: relative;
+    width: 100%;
+}
+
+.sidebar .dropdown-menu {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    min-width: 180px;
+    background-color: #093d70;
+    border: none;
+    display: none;
+    transition: all 0.3s ease-in-out;
+}
+
+.sidebar .dropdown:hover .dropdown-menu,
+.sidebar .dropdown:focus-within .dropdown-menu {
+    display: block;
+    inset: 0px auto auto 0px;
+    transform: translate(0px, 47px);
+}
+
+.sidebar .dropdown-menu a {
+    color: white;
+    padding: 8px 12px;
+    display: block;
+}
+
+.sidebar .dropdown-menu a:hover {
+    background-color: #0d4e8f;
+}
 @media (max-width: 768px) {
     .sidebar {
         width: 70px;
