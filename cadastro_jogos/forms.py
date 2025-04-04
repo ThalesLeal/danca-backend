@@ -1,5 +1,5 @@
 from django import forms
-from .models import Instituicao, UsuarioJogos, Regional, UsuarioRegional
+from .models import Instituicao, UsuarioJogos, Regional, UsuarioRegional,FuncaoProfissionais
 from .utils import PERFIL_CHOICES
 import re
 from django.core.exceptions import ValidationError
@@ -213,3 +213,63 @@ class InstituicaoForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+class FuncaoProfissionalForm(forms.ModelForm):
+    class Meta:
+        model = FuncaoProfissionais
+        fields = ['nome', 'conselho']
+        labels = {
+            'nome': 'Nome da Função',
+            'conselho': 'Conselho',
+        }
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'conselho': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+    def _validate_chars(self, value, field_name):
+        """Valida se o valor contém apenas caracteres (não números)."""
+        if not re.match("^[a-zA-ZÀ-ÿ\s]*$", value):
+            raise ValidationError(f"O {field_name} deve conter apenas letras.")
+        if len(value) < 3:
+            raise ValidationError(f"O {field_name} deve ter pelo menos 3 caracteres.")
+        return value
+
+    def clean_nome(self):
+        nome = self.cleaned_data['nome']
+        return self._validate_chars(nome, "nome da função")
+
+    def clean_conselho(self):
+        conselho = self.cleaned_data['conselho']
+        return self._validate_chars(conselho, "nome do conselho")
+
+
+class FuncaoProfissionalForm(forms.ModelForm):
+    class Meta:
+        model = FuncaoProfissionais
+        fields = ['nome', 'conselho']
+        labels = {
+            'nome': 'Nome da Função',
+            'conselho': 'Conselho',
+        }
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'conselho': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+    def _validate_chars(self, value, field_name):
+        """Valida se o valor contém apenas caracteres (não números)."""
+        if not re.match("^[a-zA-ZÀ-ÿ\s]*$", value):
+            raise ValidationError(f"O {field_name} deve conter apenas letras.")
+        if len(value) < 3:
+            raise ValidationError(f"O {field_name} deve ter pelo menos 3 caracteres.")
+        return value
+
+    def clean_nome(self):
+        nome = self.cleaned_data['nome']
+        return self._validate_chars(nome, "nome da função")
+
+    def clean_conselho(self):
+        conselho = self.cleaned_data['conselho']
+        return self._validate_chars(conselho, "nome do conselho")
+
+
