@@ -113,3 +113,16 @@ class Instituicao(models.Model):
 
     def __str__(self):
         return self.nome
+
+
+
+class FuncaoProfissionais(models.Model):
+    nome = models.CharField(max_length=120, null=False, blank=False, verbose_name="Nome da Função")
+    conselho = models.CharField(max_length=120, null=True, blank=True, verbose_name="Conselho")
+
+    class Meta:
+        verbose_name = "Função Profissional"
+        verbose_name_plural = "Funções Profissionais"
+
+    def __str__(self):
+        return f"{self.nome}"
