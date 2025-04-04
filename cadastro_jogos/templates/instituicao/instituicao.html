@@ -6,7 +6,7 @@
 <div class="row">
   <div class="col-4 mb-3">
     <label class="me-3">Nome:</label><br />
-    {{ instituicao.nome }}
+    {{ instituicao.nome|capfirst }}
   </div>
   <div class="col-4 mb-3">
     <label class="me-3">CEP:</label><br />
@@ -30,7 +30,7 @@
   </div>
   <div class="col-4 mb-3">
     <label class="me-3">Complemento:</label><br />
-    {{ instituicao.complemento }}
+    {{ instituicao.complemento|default:'-'|capfirst }}
   </div>
   <div class="col-4 mb-3">
     <label class="me-3">Pertence à Regional?:</label><br />
@@ -38,7 +38,7 @@
   </div>
   <div class="col-4 mb-3">
     <label class="me-3">Tipo de Regional:</label><br />
-    {{ instituicao.tipo_regional }}
+    {{ instituicao.tipo_regional|default:'-'|capfirst }}
   </div>
   <div class="col-4 mb-3">
     <label class="me-3">Regional:</label><br />
@@ -46,11 +46,13 @@
   </div>
   <div class="col-4 mb-3">
     <label class="me-3">CPF/CNPJ:</label><br />
-    {{ instituicao.cpf_cnpj|default:'-' }}
+    <span class="{% if instituicao.cpf_cnpj|length == 11 %}mask-cpf{% else %}mask-cnpj{% endif %}">
+      {{ instituicao.cpf_cnpj|default:'-' }}
+    </span> 
   </div>
   <div class="col-4 mb-3">
     <label class="me-3">Rede de Ensino:</label><br />
-    {{ instituicao.rede_ensino|capfirst }}
+    {{ instituicao.rede_ensino|default:'-'|capfirst }}
   </div>
 </div>
 
