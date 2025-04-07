@@ -116,7 +116,7 @@ class Instituicao(models.Model):
 
 
 
-class FuncaoProfissionais(models.Model):
+class FuncaoProfissional(models.Model):
     nome = models.CharField(max_length=120, null=False, blank=False, verbose_name="Nome da Função")
     conselho = models.CharField(max_length=120, null=True, blank=True, verbose_name="Conselho")
 
