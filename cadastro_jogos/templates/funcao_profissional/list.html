@@ -25,19 +25,18 @@
   <thead>
     <tr>
       <th>Nome da Função</th>
-      <th class="text-center">Conselho</th>
+      <th class="text-left">Conselho</th>
       <th class="text-center">Ações</th>
     </tr>
   </thead>
   <tbody>
     {% for funcao in page_obj %}
     <tr>
-      <td class="align-middle">{{ funcao.nome }}</td>
-      <td class="col-3 text-center align-middle">{{ funcao.conselho }}</td>
+      <td class="align-middle">{{ funcao.nome|default:'-' }}</td>
+      <td class="col-3 text-left align-middle">{{ funcao.conselho|default:'-' }}</td>
       <td class="col-3 text-center botoes">
         <a href="{% url 'detail_funcao_profissional' funcao.id %}" class="btn btn-info"><i class="bi bi-eye-fill"></i></a>
         <a href="{% url 'update_funcao_profissional' funcao.id %}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a>
-        <!-- Botão que aciona o modal -->
         <button type="button" class="btn btn-danger btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="{{ funcao.id }}">
           <i class="bi bi-trash3-fill"></i>
         </button>
