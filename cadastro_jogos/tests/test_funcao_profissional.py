@@ -2,7 +2,7 @@ import pytest
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from cadastro_jogos.models import FuncaoProfissionais
+from cadastro_jogos.models import FuncaoProfissional
 
 User = get_user_model()
 
@@ -20,38 +20,38 @@ class BaseTestCase(TestCase):
 class TestFuncaoProfissionalListView(BaseTestCase):
     def setUp(self):
         super().setUp()
-        self.funcao1 = FuncaoProfissionais.objects.create(
+        self.funcao1 = FuncaoProfissional.objects.create(
             nome='Medico',
             conselho='CRM'
         )
-        self.funcao2 = FuncaoProfissionais.objects.create(
+        self.funcao2 = FuncaoProfissional.objects.create(
             nome='Enfermeiro',
             conselho='COREN'
         )
 
     def test_listagem_funcoes(self):       
-        resposta = self.client.get(reverse('list_funcao_profissional'))
+        resposta = self.client.get(reverse('list_funcao_profissionais'))
         assert resposta.status_code == 200
         assert len(resposta.context['object_list']) == 2
         assert 'Medico' in str(resposta.context['object_list'])
         assert 'Enfermeiro' in str(resposta.context['object_list'])
 
     def test_listagem_com_filtro(self):        
-        resposta = self.client.get(reverse('list_funcao_profissional') + '?q=Med')
+        resposta = self.client.get(reverse('list_funcao_profissionais') + '?q=Med')
         assert resposta.status_code == 200
         assert len(resposta.context['object_list']) == 1
         assert 'Medico' in str(resposta.context['object_list'])
         assert 'Enfermeiro' not in str(resposta.context['object_list'])
 
     def test_ordem_alfabetica(self):       
-        resposta = self.client.get(reverse('list_funcao_profissional'))
+        resposta = self.client.get(reverse('list_funcao_profissionais'))
         assert resposta.status_code == 200
         funcoes = list(resposta.context['object_list'])
         assert funcoes[0].nome == 'Enfermeiro'
         assert funcoes[1].nome == 'Medico'
 
     def test_context_data(self):
-        resposta = self.client.get(reverse('list_funcao_profissional'))
+        resposta = self.client.get(reverse('list_funcao_profissionais'))
         assert resposta.status_code == 200
         assert 'q' in resposta.context
         assert resposta.context['q'] == ''
@@ -63,7 +63,7 @@ class TestFuncaoProfissionalListView(BaseTestCase):
 class TestFuncaoProfissionalDetailView(BaseTestCase):
     def setUp(self):
         super().setUp()
-        self.funcao = FuncaoProfissionais.objects.create(
+        self.funcao = FuncaoProfissional.objects.create(
             nome="Médico",
             conselho="CRM"
         )
@@ -88,7 +88,7 @@ class TestFuncaoProfissionalDetailView(BaseTestCase):
 class TestFuncaoProfissionalFormView(BaseTestCase):
     def setUp(self):
         super().setUp()
-        self.funcao = FuncaoProfissionais.objects.create(
+        self.funcao = FuncaoProfissional.objects.create(
             nome="Médico",
             conselho="CRM"
         )
@@ -114,7 +114,7 @@ class TestFuncaoProfissionalFormView(BaseTestCase):
         }
         response = self.client.post(url, data)
         assert response.status_code == 302  
-        assert FuncaoProfissionais.objects.filter(nome='Enfermeiro').exists()
+        assert FuncaoProfissional.objects.filter(nome='Enfermeiro').exists()
 
     def test_post_edit_form(self):        
         url = reverse('update_funcao_profissional', kwargs={'funcao_id': self.funcao.id})
@@ -140,7 +140,7 @@ class TestFuncaoProfissionalFormView(BaseTestCase):
 @pytest.mark.django_db
 class TestFuncaoProfissionalDeleteView:
     def setup_method(self):        
-        self.funcao = FuncaoProfissionais.objects.create(
+        self.funcao = FuncaoProfissional.objects.create(
             nome="Médico",
             conselho="CRM"
         )
