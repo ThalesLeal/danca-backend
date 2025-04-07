@@ -33,10 +33,11 @@ urlpatterns = [
     path('instituicoes/<int:instituicao_id>/delete/', InstituicaoDeleteView.as_view(), name='delete_instituicao'),
 
     # Função Profissional
-     path('funcoes/create/', FuncaoProfissionalFormView.as_view(), name='create_funcao_profissional'),
+    path('funcoes/', FuncaoProfissionalListView.as_view(), name='list_funcao_profissionais'),
+    path('funcoes/<int:funcao_id>/', FuncaoProfissionalDetailView.as_view(), name='detail_funcao_profissional'),
+    path('funcoes/create/', FuncaoProfissionalFormView.as_view(), name='create_funcao_profissional'),
     path('funcoes/<int:funcao_id>/update/', FuncaoProfissionalFormView.as_view(), name='update_funcao_profissional'),
     path('funcoes/<int:funcao_id>/delete/', FuncaoProfissionalDeleteView.as_view(), name='delete_funcao_profissional'),
-    path('funcoes/<int:funcao_id>/', FuncaoProfissionalDetailView.as_view(), name='detail_funcao_profissional'),
-    path('funcoes/', FuncaoProfissionalListView.as_view(), name='list_funcao_profissional'),
-    path('funcoes/get-conselho/', views.get_conselho_by_funcao, name='get_conselho_by_funcao'),
+    path('funcoes/get-conselho/', views.get_conselho_by_funcao, name='get_conselho_by_funcao'),    
+    
 ]
