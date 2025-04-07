@@ -1,5 +1,5 @@
 from django import forms
-from .models import Instituicao, UsuarioJogos, Regional, UsuarioRegional,FuncaoProfissionais
+from .models import Instituicao, UsuarioJogos, Regional, UsuarioRegional,FuncaoProfissional
 from .utils import PERFIL_CHOICES
 import re
 from django.core.exceptions import ValidationError
@@ -217,7 +217,7 @@ class InstituicaoForm(forms.ModelForm):
 
 class FuncaoProfissionalForm(forms.ModelForm):
     class Meta:
-        model = FuncaoProfissionais
+        model = FuncaoProfissional
         fields = ['nome', 'conselho']
         labels = {
             'nome': 'Nome da Função',
@@ -246,7 +246,7 @@ class FuncaoProfissionalForm(forms.ModelForm):
 
 class FuncaoProfissionalForm(forms.ModelForm):
     class Meta:
-        model = FuncaoProfissionais
+        model = FuncaoProfissional
         fields = ['nome', 'conselho']
         labels = {
             'nome': 'Nome da Função',
@@ -256,20 +256,18 @@ class FuncaoProfissionalForm(forms.ModelForm):
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
             'conselho': forms.TextInput(attrs={'class': 'form-control'}),
         }
+
     def _validate_chars(self, value, field_name):
-        """Valida se o valor contém apenas caracteres (não números)."""
-        if not re.match("^[a-zA-ZÀ-ÿ\s]*$", value):
-            raise ValidationError(f"O {field_name} deve conter apenas letras.")
-        if len(value) < 3:
-            raise ValidationError(f"O {field_name} deve ter pelo menos 3 caracteres.")
+        if value is None:
+            return None
+        if not re.match(r"^[a-zA-ZÀ-ÿ\s]*$", value):
+            raise forms.ValidationError(f"{field_name} deve conter apenas letras e espaços.")
         return value
 
     def clean_nome(self):
-        nome = self.cleaned_data['nome']
-        return self._validate_chars(nome, "nome da função")
+        nome = self.cleaned_data.get('nome')
+        return self._validate_chars(nome, 'Nome da Função')
 
     def clean_conselho(self):
-        conselho = self.cleaned_data['conselho']
-        return self._validate_chars(conselho, "nome do conselho")
-
-
+        conselho = self.cleaned_data.get('conselho')
+        return self._validate_chars(conselho, 'Conselho')
