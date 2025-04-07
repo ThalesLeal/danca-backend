@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
-from .models import Instituicao, UsuarioJogos, Regional, UsuarioRegional, FuncaoProfissionais
+from .models import Instituicao, UsuarioJogos, Regional, UsuarioRegional, FuncaoProfissional
 from django.contrib import messages
 from .forms import InstituicaoForm, UsuarioJogosForm, RegionalForm, UsuarioRegionalForm, FuncaoProfissionalForm
 from django.contrib.auth.decorators import login_required
@@ -341,31 +341,21 @@ def get_regionais(request):
     regionais = Regional.objects.filter(tipo_regional=tipo_regional).values('id', 'nome')
     return JsonResponse(list(regionais), safe=False)
 
-@login_required
-def get_conselho_by_funcao(request):
-    funcao_id = request.GET.get('funcao_id')
-    if funcao_id:
-        try:
-            funcao = FuncaoProfissionais.objects.get(id=funcao_id)
-            return JsonResponse({'conselho': funcao.conselho}, status=200)
-        except FuncaoProfissionais.DoesNotExist:
-            return JsonResponse({'error': 'Função não encontrada'}, status=404)
-    return JsonResponse({'error': 'ID da função não fornecido'}, status=400)
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name="dispatch")
 class FuncaoProfissionalListView(ListView):
-    model = FuncaoProfissionais
+    model = FuncaoProfissional
     paginate_by = 10
     template_name = "funcao_profissional/list.html"
 
     def get_queryset(self):
         query = self.request.GET.get('q')
         if query:
-            return FuncaoProfissionais.objects.filter(
+            return FuncaoProfissional.objects.filter(
                 Q(nome__icontains=query) | Q(conselho__icontains=query)
             ).order_by(Lower('nome'))
-        return FuncaoProfissionais.objects.all().order_by(Lower('nome'))
+        return FuncaoProfissional.objects.all().order_by(Lower('nome'))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -381,7 +371,7 @@ class FuncaoProfissionalDetailView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        funcao = get_object_or_404(FuncaoProfissionais, id=self.kwargs['funcao_id'])
+        funcao = get_object_or_404(FuncaoProfissional, id=self.kwargs['funcao_id'])
         context['funcao'] = funcao
         return context
 
@@ -397,7 +387,7 @@ class FuncaoProfissionalFormView(View):
         titulo = 'Cadastrar Função Profissional'
 
         if funcao_id:
-            funcao = get_object_or_404(FuncaoProfissionais, id=funcao_id)
+            funcao = get_object_or_404(FuncaoProfissional, id=funcao_id)
             form = self.form_class(instance=funcao)
             titulo = 'Editar Função Profissional'
         return render(request, self.template_name, {"form": form, "titulo": titulo})
@@ -407,23 +397,35 @@ class FuncaoProfissionalFormView(View):
         msg = 'Função Profissional criada com sucesso'
 
         if funcao_id:
-            funcao = get_object_or_404(FuncaoProfissionais, id=funcao_id)
+            funcao = get_object_or_404(FuncaoProfissional, id=funcao_id)
             form = self.form_class(request.POST, instance=funcao)
             msg = 'Função Profissional modificada com sucesso'
 
         if form.is_valid():
             form.save()
             messages.success(request, msg)
-            return redirect('list_funcao_profissional')
+            return redirect('list_funcao_profissionais')
         return render(request, self.template_name, {"form": form})
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name="dispatch")
 class FuncaoProfissionalDeleteView(DeleteView):
-    model = FuncaoProfissionais
+    model = FuncaoProfissional
     pk_url_kwarg = "funcao_id"
 
     def get_success_url(self):
         messages.success(self.request, "Função Profissional removida com sucesso")
-        return reverse_lazy('list_funcao_profissional')
+        return reverse_lazy('list_funcao_profissionais')
+
+@login_required
+@never_cache
+def get_conselho_by_funcao(request):
+    funcao_id = request.GET.get('funcao_id')
+    if funcao_id:
+        try:
+            funcao = FuncaoProfissional.objects.get(id=funcao_id)
+            return JsonResponse({'conselho': funcao.conselho}, status=200)
+        except FuncaoProfissional.DoesNotExist:
+            return JsonResponse({'error': 'Função não encontrada'}, status=404)
+    return JsonResponse({'error': 'ID da função não fornecido'}, status=400)
     
