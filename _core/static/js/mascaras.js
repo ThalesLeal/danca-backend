@@ -5,6 +5,30 @@ $(document).ready(function () {
 	$(".mask-cep").mask("00000-000");
 	$(".mask-num-regional").mask("000");
 	$(".mask-telefone").mask(mascara_telefone, mascara_telefone_opts);
+    $(".mask-cpf-cnpj").keydown(function(){
+		try {
+			$(".mask-cpf-cnpj").unmask();
+		} catch (e) {}
+	
+		var tamanho = $(".mask-cpf-cnpj").val().length;
+	
+		if(tamanho < 11){
+			$(".mask-cpf-cnpj").mask("999.999.999-99");
+		} else {
+			$(".mask-cpf-cnpj").mask("99.999.999/9999-99");
+		}
+			
+		var elem = this;
+		setTimeout(function(){
+			
+			elem.selectionStart = elem.selectionEnd = 10000;
+		}, 0);
+		
+		var currentValue = $(this).val();
+		$(this).val('');
+		$(this).val(currentValue);
+	});
+
 });
 
 const mascara_telefone = function (val) {
