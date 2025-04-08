@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 Django settings for config project.
 
@@ -84,7 +86,7 @@ INSTALLED_APPS = [
     "reversion",
 
     # Project apps
-    "cadastro_jogos",
+    "danca",
 ]
 
 AUTH_USER_MODEL = "_core.User"
