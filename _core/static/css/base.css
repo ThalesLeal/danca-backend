@@ -128,6 +128,10 @@ label[for][for]:has(+ select[required])::after {
 .sidebar a span {
     margin-left: 10px;
 }
+
+.nav-link:focus, .nav-link:hover {
+    color: white !important;
+}
 .content {
     margin-left: 250px;
     padding: 10px;
