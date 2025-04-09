@@ -114,7 +114,7 @@ ROOT_URLCONF = "_conf.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        'DIRS': [os.path.join(BASE_DIR, 'cadastro_jogos', 'templates')],  
+        'DIRS': [BASE_DIR / 'danca' / 'templates'],  
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [

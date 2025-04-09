@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<a href="{% url 'admin:index' %}">Acesso Admin</a>
-
+<div class="container text-center">
+    <h1 class="display-4 mb-4">Olá!</h1>
+    <p class="lead">Bem-vindo ao Sistema de Dança</p>
+    {% comment %} <a href="{% url 'admin:index' %}">Acesso Admin</a> {% endcomment %}
+</div>
 {% endblock %}

@@ -4,7 +4,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>{{ title|default:'Codata' }}</title>
+    <title>{{ title|default:'Sistema de Dança' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="stylesheet"
@@ -25,10 +25,8 @@
 <body>
 
 {% block body %}
-
 {% include "navbar.html" %}
-{% include "sidebar.html" %}
-
+{% comment %} {% include "sidebar.html" %} {% endcomment %}
 <div class="container-fluid h-100 p-0 pt-5">
     <main class="h-100 p-4 main-content">
         {% block content %}
