@@ -22,11 +22,11 @@
     {% block extra_css %}
     {% endblock %}
 </head>
-<body>
+<body class="min-vh-100 d-flex flex-column">
 
 {% block body %}
 {% include "navbar.html" %}
-{% comment %} {% include "sidebar.html" %} {% endcomment %}
+{% include "sidebar.html" %}
 <div class="container-fluid h-100 p-0 pt-5">
     <main class="h-100 p-4 main-content">
         {% block content %}

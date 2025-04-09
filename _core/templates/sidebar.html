@@ -1,59 +1,150 @@
-<!-- Barra Lateral -->
-<div class="sidebar text-white" id="sidebar">
-  <div class="d-flex flex-column flex-shrink-0 p-2 h-100">
-      <ul class="nav nav-pills flex-column mb-auto">
-          <li class="nav-item mb-2">
-              <a href="{% url 'list_usuarios' %}" class="nav-link {% if request.resolver_match.url_name == 'list_usuarios' %}active{% endif %}">
-                  <i class="bi bi-person-fill"></i>
-                  <span>Usuários</span>
-              </a>
-          </li>
-          <li class="nav-item mb-2">
-              <a href="{% url 'list_regionais' %}" class="nav-link {% if request.resolver_match.url_name == 'list_regionais' %}active{% endif %}">
-                  <i class="bi bi-geo-alt-fill"></i>
-                  <span>Regionais</span> 
-              </a>
-          </li>
-          <li class="nav-item mb-2">
-            <a href="{% url 'list_instituicoes' %}" class="nav-link {% if request.resolver_match.url_name == 'list_instituicoes' %}active{% endif %}">
-                <i class="bi bi-building"></i>
-                <span>Instituições</span> 
-            </a>
-        </li>
-          <li class="nav-item mb-2">
-              <a href="#" class="nav-link">
-                  <i class="bi bi-tag-fill"></i>
-                  <span>Categorias</span>
-              </a>
-          </li>
-          <li class="nav-item mb-2">
-              <a href="#" class="nav-link">
-                  <i class="bi bi-trophy-fill"></i>
-                  <span>Modalidades</span> 
-              </a>
-          </li>
-          <li class="nav-item mb-2">
-              <a href="#" class="nav-link">
-                  <i class="bi bi-list-ol"></i>
-                  <span>Classificações</span>
-              </a>
-          </li>
-          <li class="nav-item mb-2">
-              <a href="#" class="nav-link">
-                  <i class="bi bi-calendar-event-fill"></i>
-                  <span>Eventos</span> 
-              </a>
-          </li>
-          <li class="nav-item dropdown mb-2">
-            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                <i class="bi bi-briefcase-fill"></i>
-                <span>Profissional</span>
-            </a>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="{% url 'list_funcao_profissionais' %}">Funções</a></li>
-                <li><a class="dropdown-item" href="{% url 'list_profissionais' %}">Cadastrar Profissionais</a></li>
-            </ul>
-        </li>
-      </ul>
+<style>
+    body {
+      display: flex;
+      height: 100vh;
+      background-color: #fff;
+      color: #333;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .sidebar {
+      width: 200px;
+      background: rgba(255, 255, 255, 0.9); /* Fundo branco semi-transparente */
+      backdrop-filter: blur(6px);
+      border-right: 1px solid rgba(255, 183, 77, 0.3);
+      padding: 1rem;
+      color: #444;
+    }
+
+    .sidebar h4 {
+      color: #ff6f00;
+      margin-bottom: 1.5rem;
+    }
+
+    .sidebar .btn-toggle {
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      color: #444;
+      font-size: 0.95rem;
+      padding: 0.4rem 0;
+    }
+
+    .sidebar .btn-toggle:hover {
+      color: #ff6f00;
+    }
+
+    .sidebar .btn-toggle-nav a {
+      display: block;
+      padding: 0.2rem 0.8rem;
+      margin: 0.1rem 0;
+      color: #444;
+      text-decoration: none;
+      border-radius: 0.25rem;
+      font-size: 0.9rem;
+    }
+
+    .sidebar .btn-toggle-nav a:hover {
+      background-color: rgba(255, 111, 0, 0.1);
+      color: #ff6f00;
+    }
+
+    .content {
+      flex-grow: 1;
+      padding: 1.5rem;
+    }
+
+    h1 {
+      font-weight: bold;
+    }
+</style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h4 class="fw-bold mb-4">Zouk Jampa</h4>
+
+    <ul class="list-unstyled">
+      <!-- Cadastros -->
+      <li>
+        <button class="btn-toggle" data-bs-toggle="collapse" data-bs-target="#cadastros-collapse">
+          Cadastros
+        </button>
+        <div class="collapse" id="cadastros-collapse">
+          <ul class="btn-toggle-nav">
+            <li><a href="{% url 'list_lotes' %}">Lote</a></li>
+            <li><a href="#">Categoria</a></li>
+            <li><a href="#">Tipo de Evento</a></li>
+            <li><a href="#">Camisas</a></li>
+          </ul>
+        </div>
+      </li>
+
+      <!-- Inscrição -->
+      <li>
+        <button class="btn-toggle" data-bs-toggle="collapse" data-bs-target="#inscricao-collapse">
+          Inscrição
+        </button>
+        <div class="collapse" id="inscricao-collapse">
+          <ul class="btn-toggle-nav">
+            <li><a href="#">Artistas</a></li>
+            <li><a href="#">Congressistas</a></li>
+          </ul>
+        </div>
+      </li>
+
+      <!-- Planejamentos -->
+      <li>
+        <button class="btn-toggle" data-bs-toggle="collapse" data-bs-target="#planejamentos-collapse">
+          Planejamentos
+        </button>
+        <div class="collapse" id="planejamentos-collapse">
+          <ul class="btn-toggle-nav">
+            <li><a href="#">Planejamentos</a></li>
+          </ul>
+        </div>
+      </li>
+
+      <!-- Evento -->
+      <li>
+        <button class="btn-toggle" data-bs-toggle="collapse" data-bs-target="#evento-collapse">
+          Evento
+        </button>
+        <div class="collapse" id="evento-collapse">
+          <ul class="btn-toggle-nav">
+            <li><a href="#">Evento</a></li>
+          </ul>
+        </div>
+      </li>
+
+      <!-- Caixa -->
+      <li>
+        <button class="btn-toggle" data-bs-toggle="collapse" data-bs-target="#caixa-collapse">
+          Caixa
+        </button>
+        <div class="collapse" id="caixa-collapse">
+          <ul class="btn-toggle-nav">
+            <li><a href="#">Resumo</a></li>
+            <li><a href="#">Entrada</a></li>
+            <li><a href="#">Saída</a></li>
+          </ul>
+        </div>
+      </li>
+
+      <!-- Pagamentos -->
+      <li>
+        <button class="btn-toggle" data-bs-toggle="collapse" data-bs-target="#pagamentos-collapse">
+          Pagamentos
+        </button>
+        <div class="collapse" id="pagamentos-collapse">
+          <ul class="btn-toggle-nav">
+            <li><a href="#">Pagamentos</a></li>
+          </ul>
+        </div>
+      </li>
+    </ul>
   </div>
-</div>
+
+  

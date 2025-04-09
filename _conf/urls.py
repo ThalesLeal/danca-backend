@@ -32,4 +32,5 @@ urlpatterns = [
     path("__debug__", include("debug_toolbar.urls")),
     path('oidc/login/', OIDCAuthenticationRequestView.as_view(), name='oidc_login'),
     path('oidc/logout/', OIDCLogoutView.as_view(), name='oidc_logout'),
+    path('danca/', include('danca.urls')),
 ]

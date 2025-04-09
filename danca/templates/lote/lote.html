@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="pb-2">Detalhes do Lote</h2>
+
+<div class="row">
+  <div class="col-6 mb-3">
+    <label class="me-3">Descrição:</label><br />
+    {{ lote.descricao }}
+  </div>
+  <div class="col-6 mb-3">
+    <label class="me-3">Status:</label><br />
+    <span class="badge {% if lote.status == 'ativo' %}bg-success{% else %}bg-danger{% endif %}">
+      {{ lote.get_status_display }}
+    </span>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-6 mb-3">
+    <label class="me-3">Valor Unitário:</label><br />
+    R$ {{ lote.valor_unitario|floatformat:2 }}
+  </div>
+  <div class="col-6 mb-3">
+    <label class="me-3">Unidades:</label><br />
+    {{ lote.unidades }}
+  </div>
+</div>
+
+<a href="{% url 'update_lote' lote.id %}" class="btn btn-warning  float-end"><i class="bi bi-pencil-square"></i> Editar</a>
+<a href="{% url 'list_lotes' %}" class="btn btn-secondary"><i class="bi bi-box-arrow-in-left"></i> Voltar</a>
+{% endblock %}
