@@ -42,3 +42,15 @@ class LoteForm(forms.ModelForm):
         if unidades is not None and unidades <= 0:
             raise ValidationError("A quantidade de unidades deve ser maior que zero.")
         return unidades
+
+
+class CategoriaForm(forms.ModelForm):
+    class Meta:
+        model = Categoria
+        fields = ['descricao']
+        widgets = {
+            'descricao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Descrição da categoria'}),
+        }
+        labels = {
+            'descricao': 'Descrição da Categoria',
+        }
