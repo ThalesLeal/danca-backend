@@ -6,10 +6,9 @@ from django.views.generic import ListView, TemplateView, DeleteView
 from django.contrib import messages
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
-from django.contrib.auth.decorators import login_required
 from django.db.models.functions import Lower
-from .models import Lote, Categoria, TipoEvento, Evento
-from .form import LoteForm,CategoriaForm,TipoEventoForm,EventoForm
+from .models import Lote, Categoria, TipoEvento, Evento, Camisa
+from .form import LoteForm,CategoriaForm,TipoEventoForm,EventoForm,CamisaForm
 from django.shortcuts import redirect
 
 
@@ -286,3 +285,72 @@ class EventoDeleteView(DeleteView):
     def get_success_url(self):
         messages.success(self.request, "Evento removido com sucesso")
         return reverse_lazy('list_eventos')
+
+
+# CRUD de Camisa
+
+@method_decorator(never_cache, name="dispatch")
+class CamisaListView(ListView):
+    model = Camisa
+    paginate_by = 10
+    template_name = "camisa/list.html"
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query:
+            return Camisa.objects.filter(descricao__icontains=query).order_by('tipo')
+        return Camisa.objects.all().order_by('tipo')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['q'] = self.request.GET.get('q', '')
+        context['create_url'] = reverse('create_camisa')
+        return context
+
+
+@method_decorator(never_cache, name="dispatch")
+class CamisaDetailView(TemplateView):
+    template_name = "camisa/camisa.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        camisa = get_object_or_404(Camisa, id=self.kwargs['camisa_id'])
+        context['camisa'] = camisa
+        return context
+
+
+@method_decorator(never_cache, name="dispatch")
+class CamisaFormView(View):
+    form_class = CamisaForm
+    template_name = "camisa/form.html"
+
+    def get(self, request, camisa_id=None):
+        form = self.form_class()
+        if camisa_id:
+            camisa = get_object_or_404(Camisa, id=camisa_id)
+            form = self.form_class(instance=camisa)
+        return render(request, self.template_name, {"form": form})
+
+    def post(self, request, camisa_id=None):
+        form = self.form_class(request.POST)
+        msg = 'Camisa criada com sucesso'
+
+        if camisa_id:
+            camisa = get_object_or_404(Camisa, id=camisa_id)
+            form = self.form_class(request.POST, instance=camisa)
+            msg = 'Camisa modificada com sucesso'
+    
+        if form.is_valid():
+            form.save()
+            messages.success(request, msg)
+            return redirect('list_camisas')
+
+
+@method_decorator(never_cache, name="dispatch")
+class CamisaDeleteView(DeleteView):  
+    model = Camisa
+    pk_url_kwarg = "camisa_id"    
+
+    def get_success_url(self):
+        messages.success(self.request, "Camisa removida com sucesso")
+        return reverse_lazy('list_camisas')

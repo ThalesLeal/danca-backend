@@ -31,5 +31,11 @@ urlpatterns = [
     path('eventos/<int:evento_id>/update/', EventoFormView.as_view(), name='update_evento'),
     path('eventos/<int:evento_id>/delete/', EventoDeleteView.as_view(), name='delete_evento'),
 
+    # Camisa
+    path('camisas/', CamisaListView.as_view(), name='list_camisas'),
+    path('camisas/<int:camisa_id>/', CamisaDetailView.as_view(), name='detail_camisa'),
+    path('camisas/create/', CamisaFormView.as_view(), name='create_camisa'),
+    path('camisas/<int:camisa_id>/update/', CamisaFormView.as_view(), name='update_camisa'),
+    path('camisas/<int:camisa_id>/delete/', CamisaDeleteView.as_view(), name='delete_camisa'),
 
 ]
