@@ -7,8 +7,8 @@ from django.contrib import messages
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.db.models.functions import Lower
-from .models import Lote, Categoria, TipoEvento, Evento, Camisa
-from .form import LoteForm,CategoriaForm,TipoEventoForm,EventoForm,CamisaForm
+from .models import Lote, Categoria, TipoEvento, Evento, Camisa,Planejamento
+from .form import LoteForm,CategoriaForm,TipoEventoForm,EventoForm,CamisaForm,PlanejamentoForm
 from django.shortcuts import redirect
 
 
@@ -354,3 +354,70 @@ class CamisaDeleteView(DeleteView):
     def get_success_url(self):
         messages.success(self.request, "Camisa removida com sucesso")
         return reverse_lazy('list_camisas')
+
+
+@method_decorator(never_cache, name="dispatch")
+class PlanejamentoListView(ListView):
+    model = Planejamento
+    paginate_by = 10
+    template_name = "planejamento/list.html"
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query:
+            return Planejamento.objects.filter(descricao__icontains=query).order_by(Lower('descricao'))
+        return Planejamento.objects.all().order_by(Lower('descricao'))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['q'] = self.request.GET.get('q', '')
+        context['create_url'] = reverse('create_planejamento')
+        return context
+
+
+@method_decorator(never_cache, name="dispatch")
+class PlanejamentoDetailView(TemplateView):
+    template_name = "planejamento/planejamento.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        planejamento = get_object_or_404(Planejamento, id=self.kwargs['planejamento_id'])
+        context['planejamento'] = planejamento
+        return context
+
+
+@method_decorator(never_cache, name="dispatch")
+class PlanejamentoFormView(View):
+    form_class = PlanejamentoForm
+    template_name = "planejamento/form.html"
+
+    def get(self, request, planejamento_id=None):
+        form = self.form_class()
+        if planejamento_id:
+            planejamento = get_object_or_404(Planejamento, id=planejamento_id)
+            form = self.form_class(instance=planejamento)
+        return render(request, self.template_name, {"form": form})
+
+    def post(self, request, planejamento_id=None):
+        form = self.form_class(request.POST)
+        msg = 'Planejamento criado com sucesso'
+
+        if planejamento_id:
+            planejamento = get_object_or_404(Planejamento, id=planejamento_id)
+            form = self.form_class(request.POST, instance=planejamento)
+            msg = 'Planejamento modificado com sucesso'
+    
+        if form.is_valid():
+            form.save()
+            messages.success(request, msg)
+            return redirect('list_planejamentos')
+
+
+@method_decorator(never_cache, name="dispatch")
+class PlanejamentoDeleteView(DeleteView):
+    model = Planejamento
+    pk_url_kwarg = "planejamento_id"
+
+    def get_success_url(self):
+        messages.success(self.request, "Planejamento removido com sucesso")
+        return reverse_lazy('list_planejamentos')

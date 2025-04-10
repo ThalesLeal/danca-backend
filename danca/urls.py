@@ -38,4 +38,11 @@ urlpatterns = [
     path('camisas/<int:camisa_id>/update/', CamisaFormView.as_view(), name='update_camisa'),
     path('camisas/<int:camisa_id>/delete/', CamisaDeleteView.as_view(), name='delete_camisa'),
 
+    # Planejamento
+    path('planejamentos/', PlanejamentoListView.as_view(), name='list_planejamentos'),
+    path('planejamentos/<int:planejamento_id>/', PlanejamentoDetailView.as_view(), name='detail_planejamento'),
+    path('planejamentos/create/', PlanejamentoFormView.as_view(), name='create_planejamento'),
+    path('planejamentos/<int:planejamento_id>/update/', PlanejamentoFormView.as_view(), name='update_planejamento'),
+    path('planejamentos/<int:planejamento_id>/delete/', PlanejamentoDeleteView.as_view(), name='delete_planejamento'),
+
 ]

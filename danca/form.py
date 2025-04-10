@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Lote,Categoria,TipoEvento,Evento,Camisa
+from .models import Lote,Categoria,TipoEvento,Evento,Camisa,Planejamento
 
 class LoteForm(forms.ModelForm):
     class Meta:
@@ -125,3 +125,26 @@ class CamisaForm(forms.ModelForm):
         if valor_unitario is not None and valor_unitario < 0:
             raise ValidationError("O valor unitário não pode ser negativo.")
         return valor_unitario
+
+
+class PlanejamentoForm(forms.ModelForm):
+    class Meta:
+        model = Planejamento
+        fields = ['descricao', 'valor_planejado']
+        widgets = {
+            'descricao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Descrição do Planejamento'}),
+            'valor_planejado': forms.TextInput(attrs={'class': 'form-control mask-valor', 'placeholder': 'R$ 0,00'}),
+        }
+        labels = {
+            'descricao': 'Descrição do Planejamento',
+            'valor_planejado': 'Valor Planejado',
+        }
+
+    def clean_valor_planejado(self):
+        """
+        Valida o campo valor_planejado para garantir que seja maior ou igual a zero.
+        """
+        valor_planejado = self.cleaned_data.get('valor_planejado')
+        if valor_planejado is not None and valor_planejado < 0:
+            raise ValidationError("O valor planejado não pode ser negativo.")
+        return valor_planejado
