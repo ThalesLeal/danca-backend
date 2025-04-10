@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% load custom_filters %}
+{% load humanize %}
 
 {% block content %}
 
@@ -35,7 +37,7 @@
     {% for lote in page_obj %}
     <tr>
       <td class="align-middle">{{ lote.descricao }}</td>
-      <td class="align-middle">{{ lote.valor_unitario|floatformat:2 }}</td>
+      <td class="align-middle">R$ {{ lote.valor_unitario }}</td>
       <td class="align-middle">{{ lote.unidades }}</td>
       <td class="align-middle">
         <span class="badge {% if lote.status == 'ativo' %}bg-success{% else %}bg-danger{% endif %}">
@@ -88,7 +90,8 @@
    $(document).ready(function () {
     $(".btn-delete").on("click", function () {
         let loteId = $(this).data("id");
-        $("#delete-form").attr("action", `/lotes/${loteId}/delete/`);
+        let deleteUrl = `{% url 'delete_lote' lote_id=0 %}`.replace('0', loteId);
+        $("#delete-form").attr("action", deleteUrl);
     });
   });
 </script>

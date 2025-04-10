@@ -9,7 +9,7 @@ from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
 from django.db.models.functions import Lower
 from .models import Lote, Categoria
-from .form import LoteForm
+from .form import LoteForm,CategoriaForm
 from django.shortcuts import redirect
 
 
@@ -95,11 +95,58 @@ class CategoriaListView(ListView):
     def get_queryset(self):
         query = self.request.GET.get('q')
         if query:
-            return Lote.objects.filter(descricao__icontains=query).order_by(Lower('descricao'))
-        return Lote.objects.all().order_by(Lower('descricao'))
+            return Categoria.objects.filter(descricao__icontains=query).order_by(Lower('descricao'))
+        return Categoria.objects.all().order_by(Lower('descricao'))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['q'] = self.request.GET.get('q', '')
-        context['create_url'] = reverse('create_lote')
+        context['create_url'] = reverse('create_categoria')  
         return context
+
+
+@method_decorator(never_cache, name="dispatch")
+class CategoriaDetailView(TemplateView):
+    template_name = "categoria/categoria.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        categoria = get_object_or_404(Categoria, id=self.kwargs['categoria_id'])
+        context['categoria'] = categoria
+        return context
+
+@method_decorator(never_cache, name="dispatch")
+class CategoriaFormView(View):
+    form_class = CategoriaForm
+    template_name = "categoria/form.html"
+
+    def get(self, request, categoria_id=None):
+        form = self.form_class()
+        if categoria_id:
+            categoria = get_object_or_404(Categoria, id=categoria_id)
+            form = self.form_class(instance=categoria)
+        return render(request, self.template_name, {"form": form})
+
+    def post(self, request, categoria_id=None):
+        form = self.form_class(request.POST)
+        msg = 'Categoria criada com sucesso'
+
+        if categoria_id:
+            categoria = get_object_or_404(Categoria, id=categoria_id)
+            form = self.form_class(request.POST, instance=categoria)
+            msg = 'Categoria modificado com sucesso'
+    
+        if form.is_valid():
+            form.save()
+            messages.success(request, msg)
+            return redirect('list_categorias')
+
+#@method_decorator(login_required, name='dispatch')
+@method_decorator(never_cache, name="dispatch")
+class CategoriaDeleteView(DeleteView):  
+    model = Categoria
+    pk_url_kwarg = "categoria_id"    
+
+    def get_success_url(self):
+        messages.success(self.request, "Categoria removida com sucesso")
+        return reverse_lazy('list_categorias')

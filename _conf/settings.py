@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.humanize",
 
     # Mozilla Django OIDC https://mozilla-django-oidc.readthedocs.io/
     "mozilla_django_oidc",

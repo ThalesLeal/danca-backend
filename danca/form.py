@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Lote
+from .models import Lote,Categoria
 
 class LoteForm(forms.ModelForm):
     class Meta:
@@ -18,21 +18,6 @@ class LoteForm(forms.ModelForm):
             'unidades': 'Quantidade de Unidades',
             'status': 'Status',
         }
-
-    def clean_valor_unitario(self):
-        """
-        Valida o campo valor_unitario para garantir que seja maior que zero.
-        """
-        valor = self.cleaned_data.get('valor_unitario')
-        if valor is not None:
-            try:
-                # Remove o prefixo "R$" e converte para float
-                valor = float(str(valor).replace("R$", "").replace(".", "").replace(",", ".").strip())
-            except ValueError:
-                raise ValidationError("O valor unitário deve ser um número válido.")
-            if valor <= 0:
-                raise ValidationError("O valor unitário deve ser maior que zero.")
-        return valor
 
     def clean_unidades(self):
         """
