@@ -1,5 +1,6 @@
 from django.db import models
 from .constants import STATUS_EVENTO, TAMANHO_CAMISA, TIPO_CAMISA, STATUS_LOTE
+from django.core.exceptions import ValidationError
 
 class Lote(models.Model):
     descricao = models.CharField(max_length=255)
@@ -81,3 +82,39 @@ class Planejamento(models.Model):
         return self.descricao    
     class Meta:
         ordering = ['-id']
+
+
+class Artista(models.Model):
+    nome = models.CharField(max_length=100)
+    funcao = models.CharField(max_length=100)
+    cache = models.DecimalField(max_digits=10, decimal_places=2)
+    eventos = models.ManyToManyField(Evento, related_name='artistas', blank=True)
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = 'Artista'
+        verbose_name_plural = 'Artistas'
+
+    def save(self, *args, **kwargs):
+        """
+        Sobrescreve o método save para atualizar o contador de inscrições no evento.
+        """
+        for evento in self.eventos.all():
+            if evento.quantidade_pessoas is not None:
+                if evento.quantidade_pessoas <= 0:
+                    raise ValidationError("Não há vagas suficientes para este evento.")
+                evento.quantidade_pessoas -= 1
+                evento.save()
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        """
+        Sobrescreve o método delete para atualizar o contador de inscrições no evento.
+        """
+        for evento in self.eventos.all():
+            if evento.quantidade_pessoas is not None:
+                evento.quantidade_pessoas += 1
+                evento.save()
+        super().delete(*args, **kwargs)

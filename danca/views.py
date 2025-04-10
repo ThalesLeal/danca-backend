@@ -7,9 +7,10 @@ from django.contrib import messages
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.db.models.functions import Lower
-from .models import Lote, Categoria, TipoEvento, Evento, Camisa,Planejamento
-from .form import LoteForm,CategoriaForm,TipoEventoForm,EventoForm,CamisaForm,PlanejamentoForm
+from .models import Lote, Categoria, TipoEvento, Evento, Camisa,Planejamento,Artista
+from .form import LoteForm,CategoriaForm,TipoEventoForm,EventoForm,CamisaForm,PlanejamentoForm,ArtistaForm
 from django.shortcuts import redirect
+from django.db.models import Q
 
 
 def index(request):
@@ -421,3 +422,74 @@ class PlanejamentoDeleteView(DeleteView):
     def get_success_url(self):
         messages.success(self.request, "Planejamento removido com sucesso")
         return reverse_lazy('list_planejamentos')
+
+
+@method_decorator(never_cache, name="dispatch")
+class ArtistaListView(ListView):
+    model = Artista
+    template_name = 'artista/list.html'
+    context_object_name = 'artistas'
+
+    def get_queryset(self):
+        return Artista.objects.all().order_by('nome')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['eventos'] = Evento.objects.all()
+        context['create_url'] = reverse('create_artista')
+        return context
+
+
+@method_decorator(never_cache, name="dispatch")
+class ArtistaDetailView(TemplateView):
+    template_name = "artista/artista.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        artista = get_object_or_404(Artista, id=self.kwargs['artista_id'])
+        context['artista'] = artista
+        return context
+
+
+@method_decorator(never_cache, name="dispatch")
+class ArtistaFormView(View):
+    form_class = ArtistaForm
+    template_name = "artista/form.html"
+
+    def get(self, request, artista_id=None):
+        form = self.form_class()
+        if artista_id:
+            artista = get_object_or_404(Artista, id=artista_id)
+            form = self.form_class(instance=artista)
+        return render(request, self.template_name, {"form": form})
+
+    def post(self, request, artista_id=None):
+        form = self.form_class(request.POST)
+        msg = 'Artista cadastrado com sucesso'
+
+        if artista_id:
+            artista = get_object_or_404(Artista, id=artista_id)
+            form = self.form_class(request.POST, instance=artista)
+            msg = 'Artista atualizado com sucesso'
+        
+        if form.is_valid():
+            artista = form.save(commit=False)
+            artista.save()
+            eventos = request.POST.getlist('eventos')
+            if eventos:
+                eventos = Evento.objects.filter(id__in=eventos)
+                artista.eventos.set(eventos)
+            messages.success(request, msg)
+            return redirect('list_artistas')
+        
+        return render(request, self.template_name, {"form": form})
+
+
+@method_decorator(never_cache, name="dispatch")
+class ArtistaDeleteView(DeleteView):
+    model = Artista
+    pk_url_kwarg = "artista_id"
+
+    def get_success_url(self):
+        messages.success(self.request, "Artista removido com sucesso")
+        return reverse_lazy('list_artistas')

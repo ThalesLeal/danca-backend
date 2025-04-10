@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Lote,Categoria,TipoEvento,Evento,Camisa,Planejamento
+from .models import Lote,Categoria,TipoEvento,Evento,Camisa,Planejamento,Artista
 
 class LoteForm(forms.ModelForm):
     class Meta:
@@ -148,3 +148,49 @@ class PlanejamentoForm(forms.ModelForm):
         if valor_planejado is not None and valor_planejado < 0:
             raise ValidationError("O valor planejado não pode ser negativo.")
         return valor_planejado
+
+
+class ArtistaForm(forms.ModelForm):
+    eventos = forms.ModelMultipleChoiceField(
+        queryset=Evento.objects.all(),
+        widget=forms.HiddenInput(),
+        required=False,
+        label='Eventos'
+    )
+
+    class Meta:
+        model = Artista
+        fields = ['nome', 'funcao', 'cache']
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do Artista'}),
+            'funcao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Função'}),
+            'cache': forms.TextInput(attrs={'class': 'form-control mask-valor', 'placeholder': 'R$ 0,00'}),
+        }
+        labels = {
+            'nome': 'Nome do Artista',
+            'funcao': 'Função',
+            'cache': 'Cache',
+        }
+
+    def clean_eventos(self):
+        eventos = self.cleaned_data.get('eventos')
+        if eventos:
+            for evento in eventos:
+                if evento.quantidade_pessoas is not None and evento.quantidade_pessoas <= 0:
+                    raise ValidationError(f"O evento '{evento.descricao}' não tem vagas disponíveis.")
+        return eventos
+
+    def clean_cache(self):
+        cache = self.cleaned_data.get('cache')
+        if cache is not None and cache < 0:
+            raise ValidationError("O cache não pode ser negativo.")
+        return cache
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['eventos'] = forms.ModelMultipleChoiceField(
+            queryset=Evento.objects.all(),
+            widget=forms.HiddenInput(),
+            required=False,
+            label='Eventos'
+        )

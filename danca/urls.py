@@ -45,4 +45,11 @@ urlpatterns = [
     path('planejamentos/<int:planejamento_id>/update/', PlanejamentoFormView.as_view(), name='update_planejamento'),
     path('planejamentos/<int:planejamento_id>/delete/', PlanejamentoDeleteView.as_view(), name='delete_planejamento'),
 
+    # Artista
+    path('artistas/', ArtistaListView.as_view(), name='list_artistas'),
+    path('artistas/<int:artista_id>/', ArtistaDetailView.as_view(), name='detail_artista'),
+    path('artistas/create/', ArtistaFormView.as_view(), name='create_artista'),
+    path('artistas/<int:artista_id>/update/', ArtistaFormView.as_view(), name='update_artista'),
+    path('artistas/<int:artista_id>/delete/', ArtistaDeleteView.as_view(), name='delete_artista'),
+
 ]
