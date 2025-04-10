@@ -23,4 +23,13 @@ urlpatterns = [
     path('tipo-eventos/create/', TipoEventoFormView.as_view(), name='create_tipo_evento'),
     path('tipo-eventos/<int:tipo_evento_id>/update/', TipoEventoFormView.as_view(), name='update_tipo_evento'),
     path('tipo-eventos/<int:tipo_evento_id>/delete/', TipoEventoDeleteView.as_view(), name='delete_tipo_evento'),
+
+    # Evento
+    path('eventos/', EventoListView.as_view(), name='list_eventos'),
+    path('eventos/<int:evento_id>/', EventoDetailView.as_view(), name='detail_evento'),
+    path('eventos/create/', EventoFormView.as_view(), name='create_evento'),
+    path('eventos/<int:evento_id>/update/', EventoFormView.as_view(), name='update_evento'),
+    path('eventos/<int:evento_id>/delete/', EventoDeleteView.as_view(), name='delete_evento'),
+
+
 ]
