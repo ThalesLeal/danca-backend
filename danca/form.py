@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Lote,Categoria
+from .models import Lote,Categoria,TipoEvento
 
 class LoteForm(forms.ModelForm):
     class Meta:
@@ -38,4 +38,16 @@ class CategoriaForm(forms.ModelForm):
         }
         labels = {
             'descricao': 'Descrição da Categoria',
+        }
+
+
+class TipoEventoForm(forms.ModelForm):
+    class Meta:
+        model = TipoEvento
+        fields = ['descricao']
+        widgets = {
+            'descricao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Descrição do Tipo de Evento'}),
+        }
+        labels = {
+            'descricao': 'Descrição do Tipo de Evento',
         }

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="pb-2">Detalhes do Tipo de Evento</h2>
+
+<div class="row">
+  <div class="col-12 mb-3">
+    <label class="me-3">Descrição:</label><br />
+    {{ tipo_evento.descricao }}
+  </div>
+</div>
+
+<a href="{% url 'update_tipo_evento' tipo_evento.id %}" class="btn btn-warning  float-end me-2"><i class="bi bi-pencil-square"></i> Editar</a>
+<a href="{% url 'list_tipo_eventos' %}" class="btn btn-secondary"><i class="bi bi-box-arrow-in-left"></i> Voltar</a>
+{% endblock %}

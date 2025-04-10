@@ -8,8 +8,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
 from django.db.models.functions import Lower
-from .models import Lote, Categoria
-from .form import LoteForm,CategoriaForm
+from .models import Lote, Categoria, TipoEvento
+from .form import LoteForm,CategoriaForm,TipoEventoForm
 from django.shortcuts import redirect
 
 
@@ -150,3 +150,70 @@ class CategoriaDeleteView(DeleteView):
     def get_success_url(self):
         messages.success(self.request, "Categoria removida com sucesso")
         return reverse_lazy('list_categorias')
+
+
+@method_decorator(never_cache, name="dispatch")
+class TipoEventoListView(ListView):
+    model = TipoEvento
+    paginate_by = 10
+    template_name = "tipo_evento/list.html"
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query:
+            return TipoEvento.objects.filter(descricao__icontains=query).order_by(Lower('descricao'))
+        return TipoEvento.objects.all().order_by(Lower('descricao'))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['q'] = self.request.GET.get('q', '')
+        context['create_url'] = reverse('create_tipo_evento')  
+        return context
+
+
+@method_decorator(never_cache, name="dispatch")
+class TipoEventoDetailView(TemplateView):
+    template_name = "tipo_evento/tipo_evento.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tipo_evento = get_object_or_404(TipoEvento, id=self.kwargs['tipo_evento_id'])
+        context['tipo_evento'] = tipo_evento
+        return context
+
+
+@method_decorator(never_cache, name="dispatch")
+class TipoEventoFormView(View):
+    form_class = TipoEventoForm
+    template_name = "tipo_evento/form.html"
+
+    def get(self, request, tipo_evento_id=None):
+        form = self.form_class()
+        if tipo_evento_id:
+            tipo_evento = get_object_or_404(TipoEvento, id=tipo_evento_id)
+            form = self.form_class(instance=tipo_evento)
+        return render(request, self.template_name, {"form": form})
+
+    def post(self, request, tipo_evento_id=None):
+        form = self.form_class(request.POST)
+        msg = 'Tipo de Evento criado com sucesso'
+
+        if tipo_evento_id:
+            tipo_evento = get_object_or_404(TipoEvento, id=tipo_evento_id)
+            form = self.form_class(request.POST, instance=tipo_evento)
+            msg = 'Tipo de Evento modificado com sucesso'
+    
+        if form.is_valid():
+            form.save()
+            messages.success(request, msg)
+            return redirect('list_tipo_eventos')
+
+
+@method_decorator(never_cache, name="dispatch")
+class TipoEventoDeleteView(DeleteView):  
+    model = TipoEvento
+    pk_url_kwarg = "tipo_evento_id"    
+
+    def get_success_url(self):
+        messages.success(self.request, "Tipo de Evento removido com sucesso")
+        return reverse_lazy('list_tipo_eventos')
