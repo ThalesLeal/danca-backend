@@ -7,8 +7,8 @@ from django.contrib import messages
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.db.models.functions import Lower
-from .models import Lote, Categoria, TipoEvento, Evento, Camisa,Planejamento,Artista
-from .form import LoteForm,CategoriaForm,TipoEventoForm,EventoForm,CamisaForm,PlanejamentoForm,ArtistaForm
+from .models import Lote, Categoria, TipoEvento, Evento, Camisa,Planejamento,Artista, Inscricao, InscricaoEvento
+from .form import LoteForm,CategoriaForm,TipoEventoForm,EventoForm,CamisaForm,PlanejamentoForm,ArtistaForm, InscricaoForm, InscricaoEventoForm
 from django.shortcuts import redirect
 from django.db.models import Q
 
@@ -493,3 +493,123 @@ class ArtistaDeleteView(DeleteView):
     def get_success_url(self):
         messages.success(self.request, "Artista removido com sucesso")
         return reverse_lazy('list_artistas')
+
+
+@method_decorator(never_cache, name="dispatch")
+class InscricaoListView(ListView):
+    model = Inscricao
+    paginate_by = 10
+    template_name = "inscricao/list.html"
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query:
+            return Inscricao.objects.filter(nome__icontains=query).order_by(Lower('nome'))
+        return Inscricao.objects.all().order_by(Lower('nome'))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['q'] = self.request.GET.get('q', '')
+        context['create_url'] = reverse('create_inscricao')
+        return context
+
+@method_decorator(never_cache, name="dispatch")
+class InscricaoDetailView(TemplateView):
+    template_name = "inscricao/incricao.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        inscricao = get_object_or_404(Inscricao, id=self.kwargs['inscricao_id'])
+        context['inscricao'] = inscricao
+        return context
+
+@method_decorator(never_cache, name="dispatch")
+class InscricaoFormView(View):
+    form_class = InscricaoForm
+    template_name = "inscricao/form.html"
+
+    def get(self, request, inscricao_id=None):
+        form = self.form_class()
+        eventos = Evento.objects.all()
+        if inscricao_id:
+            inscricao = get_object_or_404(Inscricao, id=inscricao_id)
+            form = self.form_class(instance=inscricao)
+        return render(request, self.template_name, {"form": form, "eventos": eventos})
+
+    def post(self, request, inscricao_id=None):
+        form = self.form_class(request.POST)
+        msg = 'Inscrição criada com sucesso'
+
+        if inscricao_id:
+            inscricao = get_object_or_404(Inscricao, id=inscricao_id)
+            form = self.form_class(request.POST, instance=inscricao)
+            msg = 'Inscrição modificada com sucesso'
+        
+        if form.is_valid():
+            inscricao = form.save()  # Salva primeiro para ter o ID
+            inscricao.valor_total = inscricao.calcular_valor_total()
+            inscricao.save()  # Salva novamente com o valor total calculado
+            messages.success(request, msg)
+            return redirect('list_inscricoes')
+        
+        return render(request, self.template_name, {"form": form})
+
+@method_decorator(never_cache, name="dispatch")
+class InscricaoDeleteView(DeleteView):
+    model = Inscricao
+    pk_url_kwarg = "inscricao_id"
+
+    def get_success_url(self):
+        messages.success(self.request, "Inscrição removida com sucesso")
+        return reverse_lazy('list_inscricoes')
+
+@method_decorator(never_cache, name="dispatch")
+class InscricaoEventoFormView(View):
+    form_class = InscricaoEventoForm
+    template_name = "inscricao/form_evento.html"
+
+    def get(self, request, inscricao_id):
+        form = self.form_class()
+        inscricao = get_object_or_404(Inscricao, id=inscricao_id)
+        return render(request, self.template_name, {
+            "form": form,
+            "inscricao": inscricao
+        })
+
+    def post(self, request, inscricao_id):
+        form = self.form_class(request.POST)
+        inscricao = get_object_or_404(Inscricao, id=inscricao_id)
+        msg = 'Evento adicionado à inscrição com sucesso'
+
+        if form.is_valid():
+            inscricao_evento = form.save(commit=False)
+            inscricao_evento.inscricao = inscricao
+            inscricao_evento.save()
+            
+            # Recalcular valor total da inscrição
+            inscricao.valor_total = inscricao.calcular_valor_total()
+            inscricao.save()
+            
+            messages.success(request, msg)
+            return redirect('detail_inscricao', inscricao_id=inscricao_id)
+        
+        return render(request, self.template_name, {
+            "form": form,
+            "inscricao": inscricao
+        })
+
+@method_decorator(never_cache, name="dispatch")
+class InscricaoEventoDeleteView(DeleteView):
+    model = InscricaoEvento
+    pk_url_kwarg = "inscricao_evento_id"
+
+    def get_success_url(self):
+        inscricao_id = self.kwargs['inscricao_id']
+        inscricao = get_object_or_404(Inscricao, id=inscricao_id)
+        
+        # Recalcular valor total da inscrição após remover o evento
+        inscricao.valor_total = inscricao.calcular_valor_total()
+        inscricao.save()
+        
+        messages.success(self.request, "Evento removido da inscrição com sucesso")
+        return reverse('detail_inscricao', kwargs={'inscricao_id': inscricao_id})

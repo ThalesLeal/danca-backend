@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Lote,Categoria,TipoEvento,Evento,Camisa,Planejamento,Artista
+from .models import Lote,Categoria,TipoEvento,Evento,Camisa,Planejamento,Artista, Inscricao, InscricaoEvento
 
 class LoteForm(forms.ModelForm):
     class Meta:
@@ -194,3 +194,55 @@ class ArtistaForm(forms.ModelForm):
             required=False,
             label='Eventos'
         )
+
+
+class InscricaoForm(forms.ModelForm):
+    class Meta:
+        model = Inscricao
+        fields = ['nome', 'cpf', 'categoria', 'cep', 'municipio', 'uf', 'lote', 'desconto', 'numero_parcelas']
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome completo'}),
+            'cpf': forms.TextInput(attrs={'class': 'form-control mask-cpf', 'placeholder': 'CPF (opcional)'}),
+            'categoria': forms.Select(attrs={'class': 'form-select'}),
+            'cep': forms.TextInput(attrs={'class': 'form-control mask-cep', 'placeholder': 'CEP (opcional)'}),
+            'municipio': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Município (opcional)'}),
+            'uf': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'UF (opcional)'}),
+            'lote': forms.Select(attrs={'class': 'form-select'}),
+            'desconto': forms.TextInput(attrs={'class': 'form-control mask-valor', 'placeholder': 'R$ 0,00'}),
+            'numero_parcelas': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'placeholder': 'Número de parcelas'}),
+        }
+        labels = {
+            'nome': 'Nome Completo',
+            'cpf': 'CPF',
+            'categoria': 'Categoria',
+            'cep': 'CEP',
+            'municipio': 'Município',
+            'uf': 'UF',
+            'lote': 'Lote',
+            'desconto': 'Desconto',
+            'numero_parcelas': 'Número de Parcelas',
+        }
+
+    def clean_desconto(self):
+        desconto = self.cleaned_data.get('desconto')
+        if desconto and desconto < 0:
+            raise ValidationError("O desconto não pode ser negativo")
+        return desconto
+
+    def clean_numero_parcelas(self):
+        numero_parcelas = self.cleaned_data.get('numero_parcelas')
+        if numero_parcelas and numero_parcelas < 1:
+            raise ValidationError("O número de parcelas deve ser maior ou igual a 1")
+        return numero_parcelas
+
+
+class InscricaoEventoForm(forms.ModelForm):
+    class Meta:
+        model = InscricaoEvento
+        fields = ['evento']
+        widgets = {
+            'evento': forms.Select(attrs={'class': 'form-select'}),
+        }
+        labels = {
+            'evento': 'Evento',
+        }

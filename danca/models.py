@@ -118,3 +118,50 @@ class Artista(models.Model):
                 evento.quantidade_pessoas += 1
                 evento.save()
         super().delete(*args, **kwargs)
+
+
+class Inscricao(models.Model):
+    nome = models.CharField(max_length=100)
+    cpf = models.CharField(max_length=14, null=True, blank=True)
+    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
+    cep = models.CharField(max_length=9, null=True, blank=True)
+    municipio = models.CharField(max_length=100, null=True, blank=True)
+    uf = models.CharField(max_length=2, null=True, blank=True)
+    lote = models.ForeignKey(Lote, on_delete=models.CASCADE)
+    desconto = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    numero_parcelas = models.IntegerField(default=1)
+    valor_total = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+
+    def calcular_valor_total(self):
+        # Calcula o valor total baseado no lote e eventos
+        valor_lote = self.lote.valor_unitario
+        valor_eventos = sum(evento.valor_unitario for evento in self.eventos.all())
+        valor_total = valor_lote + valor_eventos - self.desconto
+        return valor_total
+
+    def save(self, *args, **kwargs):
+        self.valor_total = self.calcular_valor_total()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.nome} - {self.categoria.descricao}"
+
+    class Meta:
+        verbose_name = "Inscrição"
+        verbose_name_plural = "Inscrições"
+        ordering = ['-data_criacao']
+
+
+class InscricaoEvento(models.Model):
+    inscricao = models.ForeignKey(Inscricao, on_delete=models.CASCADE, related_name='eventos')
+    evento = models.ForeignKey(Evento, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = "Evento da Inscrição"
+        verbose_name_plural = "Eventos das Inscrições"
+        unique_together = [['inscricao', 'evento']]
+
+    def __str__(self):
+        return f"{self.inscricao.nome} - {self.evento.descricao}"

@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+
+<h2 class="pb-2">{{ titulo }}</h2>
+
+<!--- Mensagens de erro -->
+{% if form.errors %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      {% for error in form.non_field_errors %}
+        <div class="alert alert-error alert-dismissible fade show" role="alert">
+          {{ error }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+      {% for field in form %}
+        {% for error in field.errors %}
+        <div class="alert alert-error alert-dismissible fade show" role="alert">
+          {{ error }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<form method="post" id="inscricaoForm">
+  {% csrf_token %}
+
+  <!-- Aba 1: Informações Pessoais -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">1. Informações Pessoais</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="me-3" for="{{ form.nome.id_for_label }}">{{ form.nome.label }}</label>
+          {{ form.nome }}
+        </div>
+        
+        <div class="col-md-6 mb-3">
+          <label class="me-3" for="{{ form.cpf.id_for_label }}">{{ form.cpf.label }}</label>
+          {{ form.cpf }}
+        </div>
+        
+        <div class="col-md-6 mb-3">
+          <label class="me-3" for="{{ form.categoria.id_for_label }}">{{ form.categoria.label }}</label>
+          {{ form.categoria }}
+        </div>
+        
+        <div class="col-md-6 mb-3">
+          <label class="me-3" for="{{ form.cep.id_for_label }}">{{ form.cep.label }}</label>
+          {{ form.cep }}
+        </div>
+        
+        <div class="col-md-6 mb-3">
+          <label class="me-3" for="{{ form.municipio.id_for_label }}">{{ form.municipio.label }}</label>
+          {{ form.municipio }}
+        </div>
+        
+        <div class="col-md-6 mb-3">
+          <label class="me-3" for="{{ form.uf.id_for_label }}">{{ form.uf.label }}</label>
+          {{ form.uf }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Aba 2: Detalhes da Inscrição -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">2. Detalhes da Inscrição</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="me-3" for="{{ form.lote.id_for_label }}">{{ form.lote.label }}</label>
+          {{ form.lote }}
+        </div>
+        
+        <div class="col-md-6 mb-3">
+          <label class="me-3" for="{{ form.desconto.id_for_label }}">{{ form.desconto.label }}</label>
+          {{ form.desconto }}
+        </div>
+        
+        <div class="col-md-6 mb-3">
+          <label class="me-3" for="{{ form.numero_parcelas.id_for_label }}">{{ form.numero_parcelas.label }}</label>
+          {{ form.numero_parcelas }}
+        </div>
+        
+        <div class="col-md-6 mb-3">
+          <label class="me-3">Valor Total</label>
+          <input type="text" class="form-control" value="{{ form.instance.valor_total|floatformat:2 }}" readonly>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Aba 3: Eventos -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">3. Eventos</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-12 mb-3">
+          <label class="me-3">Eventos</label>
+          <select class="form-select" id="eventoSelect">
+            <option value="">Selecione um evento</option>
+            {% for evento in eventos %}
+            <option value="{{ evento.id }}">{{ evento.descricao }} - R$ {{ evento.valor_unitario|floatformat:2 }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col-md-12">
+          <button type="button" class="btn btn-primary" id="addEventoBtn">
+            <i class="bi bi-plus-circle"></i> Adicionar Evento
+          </button>
+        </div>
+      </div>
+      
+      <div class="row mt-3">
+        <div class="col-md-12">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Evento</th>
+                <th>Valor</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="eventosTable">
+              {% for evento in form.instance.inscricao_evento_set.all %}
+              <tr>
+                <td>{{ evento.evento.descricao }}</td>
+                <td>R$ {{ evento.evento.valor_unitario|floatformat:2 }}</td>
+                <td>
+                  <button type="button" class="btn btn-danger btn-sm" onclick="removeEvento({{ evento.id }})">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <button type="submit" class="btn btn-success me-2 float-end">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-floppy" viewBox="0 0 16 16">
+        <path d="M11 2H9v3h2z"/>
+        <path d="M1.5 0h11.586a1.5 1.5 0 0 1 1.06.44l1.415 1.414A1.5 1.5 0 0 1 16 2.914V14.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 14.5v-13A1.5 1.5 0 0 1 1.5 0M1 1.5v13a.5.5 0 0 0 .5.5H2v-4.5A1.5 1.5 0 0 1 3.5 9h9a1.5 1.5 0 0 1 1.5 1.5V15h.5a.5.5 0 0 0 .5-.5V2.914a.5.5 0 0 0-.146-.353l-1.415-1.415A.5.5 0 0 0 13.086 1H13v4.5A1.5 1.5 0 0 1 11.5 7h-7A1.5 1.5 0 0 1 3 5.5V1H1.5a.5.5 0 0 0-.5.5m3 4a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5V1H4zM3 15h10v-4.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5z"/>
+      </svg> &nbsp; Salvar
+    </button>
+    <a href="{% url 'list_inscricoes' %}" class="btn btn-secondary">
+      <i class="bi bi-arrow-90deg-left"></i> Voltar
+    </a>
+  </div>
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+      const form = document.querySelector("#inscricaoForm");
+      if (form) {
+          form.addEventListener("submit", function () {
+              const valorTotal = document.querySelector("input[readonly][name='valor_total']");
+              if (valorTotal) {
+                  valorTotal.value = parseFloat(valorTotal.value.replace(/[^\d.-]/g, '')).toFixed(2);
+              }
+          });
+      }
+
+      const eventoSelect = document.getElementById('eventoSelect');
+      const addEventoBtn = document.getElementById('addEventoBtn');
+      const eventosTable = document.getElementById('eventosTable');
+
+      addEventoBtn.addEventListener('click', function() {
+          const eventoId = eventoSelect.value;
+          if (!eventoId) {
+              alert('Por favor, selecione um evento');
+              return;
+          }
+
+          // Aqui você precisaria fazer uma requisição AJAX para adicionar o evento
+          // e atualizar a tabela
+          
+          // Exemplo de como atualizar a tabela
+          const evento = eventoSelect.options[eventoSelect.selectedIndex];
+          const newRow = eventosTable.insertRow();
+          newRow.innerHTML = `
+              <td>${evento.text}</td>
+              <td>R$ ${evento.value}</td>
+              <td>
+                  <button type="button" class="btn btn-danger btn-sm" onclick="removeEvento(${eventoId})">
+                    <i class="bi bi-trash"></i>
+                  </button>
+              </td>
+          `;
+
+          // Limpar o select
+          eventoSelect.value = '';
+      });
+
+      function removeEvento(eventoId) {
+          // Aqui você precisaria fazer uma requisição AJAX para remover o evento
+          
+          // Exemplo de como remover a linha da tabela
+          const row = eventosTable.querySelector(`button[onclick*="${eventoId}"]`).closest('tr');
+          if (row) {
+              row.remove();
+          }
+      }
+  });
+</script>
+{% endblock %}
