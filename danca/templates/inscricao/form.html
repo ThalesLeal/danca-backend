@@ -94,11 +94,6 @@
           <label class="me-3" for="{{ form.numero_parcelas.id_for_label }}">{{ form.numero_parcelas.label }}</label>
           {{ form.numero_parcelas }}
         </div>
-        
-        <div class="col-md-6 mb-3">
-          <label class="me-3">Valor Total</label>
-          <input type="text" class="form-control" value="{{ form.instance.valor_total|floatformat:2 }}" readonly>
-        </div>
       </div>
     </div>
   </div>
@@ -179,10 +174,8 @@
       const form = document.querySelector("#inscricaoForm");
       if (form) {
           form.addEventListener("submit", function () {
-              const valorTotal = document.querySelector("input[readonly][name='valor_total']");
-              if (valorTotal) {
-                  valorTotal.value = parseFloat(valorTotal.value.replace(/[^\d.-]/g, '')).toFixed(2);
-              }
+              // Remove caracteres não numéricos e mantém apenas 9 dígitos (ex: 999999.99)
+              // Não é necessário mais, pois o campo valor_total foi removido
           });
       }
 

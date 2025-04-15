@@ -99,7 +99,7 @@ class Artista(models.Model):
 
     def save(self, *args, **kwargs):
         """
-        Sobrescreve o método save para atualizar o contador de inscrições no evento.
+        Sobrescreves o método save para atualizar o contador de inscrições no evento.
         """
         for evento in self.eventos.all():
             if evento.quantidade_pessoas is not None:
@@ -111,7 +111,7 @@ class Artista(models.Model):
 
     def delete(self, *args, **kwargs):
         """
-        Sobrescreve o método delete para atualizar o contador de inscrições no evento.
+        Sobrescreves o método delete para atualizar o contador de inscrições no evento.
         """
         for evento in self.eventos.all():
             if evento.quantidade_pessoas is not None:
@@ -130,19 +130,26 @@ class Inscricao(models.Model):
     lote = models.ForeignKey(Lote, on_delete=models.CASCADE)
     desconto = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     numero_parcelas = models.IntegerField(default=1)
-    valor_total = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
-    data_criacao = models.DateTimeField(auto_now_add=True)
-    data_atualizacao = models.DateTimeField(auto_now=True)
+    valor_total = models.DecimalField(max_digits=12, decimal_places=2, editable=False, default=0)
+    eventos = models.ManyToManyField(Evento, related_name='inscricao_eventos')
 
     def calcular_valor_total(self):
-        # Calcula o valor total baseado no lote e eventos
-        valor_lote = self.lote.valor_unitario
-        valor_eventos = sum(evento.valor_unitario for evento in self.eventos.all())
-        valor_total = valor_lote + valor_eventos - self.desconto
-        return valor_total
+        """
+        Calcula o valor total com base nos eventos associados.
+        """
+        return sum(evento.valor_unitario for evento in self.eventos.all())
+
+    def atualizar_valor_total(self):
+        """
+        Atualiza o campo valor_total após a instância ser salva e os eventos associados.
+        """
+        self.valor_total = self.calcular_valor_total()
+        self.save(update_fields=['valor_total'])
 
     def save(self, *args, **kwargs):
-        self.valor_total = self.calcular_valor_total()
+        """
+        Salva a instância sem calcular o valor total.
+        """
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -151,11 +158,11 @@ class Inscricao(models.Model):
     class Meta:
         verbose_name = "Inscrição"
         verbose_name_plural = "Inscrições"
-        ordering = ['-data_criacao']
+        ordering = ['-id']
 
 
 class InscricaoEvento(models.Model):
-    inscricao = models.ForeignKey(Inscricao, on_delete=models.CASCADE, related_name='eventos')
+    inscricao = models.ForeignKey(Inscricao, on_delete=models.CASCADE, related_name='inscricao_evento_set')
     evento = models.ForeignKey(Evento, on_delete=models.CASCADE)
 
     class Meta:

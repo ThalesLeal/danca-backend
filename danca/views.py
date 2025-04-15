@@ -538,21 +538,27 @@ class InscricaoFormView(View):
 
     def post(self, request, inscricao_id=None):
         form = self.form_class(request.POST)
-        msg = 'Inscrição criada com sucesso'
-
-        if inscricao_id:
-            inscricao = get_object_or_404(Inscricao, id=inscricao_id)
-            form = self.form_class(request.POST, instance=inscricao)
-            msg = 'Inscrição modificada com sucesso'
-        
         if form.is_valid():
-            inscricao = form.save()  # Salva primeiro para ter o ID
+            inscricao = form.save(commit=False)
+            
+            # Salva a inscrição para ter um ID
+            inscricao.save()
+            
+            # Associa os eventos selecionados
+            eventos_ids = request.POST.getlist('eventos')
+            if eventos_ids:
+                eventos = Evento.objects.filter(id__in=eventos_ids)
+                inscricao.eventos.set(eventos)
+                
+            # Calcula e salva o valor total novamente
             inscricao.valor_total = inscricao.calcular_valor_total()
-            inscricao.save()  # Salva novamente com o valor total calculado
-            messages.success(request, msg)
+            inscricao.save()
+            
             return redirect('list_inscricoes')
-        
-        return render(request, self.template_name, {"form": form})
+        return self.render_to_response({
+            'form': form,
+            'eventos': Evento.objects.all()
+        })
 
 @method_decorator(never_cache, name="dispatch")
 class InscricaoDeleteView(DeleteView):
