@@ -135,6 +135,7 @@
               </tr>
             </thead>
             <tbody id="eventosTable">
+              {% if form.instance.pk %}
               {% for evento in form.instance.inscricao_evento_set.all %}
               <tr>
                 <td>{{ evento.evento.descricao }}</td>
@@ -146,6 +147,7 @@
                 </td>
               </tr>
               {% endfor %}
+              {% endif %}
             </tbody>
           </table>
         </div>
