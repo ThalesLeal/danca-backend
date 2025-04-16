@@ -135,9 +135,17 @@ class Inscricao(models.Model):
 
     def calcular_valor_total(self):
         """
-        Calcula o valor total com base nos eventos associados.
+        Calcula o valor total com base nos eventos associados, considerando desconto e lote.
         """
-        return sum(evento.valor_unitario for evento in self.eventos.all())
+        valor_base = sum(evento.valor_unitario for evento in self.eventos.all())
+        
+        # Aplica o desconto
+        valor_com_desconto = valor_base - self.desconto
+        
+        # Aplica o valor do lote
+        valor_final = valor_com_desconto + self.lote.valor_unitario
+        
+        return valor_final
 
     def atualizar_valor_total(self):
         """

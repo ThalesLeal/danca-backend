@@ -541,29 +541,32 @@ class InscricaoFormView(View):
         return render(request, self.template_name, {"form": form, "eventos": eventos})
 
     def post(self, request, inscricao_id=None):
-        form = self.form_class(request.POST)
-        
-        # Ensure the lote queryset is populated
+        inscricao = None
+        if inscricao_id:
+            inscricao = get_object_or_404(Inscricao, id=inscricao_id)
+            form = self.form_class(request.POST, instance=inscricao)
+        else:
+            form = self.form_class(request.POST)
+    
         form.fields['lote'].queryset = Lote.objects.all()
         
         if form.is_valid():
             inscricao = form.save(commit=False)
-            
-            # Salva a inscrição para ter um ID
             inscricao.save()
+    
+            # Limpa os eventos existentes antes de adicionar os novos
+            inscricao.eventos.clear()
             
-            # Associa os eventos selecionados
             eventos_ids = request.POST.getlist('eventos')
             if eventos_ids:
                 eventos = Evento.objects.filter(id__in=eventos_ids)
                 inscricao.eventos.set(eventos)
-                
-            # Calcula e salva o valor total novamente
+    
             inscricao.valor_total = inscricao.calcular_valor_total()
             inscricao.save()
-            
+    
             return redirect('list_inscricoes')
-        
+    
         return render(request, self.template_name, {
             'form': form,
             'eventos': Evento.objects.all()
