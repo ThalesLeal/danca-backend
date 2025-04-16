@@ -534,10 +534,18 @@ class InscricaoFormView(View):
         if inscricao_id:
             inscricao = get_object_or_404(Inscricao, id=inscricao_id)
             form = self.form_class(instance=inscricao)
+        
+        # Ensure the lote queryset is populated
+        form.fields['lote'].queryset = Lote.objects.all()
+        
         return render(request, self.template_name, {"form": form, "eventos": eventos})
 
     def post(self, request, inscricao_id=None):
         form = self.form_class(request.POST)
+        
+        # Ensure the lote queryset is populated
+        form.fields['lote'].queryset = Lote.objects.all()
+        
         if form.is_valid():
             inscricao = form.save(commit=False)
             
@@ -555,7 +563,8 @@ class InscricaoFormView(View):
             inscricao.save()
             
             return redirect('list_inscricoes')
-        return self.render_to_response({
+        
+        return render(request, self.template_name, {
             'form': form,
             'eventos': Evento.objects.all()
         })

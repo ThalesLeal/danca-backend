@@ -197,31 +197,51 @@ class ArtistaForm(forms.ModelForm):
 
 
 class InscricaoForm(forms.ModelForm):
+    numero_parcelas = forms.IntegerField(
+        required=True,
+        min_value=1,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'min': 1,
+            'placeholder': 'Número de parcelas',
+            'type': 'number'
+        })
+    )
+
     class Meta:
         model = Inscricao
-        fields = ['nome', 'cpf', 'categoria', 'cep', 'municipio', 'uf', 'lote', 'desconto', 'numero_parcelas']
+        fields = [
+            'nome', 'cpf', 'categoria', 'cep', 'municipio', 'uf',
+            'lote', 'desconto', 'numero_parcelas'
+        ]
         widgets = {
-            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome completo'}),
-            'cpf': forms.TextInput(attrs={'class': 'form-control mask-cpf', 'placeholder': 'CPF (opcional)'}),
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'cpf': forms.TextInput(attrs={'class': 'form-control'}),
             'categoria': forms.Select(attrs={'class': 'form-select'}),
-            'cep': forms.TextInput(attrs={'class': 'form-control mask-cep', 'placeholder': 'CEP (opcional)'}),
-            'municipio': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Município (opcional)'}),
-            'uf': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'UF (opcional)'}),
+            'cep': forms.TextInput(attrs={'class': 'form-control'}),
+            'municipio': forms.TextInput(attrs={'class': 'form-control'}),
+            'uf': forms.Select(attrs={'class': 'form-select'}),
             'lote': forms.Select(attrs={'class': 'form-select'}),
-            'desconto': forms.TextInput(attrs={'class': 'form-control mask-valor', 'placeholder': 'R$ 0,00'}),
-            'numero_parcelas': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'placeholder': 'Número de parcelas'}),
+            'desconto': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'numero_parcelas': forms.NumberInput(attrs={'class': 'form-control'}),
         }
         labels = {
-            'nome': 'Nome Completo',
+            'nome': 'Nome completo',
             'cpf': 'CPF',
             'categoria': 'Categoria',
             'cep': 'CEP',
             'municipio': 'Município',
             'uf': 'UF',
             'lote': 'Lote',
-            'desconto': 'Desconto',
+            'desconto': 'Desconto (R$)',
             'numero_parcelas': 'Número de Parcelas',
         }
+        help_texts = {
+            'numero_parcelas': 'Informe somente números inteiros.',
+        }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['lote'].queryset = Lote.objects.all()
 
     def clean_desconto(self):
         desconto = self.cleaned_data.get('desconto')
@@ -231,8 +251,12 @@ class InscricaoForm(forms.ModelForm):
 
     def clean_numero_parcelas(self):
         numero_parcelas = self.cleaned_data.get('numero_parcelas')
-        if numero_parcelas and numero_parcelas < 1:
-            raise ValidationError("O número de parcelas deve ser maior ou igual a 1")
+        if numero_parcelas is None:
+            raise ValidationError("Por favor, informe o número de parcelas")
+        if not isinstance(numero_parcelas, int):
+            raise ValidationError("Por favor, informe um número inteiro")
+        if numero_parcelas < 1:
+            raise ValidationError("O número de parcelas deve ser pelo menos 1")
         return numero_parcelas
 
 
