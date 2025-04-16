@@ -131,6 +131,7 @@ class Inscricao(models.Model):
     desconto = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     numero_parcelas = models.IntegerField(default=1)
     valor_total = models.DecimalField(max_digits=12, decimal_places=2, editable=False, default=0)
+    valor_parcela = models.DecimalField(max_digits=12, decimal_places=2, editable=False, default=0)
     eventos = models.ManyToManyField(Evento, related_name='inscricao_eventos')
 
     def calcular_valor_total(self):
@@ -138,27 +139,26 @@ class Inscricao(models.Model):
         Calcula o valor total com base nos eventos associados, considerando desconto e lote.
         """
         valor_base = sum(evento.valor_unitario for evento in self.eventos.all())
-        
-        # Aplica o desconto
         valor_com_desconto = valor_base - self.desconto
-        
-        # Aplica o valor do lote
         valor_final = valor_com_desconto + self.lote.valor_unitario
-        
         return valor_final
 
-    def atualizar_valor_total(self):
+    def calcular_valor_parcela(self):
         """
-        Atualiza o campo valor_total após a instância ser salva e os eventos associados.
+        Calcula o valor de cada parcela.
         """
-        self.valor_total = self.calcular_valor_total()
-        self.save(update_fields=['valor_total'])
+        if self.numero_parcelas <= 0:
+            return 0
+        return self.valor_total / self.numero_parcelas
 
     def save(self, *args, **kwargs):
         """
-        Salva a instância sem calcular o valor total.
+        Salva a instância e atualiza os valores totais e por parcela.
         """
         super().save(*args, **kwargs)
+        self.valor_total = self.calcular_valor_total()
+        self.valor_parcela = self.calcular_valor_parcela()
+        super().save(update_fields=['valor_total', 'valor_parcela'])
 
     def __str__(self):
         return f"{self.nome} - {self.categoria.descricao}"
