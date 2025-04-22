@@ -46,6 +46,22 @@ class Evento(models.Model):
     def __str__(self):
         return f"{self.descricao} - {self.tipo.descricao}"
     
+    def get_vagas_disponiveis(self):
+        """Retorna o número de vagas disponíveis para o evento"""
+        if self.quantidade_pessoas is None:
+            return None
+        return max(0, self.quantidade_pessoas - self.contador_inscricoes)
+    
+    def atualizar_contador_inscricoes(self):
+        """Atualiza o contador de inscrições baseado nas inscrições ativas"""
+        self.contador_inscricoes = self.inscricao_eventos.count()
+        self.save(update_fields=['contador_inscricoes'])
+    
+    def save(self, *args, **kwargs):
+        """Atualiza o contador de inscrições ao salvar o evento"""
+        super().save(*args, **kwargs)
+        self.atualizar_contador_inscricoes()
+    
     class Meta:
         ordering = ['-data', '-id']
         verbose_name = "Evento"
@@ -132,7 +148,8 @@ class Inscricao(models.Model):
     numero_parcelas = models.IntegerField(default=1)
     valor_total = models.DecimalField(max_digits=12, decimal_places=2, editable=False, default=0)
     valor_parcela = models.DecimalField(max_digits=12, decimal_places=2, editable=False, default=0)
-    eventos = models.ManyToManyField(Evento, related_name='inscricao_eventos')
+    eventos = models.ManyToManyField(Evento, through='InscricaoEvento', related_name='inscricao_eventos')
+
 
     def calcular_valor_total(self):
         """
@@ -152,13 +169,9 @@ class Inscricao(models.Model):
         return self.valor_total / self.numero_parcelas
 
     def save(self, *args, **kwargs):
-        """
-        Salva a instância e atualiza os valores totais e por parcela.
-        """
-        super().save(*args, **kwargs)
         self.valor_total = self.calcular_valor_total()
         self.valor_parcela = self.calcular_valor_parcela()
-        super().save(update_fields=['valor_total', 'valor_parcela'])
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.nome} - {self.categoria.descricao}"
@@ -180,3 +193,22 @@ class InscricaoEvento(models.Model):
 
     def __str__(self):
         return f"{self.inscricao.nome} - {self.evento.descricao}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.evento.atualizar_contador_inscricoes()
+        
+        self.inscricao.valor_total = self.inscricao.calcular_valor_total()
+        self.inscricao.valor_parcela = self.inscricao.calcular_valor_parcela()
+        self.inscricao.save(update_fields=['valor_total', 'valor_parcela'])
+
+
+    def delete(self, *args, **kwargs):
+        evento = self.evento
+        inscricao = self.inscricao
+        super().delete(*args, **kwargs)
+        evento.atualizar_contador_inscricoes()
+        
+        inscricao.valor_total = inscricao.calcular_valor_total()
+        inscricao.valor_parcela = inscricao.calcular_valor_parcela()
+        inscricao.save(update_fields=['valor_total', 'valor_parcela'])

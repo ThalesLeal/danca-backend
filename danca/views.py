@@ -565,6 +565,10 @@ class InscricaoFormView(View):
             inscricao.valor_total = inscricao.calcular_valor_total()
             inscricao.save()
     
+            # Atualiza o contador de inscrições para todos os eventos associados
+            for evento in inscricao.eventos.all():
+                evento.atualizar_contador_inscricoes()
+    
             return redirect('list_inscricoes')
     
         return render(request, self.template_name, {
@@ -600,21 +604,23 @@ class InscricaoEventoFormView(View):
         msg = 'Evento adicionado à inscrição com sucesso'
 
         if form.is_valid():
-            inscricao_evento = form.save(commit=False)
-            inscricao_evento.inscricao = inscricao
-            inscricao_evento.save()
+            inscricao = form.save(commit=False)
             
-            # Recalcular valor total da inscrição
-            inscricao.valor_total = inscricao.calcular_valor_total()
-            inscricao.save()
+            # Ainda não salva no banco
+            eventos_ids = request.POST.getlist('eventos')
+            eventos = Evento.objects.filter(id__in=eventos_ids)
             
-            messages.success(request, msg)
-            return redirect('detail_inscricao', inscricao_id=inscricao_id)
-        
-        return render(request, self.template_name, {
-            "form": form,
-            "inscricao": inscricao
-        })
+            inscricao.valor_total = sum(evento.valor_unitario for evento in eventos) - inscricao.desconto + inscricao.lote.valor_unitario
+            inscricao.valor_parcela = inscricao.calcular_valor_parcela()
+
+            inscricao.save()  # Agora sim, já com valores certos
+            inscricao.eventos.set(eventos)
+
+            # Atualiza o contador de inscrições
+            for evento in eventos:
+                evento.atualizar_contador_inscricoes()
+
+            return redirect('list_inscricoes')
 
 @method_decorator(never_cache, name="dispatch")
 class InscricaoEventoDeleteView(DeleteView):
@@ -628,6 +634,10 @@ class InscricaoEventoDeleteView(DeleteView):
         # Recalcular valor total da inscrição após remover o evento
         inscricao.valor_total = inscricao.calcular_valor_total()
         inscricao.save()
+        
+        # Atualiza o contador de inscrições para o evento associado
+        inscricao_evento = self.object
+        inscricao_evento.evento.atualizar_contador_inscricoes()
         
         messages.success(self.request, "Evento removido da inscrição com sucesso")
         return reverse('detail_inscricao', kwargs={'inscricao_id': inscricao_id})
