@@ -158,7 +158,8 @@
 </div>
 
 <!-- Campo oculto para enviar os IDs dos eventos -->
-<input type="hidden" name="eventos" id="eventosInput">
+<div id="eventosInputsContainer"></div>
+
 
 
   <div class="mt-4">
@@ -254,8 +255,18 @@
       };
 
       function atualizarEventosInput() {
-          eventosInput.value = Array.from(eventosSelecionados).join(',');
-      }
+        const container = document.getElementById("eventosInputsContainer");
+        container.innerHTML = ""; // Limpa os inputs antigos
+    
+        Array.from(eventosSelecionados).forEach(eventoId => {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "eventos";  // Mesmo nome para que o Django trate como lista
+            input.value = eventoId;
+            container.appendChild(input);
+        });
+    }
+    
   });
 </script>
 {% endblock %}
