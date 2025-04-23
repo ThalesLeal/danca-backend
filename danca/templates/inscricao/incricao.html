@@ -8,6 +8,11 @@
 
             <div class="card">
                 <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                    </form>
                     <div class="row">
                         <div class="col-md-6">
                             <strong>Nome:</strong><br>
@@ -50,6 +55,32 @@
                             R$ {{ inscricao.valor_total|floatformat:2 }}
                         </div>
                     </div>
+
+                    <!-- Seção de Eventos Associados -->
+                    <div class="mt-4">
+                        <h5>Eventos Associados</h5>
+                        {% if inscricao.eventos.exists %}
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Descrição</th>
+                                        <th>Valor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for evento in inscricao.eventos.all %}
+                                    <tr>
+                                        <td>{{ evento.descricao }}</td>
+                                        <td>R$ {{ evento.valor_unitario|floatformat:2 }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p>Nenhum evento associado a esta inscrição.</p>
+                        {% endif %}
+                    </div>
+
                     <div class="mt-3">
                         <a href="{% url 'update_inscricao' inscricao.id %}" class="btn btn-warning me-2">
                             <i class="bi bi-pencil-square"></i> Editar

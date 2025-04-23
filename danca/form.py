@@ -207,12 +207,18 @@ class InscricaoForm(forms.ModelForm):
             'type': 'number'
         })
     )
+    eventos = forms.ModelMultipleChoiceField(
+        queryset=Evento.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=True,
+        label="Eventos"
+    )
 
     class Meta:
         model = Inscricao
         fields = [
             'nome', 'cpf', 'categoria', 'cep', 'municipio', 'uf',
-            'lote', 'desconto', 'numero_parcelas'
+            'lote', 'desconto', 'numero_parcelas', 'eventos'
         ]
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control'}),

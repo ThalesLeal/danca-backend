@@ -54,13 +54,19 @@ class Evento(models.Model):
     
     def atualizar_contador_inscricoes(self):
         """Atualiza o contador de inscrições baseado nas inscrições ativas"""
-        self.contador_inscricoes = self.inscricao_eventos.count()
-        self.save(update_fields=['contador_inscricoes'])
+        novo_contador = self.inscricao_eventos.count()
+        if self.contador_inscricoes != novo_contador:
+            self.contador_inscricoes = novo_contador
+            super().save(update_fields=['contador_inscricoes'])
     
     def save(self, *args, **kwargs):
         """Atualiza o contador de inscrições ao salvar o evento"""
+        # Salva primeiro para garantir que o ID exista
         super().save(*args, **kwargs)
-        self.atualizar_contador_inscricoes()
+        
+        # Atualiza o contador apenas se o evento já existir no banco
+        if self.id:
+            self.atualizar_contador_inscricoes()
     
     class Meta:
         ordering = ['-data', '-id']
@@ -150,7 +156,6 @@ class Inscricao(models.Model):
     valor_parcela = models.DecimalField(max_digits=12, decimal_places=2, editable=False, default=0)
     eventos = models.ManyToManyField(Evento, through='InscricaoEvento', related_name='inscricao_eventos')
 
-
     def calcular_valor_total(self):
         """
         Calcula o valor total com base nos eventos associados, considerando desconto e lote.
@@ -162,16 +167,23 @@ class Inscricao(models.Model):
 
     def calcular_valor_parcela(self):
         """
-        Calcula o valor de cada parcela.
+        Calcula o valor de cada parcela com base no valor total e no número de parcelas.
         """
-        if self.numero_parcelas <= 0:
-            return 0
-        return self.valor_total / self.numero_parcelas
+        if self.numero_parcelas > 0:
+            return self.valor_total / self.numero_parcelas
+        return 0
 
     def save(self, *args, **kwargs):
+        """
+        Salva a instância e calcula o valor total após salvar.
+        """
+        # Salva a instância para garantir que ela tenha um ID
+        super().save(*args, **kwargs)
+
+        # Atualiza o valor total após salvar e associar os eventos
         self.valor_total = self.calcular_valor_total()
         self.valor_parcela = self.calcular_valor_parcela()
-        super().save(*args, **kwargs)
+        super().save(update_fields=['valor_total', 'valor_parcela'])
 
     def __str__(self):
         return f"{self.nome} - {self.categoria.descricao}"

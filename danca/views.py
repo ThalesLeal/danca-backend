@@ -271,9 +271,10 @@ class EventoFormView(View):
             evento = get_object_or_404(Evento, id=evento_id)
             form = self.form_class(request.POST, instance=evento)
             msg = 'Evento modificado com sucesso'
-    
+        
         if form.is_valid():
-            form.save()
+            evento = form.save()
+            evento.atualizar_contador_inscricoes()
             messages.success(request, msg)
             return redirect('list_eventos')
 
@@ -592,10 +593,14 @@ class InscricaoEventoFormView(View):
 
     def get(self, request, inscricao_id):
         form = self.form_class()
+        eventos = Evento.objects.all()
         inscricao = get_object_or_404(Inscricao, id=inscricao_id)
+        eventos = inscricao.eventos.all()  # Recupera os eventos associados      
+            
         return render(request, self.template_name, {
             "form": form,
-            "inscricao": inscricao
+            "inscricao": inscricao,
+            'eventos': eventos,
         })
 
     def post(self, request, inscricao_id):
@@ -641,3 +646,29 @@ class InscricaoEventoDeleteView(DeleteView):
         
         messages.success(self.request, "Evento removido da inscrição com sucesso")
         return reverse('detail_inscricao', kwargs={'inscricao_id': inscricao_id})
+
+@method_decorator(never_cache, name="dispatch")
+class InscricaoCreateView(View):
+    def get(self, request):
+        form = InscricaoForm()
+        return render(request, 'inscricao_form.html', {'form': form})
+
+    def post(self, request):
+        form = InscricaoForm(request.POST)
+        if form.is_valid():
+            # Salva a inscrição sem os eventos
+            inscricao = form.save(commit=False)
+            inscricao.save()
+
+            # Associa os eventos selecionados
+            eventos = form.cleaned_data['eventos']
+            inscricao.eventos.set(eventos)
+
+            # Atualiza o valor total e o valor da parcela
+            inscricao.valor_total = inscricao.calcular_valor_total()
+            inscricao.valor_parcela = inscricao.calcular_valor_parcela()
+            inscricao.save(update_fields=['valor_total', 'valor_parcela'])
+
+            return redirect('list_inscricoes')  # Redireciona para a lista de inscrições
+        return render(request, 'inscricao_form.html', {'form': form})
+

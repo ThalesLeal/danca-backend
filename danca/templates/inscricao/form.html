@@ -107,7 +107,9 @@
           <select class="form-select" id="eventoSelect">
             <option value="">Selecione um evento</option>
             {% for evento in eventos %}
-              <option value="{{ evento.id }}" data-descricao="{{ evento.descricao }}" data-valor="{{ evento.valor_unitario }}">{{ evento.descricao }} - R$ {{ evento.valor_unitario|floatformat:2 }}</option>
+              <option value="{{ evento.id }}" data-descricao="{{ evento.descricao }}" data-valor="{{ evento.valor_unitario }}">
+                {{ evento.descricao }} - R$ {{ evento.valor_unitario|floatformat:2 }}
+              </option>
             {% endfor %}
           </select>
         </div>
@@ -132,25 +134,16 @@
               </tr>
             </thead>
             <tbody id="eventosTable">
-              {% if form.instance.pk %}
-              {% for evento in form.instance.inscricao_evento_set.all %}
-              <tr data-evento-id="{{ evento.id }}">
-                <td>{{ evento.evento.descricao }}</td>
-                <td>R$ {{ evento.evento.valor_unitario|floatformat:2 }}</td>
-                <td>
-                  <button type="button" class="btn btn-danger btn-sm" onclick="removeEvento({{ evento.id }})">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </td>
-              </tr>
-              {% endfor %}
-              {% endif %}
+              <!-- Eventos adicionados dinamicamente aparecerão aqui -->
             </tbody>
           </table>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Campo oculto para enviar os IDs dos eventos -->
+  <input type="hidden" name="eventos" id="eventosInput">
 
   <div class="mt-4">
     <button type="submit" class="btn btn-success me-2 float-end">
@@ -181,8 +174,11 @@
       const eventoSelect = document.getElementById('eventoSelect');
       const addEventoBtn = document.getElementById('addEventoBtn');
       const eventosTable = document.getElementById('eventosTable');
+      const eventosInput = document.getElementById('eventosInput');
 
-      addEventoBtn.addEventListener('click', function() {
+      const eventosSelecionados = new Set(); // Usado para evitar duplicados
+
+      addEventoBtn.addEventListener('click', function () {
           const eventoId = eventoSelect.value;
           const option = eventoSelect.options[eventoSelect.selectedIndex];
           const descricao = option.getAttribute('data-descricao');
@@ -193,6 +189,12 @@
               return;
           }
 
+          if (eventosSelecionados.has(eventoId)) {
+              alert('Este evento já foi adicionado');
+              return;
+          }
+
+          // Adiciona o evento à tabela
           const newRow = document.createElement('tr');
           newRow.setAttribute('data-evento-id', eventoId);
           newRow.innerHTML = `
@@ -205,15 +207,33 @@
               </td>
           `;
           eventosTable.appendChild(newRow);
+
+          // Adiciona o evento ao conjunto de selecionados
+          eventosSelecionados.add(eventoId);
+
+          // Atualiza o campo oculto com os IDs dos eventos
+          atualizarEventosInput();
+
+          // Limpa a seleção
           eventoSelect.value = '';
       });
 
-      window.removeEvento = function(eventoId) {
+      window.removeEvento = function (eventoId) {
           const row = eventosTable.querySelector(`tr[data-evento-id="${eventoId}"]`);
           if (row) {
               row.remove();
           }
+
+          // Remove o evento do conjunto de selecionados
+          eventosSelecionados.delete(eventoId);
+
+          // Atualiza o campo oculto com os IDs dos eventos
+          atualizarEventosInput();
       };
+
+      function atualizarEventosInput() {
+          eventosInput.value = Array.from(eventosSelecionados).join(',');
+      }
   });
 </script>
 {% endblock %}
