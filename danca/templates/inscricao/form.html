@@ -95,55 +95,71 @@
     </div>
   </div>
 
-  <!-- Aba 3: Eventos -->
-  <div class="card mb-4">
-    <div class="card-header">
-      <h5 class="mb-0">3. Eventos</h5>
+<!-- Aba 3: Eventos -->
+<div class="card mb-4">
+  <div class="card-header">
+    <h5 class="mb-0">3. Eventos</h5>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-12 mb-3">
+        <label class="me-3">Eventos</label>
+        <select class="form-select" id="eventoSelect">
+          <option value="">Selecione um evento</option>
+          {% for evento in eventos %}
+            <option value="{{ evento.id }}"
+              data-descricao="{{ evento.descricao }}"
+              data-valor="{{ evento.valor_unitario }}"
+              {% if inscricao and evento in inscricao.eventos.all %}selected{% endif %}>
+              {{ evento.descricao }} - R$ {{ evento.valor_unitario|floatformat:2 }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
     </div>
-    <div class="card-body">
-      <div class="row">
-        <div class="col-md-12 mb-3">
-          <label class="me-3">Eventos</label>
-          <select class="form-select" id="eventoSelect">
-            <option value="">Selecione um evento</option>
-            {% for evento in eventos %}
-              <option value="{{ evento.id }}" data-descricao="{{ evento.descricao }}" data-valor="{{ evento.valor_unitario }}">
-                {{ evento.descricao }} - R$ {{ evento.valor_unitario|floatformat:2 }}
-              </option>
-            {% endfor %}
-          </select>
-        </div>
-      </div>
 
-      <div class="row">
-        <div class="col-md-12">
-          <button type="button" class="btn btn-primary" id="addEventoBtn">
-            <i class="bi bi-plus-circle"></i> Adicionar Evento
-          </button>
-        </div>
+    <div class="row">
+      <div class="col-md-12">
+        <button type="button" class="btn btn-primary" id="addEventoBtn">
+          <i class="bi bi-plus-circle"></i> Adicionar Evento
+        </button>
       </div>
+    </div>
 
-      <div class="row mt-3">
-        <div class="col-md-12">
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <th>Evento</th>
-                <th>Valor</th>
-                <th>Ações</th>
+    <div class="row mt-3">
+      <div class="col-md-12">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Evento</th>
+              <th>Valor</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="eventosTable">
+            {% if inscricao %}
+              {% for evento in inscricao.eventos.all %}
+              <tr data-evento-id="{{ evento.id }}">
+                <td>{{ evento.descricao }}</td>
+                <td>R$ {{ evento.valor_unitario|floatformat:2 }}</td>
+                <td>
+                  <button type="button" class="btn btn-danger btn-sm" onclick="removeEvento({{ evento.id }})">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody id="eventosTable">
-              <!-- Eventos adicionados dinamicamente aparecerão aqui -->
-            </tbody>
-          </table>
-        </div>
+              {% endfor %}
+            {% endif %}
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Campo oculto para enviar os IDs dos eventos -->
-  <input type="hidden" name="eventos" id="eventosInput">
+<!-- Campo oculto para enviar os IDs dos eventos -->
+<input type="hidden" name="eventos" id="eventosInput">
+
 
   <div class="mt-4">
     <button type="submit" class="btn btn-success me-2 float-end">
@@ -176,7 +192,13 @@
       const eventosTable = document.getElementById('eventosTable');
       const eventosInput = document.getElementById('eventosInput');
 
-      const eventosSelecionados = new Set(); // Usado para evitar duplicados
+      const eventosSelecionados = new Set([
+        {% if inscricao %}
+          {% for evento in inscricao.eventos.all %}
+            "{{ evento.id }}",
+          {% endfor %}
+        {% endif %}
+]);
 
       addEventoBtn.addEventListener('click', function () {
           const eventoId = eventoSelect.value;
