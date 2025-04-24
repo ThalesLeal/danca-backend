@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views import View
-from django.views.generic import ListView, TemplateView, DeleteView
+from django.views.generic import ListView, TemplateView, DeleteView, DetailView
 
 from django.contrib import messages
 from django.utils.decorators import method_decorator
@@ -11,6 +11,7 @@ from .models import Lote, Categoria, TipoEvento, Evento, Camisa,Planejamento,Art
 from .form import LoteForm,CategoriaForm,TipoEventoForm,EventoForm,CamisaForm,PlanejamentoForm,ArtistaForm, InscricaoForm, InscricaoEventoForm
 from django.shortcuts import redirect
 from django.db.models import Q
+from django.core.exceptions import ValidationError
 
 
 def index(request):
@@ -561,7 +562,15 @@ class InscricaoFormView(View):
 
             # Associa os eventos selecionados
             eventos_ids = request.POST.getlist('eventos')
-            inscricao.eventos.set(eventos_ids)
+            eventos = Evento.objects.filter(id__in=eventos_ids)
+            
+            # Verifica se há vagas suficientes para cada evento
+            for evento in eventos:
+                if evento.quantidade_pessoas is not None:
+                    if evento.quantidade_pessoas <= 0:
+                        raise ValidationError(f"O evento '{evento.descricao}' não tem vagas disponíveis.")
+
+            inscricao.eventos.set(eventos)
 
             # Atualiza o valor total e o valor da parcela
             inscricao.valor_total = inscricao.calcular_valor_total()
@@ -671,4 +680,32 @@ class InscricaoCreateView(View):
 
             return redirect('list_inscricoes')  # Redireciona para a lista de inscrições
         return render(request, 'inscricao_form.html', {'form': form})
+
+@method_decorator(never_cache, name="dispatch")
+class EventoInscritosView(DetailView):
+    model = Evento
+    template_name = "evento/inscritos.html"
+    context_object_name = "evento"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Obtém todas as inscrições associadas a este evento
+        inscritos = InscricaoEvento.objects.filter(evento=self.object).select_related('inscricao')
+        
+        # Cria uma lista de inscritos com informações relevantes
+        lista_inscritos = []
+        for inscricao_evento in inscritos:
+            inscricao = inscricao_evento.inscricao
+            lista_inscritos.append({
+                'nome': inscricao.nome,
+                'cpf': inscricao.cpf,
+                'categoria': inscricao.categoria.descricao,
+                'valor_total': inscricao.valor_total,
+                'numero_parcelas': inscricao.numero_parcelas
+            })
+        
+        context['inscritos'] = lista_inscritos
+        context['total_inscritos'] = len(lista_inscritos)
+        return context
 

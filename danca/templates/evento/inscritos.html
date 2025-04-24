@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Lista de Inscritos - {{ evento.descricao }}</h2>
+    <p>Total de inscritos: {{ total_inscritos }}</p>
+    
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>CPF</th>
+                    <th>Categoria</th>
+                    <th>Valor Total</th>
+                    <th>Nº Parcelas</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inscrito in inscritos %}
+                <tr>
+                    <td>{{ inscrito.nome }}</td>
+                    <td>{{ inscrito.cpf }}</td>
+                    <td>{{ inscrito.categoria }}</td>
+                    <td>R$ {{ inscrito.valor_total|floatformat:2 }}</td>
+                    <td>{{ inscrito.numero_parcelas }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
