@@ -1,150 +1,134 @@
-<style>
-    body {
-      display: flex;
-      height: 100vh;
-      background-color: #fff;
-      color: #333;
-      font-family: 'Segoe UI', sans-serif;
-    }
+<!-- Barra Lateral -->
+<div class="sidebar text-white" id="sidebar">
+  <div class="d-flex flex-column flex-shrink-0 p-2 h-100">
+      <ul class="nav nav-pills flex-column mb-auto">
+          <!-- Cadastros -->
+          <li class="nav-item mb-2">
+            <button class="nav-link dropdown" data-bs-toggle="collapse" data-bs-target="#cadastros-collapse">
+                <i class="bi bi-file-earmark-person"></i>
+                <span style="margin-left: 10px;">Cadastros</span>
+                <i class="bi bi-chevron-down ms-2"></i>
+            </button>
+            <div class="collapse" id="cadastros-collapse">
+                <ul class="nav nav-pills flex-column mb-auto">
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="{% url 'list_lotes' %}">
+                            <i class="bi bi-box"></i>
+                            <span style="margin-left: 10px;">Lote</span>
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="{% url 'list_categorias' %}">
+                            <i class="bi bi-tags"></i>
+                            <span style="margin-left: 10px;">Categoria</span>
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="{% url 'list_tipo_eventos' %}">
+                            <i class="bi bi-calendar-event"></i>
+                            <span style="margin-left: 10px;">Tipo de Evento</span>
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="{% url 'list_camisas' %}">
+                            <i class="bi bi-shirt"></i>
+                            <span style="margin-left: 10px;">Camisas</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+          </li>
 
-    .sidebar {
-      width: 200px;
-      background: rgba(255, 255, 255, 0.9); /* Fundo branco semi-transparente */
-      backdrop-filter: blur(6px);
-      border-right: 1px solid rgba(255, 183, 77, 0.3);
-      padding: 1rem;
-      color: #444;
-    }
+          <!-- Inscrição -->
+          <li class="nav-item mb-2">
+            <button class="nav-link dropdown" data-bs-toggle="collapse" data-bs-target="#inscricao-collapse">
+                <i class="bi bi-person-plus"></i>
+                <span style="margin-left: 10px;">Inscrição</span>
+                <i class="bi bi-chevron-down ms-2"></i>
+            </button>
+            <div class="collapse" id="inscricao-collapse">
+                <ul class="nav nav-pills flex-column mb-auto">
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="{% url 'list_artistas' %}">
+                            <i class="bi bi-mic"></i>
+                            <span style="margin-left: 10px;">Artistas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="{% url 'list_inscricoes' %}">
+                            <i class="bi bi-people"></i>
+                            <span style="margin-left: 10px;">Inscrições</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+          </li>
 
-    .sidebar h4 {
-      color: #ff6f00;
-      margin-bottom: 1.5rem;
-    }
+          <!-- Planejamentos -->
+          <li class="nav-item mb-2">
+            <a class="nav-link" href="{% url 'list_planejamentos' %}">
+                <i class="bi bi-calendar-check"></i>
+                <span style="margin-left: 10px;">Planejamentos</span>
+            </a>
+          </li>
 
-    .sidebar .btn-toggle {
-      width: 100%;
-      text-align: left;
-      background: none;
-      border: none;
-      color: #444;
-      font-size: 0.95rem;
-      padding: 0.4rem 0;
-    }
+          <!-- Evento -->
+          <li class="nav-item mb-2">
+            <a class="nav-link" href="{% url 'list_eventos' %}">
+                <i class="bi bi-calendar-event"></i>
+                <span style="margin-left: 10px;">Eventos</span>
+            </a>
+          </li>
 
-    .sidebar .btn-toggle:hover {
-      color: #ff6f00;
-    }
+          <!-- Caixa -->
+          <li class="nav-item mb-2">
+            <button class="nav-link dropdown" data-bs-toggle="collapse" data-bs-target="#caixa-collapse">
+                <i class="bi bi-wallet2"></i>
+                <span style="margin-left: 10px;">Caixa</span>
+                <i class="bi bi-chevron-down ms-2"></i>
+            </button>
+            <div class="collapse" id="caixa-collapse">
+                <ul class="nav nav-pills flex-column mb-auto">
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-graph-up"></i>
+                            <span style="margin-left: 10px;">Resumo</span>
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-arrow-up-circle"></i>
+                            <span style="margin-left: 10px;">Entrada</span>
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-arrow-down-circle"></i>
+                            <span style="margin-left: 10px;">Saída</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+          </li>
 
-    .sidebar .btn-toggle-nav a {
-      display: block;
-      padding: 0.2rem 0.8rem;
-      margin: 0.1rem 0;
-      color: #444;
-      text-decoration: none;
-      border-radius: 0.25rem;
-      font-size: 0.9rem;
-    }
-
-    .sidebar .btn-toggle-nav a:hover {
-      background-color: rgba(255, 111, 0, 0.1);
-      color: #ff6f00;
-    }
-
-    .content {
-      flex-grow: 1;
-      padding: 1.5rem;
-    }
-
-    h1 {
-      font-weight: bold;
-    }
-</style>
-</head>
-<body>
-
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <h4 class="fw-bold mb-4">Zouk Jampa</h4>
-
-    <ul class="list-unstyled">
-      <!-- Cadastros -->
-      <li>
-        <button class="btn-toggle" data-bs-toggle="collapse" data-bs-target="#cadastros-collapse">
-          Cadastros
-        </button>
-        <div class="collapse" id="cadastros-collapse">
-          <ul class="btn-toggle-nav">
-            <li><a href="{% url 'list_lotes' %}">Lote</a></li>
-            <li><a href="{% url 'list_categorias' %}">Categoria</a></li>
-            <li><a href="{% url 'list_tipo_eventos' %}">Tipo de Evento</a></li>
-            <li><a href="{% url 'list_camisas' %}">Camisas</a></li>
-          </ul>
-        </div>
-      </li>
-
-      <!-- Inscrição -->
-      <li>
-        <button class="btn-toggle" data-bs-toggle="collapse" data-bs-target="#inscricao-collapse">
-          Inscrição
-        </button>
-        <div class="collapse" id="inscricao-collapse">
-          <ul class="btn-toggle-nav">
-            <li><a href="{% url 'list_artistas' %}">Artistas</a></li>
-            <li><a href="{% url 'list_inscricoes' %}">Inscricoes</a></li>
-          </ul>
-        </div>
-      </li>
-
-      <!-- Planejamentos -->
-      <li>
-        <button class="btn-toggle" data-bs-toggle="collapse" data-bs-target="#planejamentos-collapse">
-          Planejamentos
-        </button>
-        <div class="collapse" id="planejamentos-collapse">
-          <ul class="btn-toggle-nav">
-            <li><a href="{% url 'list_planejamentos' %}">Planejamentos</a></li>
-          </ul>
-        </div>
-      </li>
-
-      <!-- Evento -->
-      <li>
-        <button class="btn-toggle" data-bs-toggle="collapse" data-bs-target="#evento-collapse">
-          Evento
-        </button>
-        <div class="collapse" id="evento-collapse">
-          <ul class="btn-toggle-nav">
-            <li><a href="{% url 'list_eventos' %}">Eventos</a></li>
-          </ul>
-        </div>
-      </li>
-
-      <!-- Caixa -->
-      <li>
-        <button class="btn-toggle" data-bs-toggle="collapse" data-bs-target="#caixa-collapse">
-          Caixa
-        </button>
-        <div class="collapse" id="caixa-collapse">
-          <ul class="btn-toggle-nav">
-            <li><a href="#">Resumo</a></li>
-            <li><a href="#">Entrada</a></li>
-            <li><a href="#">Saída</a></li>
-          </ul>
-        </div>
-      </li>
-
-      <!-- Pagamentos -->
-      <li>
-        <button class="btn-toggle" data-bs-toggle="collapse" data-bs-target="#pagamentos-collapse">
-          Pagamentos
-        </button>
-        <div class="collapse" id="pagamentos-collapse">
-          <ul class="btn-toggle-nav">
-            <li><a href="#">Pagamentos</a></li>
-          </ul>
-        </div>
-      </li>
-    </ul>
+          <!-- Pagamentos -->
+          <li class="nav-item mb-2">
+            <button class="nav-link dropdown" data-bs-toggle="collapse" data-bs-target="#pagamentos-collapse">
+                <i class="bi bi-cash-coin"></i>
+                <span style="margin-left: 10px;">Pagamentos</span>
+                <i class="bi bi-chevron-down ms-2"></i>
+            </button>
+            <div class="collapse" id="pagamentos-collapse">
+                <ul class="nav nav-pills flex-column mb-auto">
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-receipt"></i>
+                            <span style="margin-left: 10px;">Pagamentos</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+          </li>
+      </ul>
   </div>
-
-  
+</div>

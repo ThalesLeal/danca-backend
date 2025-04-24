@@ -89,7 +89,7 @@ label[for][for]:has(+ select[required])::after {
     font-weight: bold;
 }
 
-.alert-error {
+.alert-danger {
     --bs-alert-color: var(--bs-danger-text-emphasis);
     --bs-alert-bg: var(--bs-danger-bg-subtle);
     --bs-alert-border-color: var(--bs-danger-border-subtle);
@@ -128,9 +128,19 @@ label[for][for]:has(+ select[required])::after {
 .sidebar a span {
     margin-left: 10px;
 }
-
+.nav-link {
+    color: white !important;
+    text-decoration: none !important;
+}
 .nav-link:focus, .nav-link:hover {
     color: white !important;
+    text-decoration: none !important;
+    background: #093d70 !important;
+}
+.sidebar .nav-link {
+    padding: 8px 12px;
+    width: 100%;
+    text-align: left;
 }
 .content {
     margin-left: 250px;
@@ -143,6 +153,7 @@ label[for][for]:has(+ select[required])::after {
 .sidebar .dropdown {
     position: relative;
     width: 100%;
+    margin-bottom: 0;
 }
 
 .sidebar .dropdown-menu {
@@ -164,7 +175,7 @@ label[for][for]:has(+ select[required])::after {
 }
 
 .sidebar .dropdown-menu a {
-    color: white;
+    color: white !important;
     padding: 8px 12px;
     display: block;
 }
