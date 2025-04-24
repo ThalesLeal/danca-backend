@@ -47,6 +47,7 @@
         </span>
       </td>
       <td class="col-3 text-center botoes">
+        <a href="{% url 'evento_inscritos' evento.id %}" class="btn btn-primary"><i class="bi bi-people"></i></a>
         <a href="{% url 'detail_evento' evento.id %}" class="btn btn-info"><i class="bi bi-eye-fill"></i></a>
         <a href="{% url 'update_evento' evento.id %}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a>
         <button type="button" class="btn btn-danger btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="{{ evento.id }}">
