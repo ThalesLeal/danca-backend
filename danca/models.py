@@ -104,42 +104,11 @@ class Planejamento(models.Model):
         return self.descricao    
     class Meta:
         ordering = ['-id']
+        verbose_name = "Planejamento"
+        verbose_name_plural = "Planejamentos"
 
 
-class Artista(models.Model):
-    nome = models.CharField(max_length=100)
-    funcao = models.CharField(max_length=100)
-    cache = models.DecimalField(max_digits=10, decimal_places=2)
-    eventos = models.ManyToManyField(Evento, related_name='artistas', blank=True)
 
-    def __str__(self):
-        return self.nome
-
-    class Meta:
-        verbose_name = 'Artista'
-        verbose_name_plural = 'Artistas'
-
-    def save(self, *args, **kwargs):
-        """
-        Sobrescreves o método save para atualizar o contador de inscrições no evento.
-        """
-        for evento in self.eventos.all():
-            if evento.quantidade_pessoas is not None:
-                if evento.quantidade_pessoas <= 0:
-                    raise ValidationError("Não há vagas suficientes para este evento.")
-                evento.quantidade_pessoas -= 1
-                evento.save()
-        super().save(*args, **kwargs)
-
-    def delete(self, *args, **kwargs):
-        """
-        Sobrescreves o método delete para atualizar o contador de inscrições no evento.
-        """
-        for evento in self.eventos.all():
-            if evento.quantidade_pessoas is not None:
-                evento.quantidade_pessoas += 1
-                evento.save()
-        super().delete(*args, **kwargs)
 
 
 class Inscricao(models.Model):
@@ -224,3 +193,42 @@ class InscricaoEvento(models.Model):
         inscricao.valor_total = inscricao.calcular_valor_total()
         inscricao.valor_parcela = inscricao.calcular_valor_parcela()
         inscricao.save(update_fields=['valor_total', 'valor_parcela'])
+
+
+class Profissional(models.Model):
+    nome = models.CharField(max_length=100)
+    cache = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    funcao = models.CharField(max_length=100, null=True, blank=True)
+    local_partida = models.CharField(max_length=100, null=True, blank=True)
+    local_volta = models.CharField(max_length=100, null=True, blank=True)
+    eventos = models.ManyToManyField(Evento, through='ProfissionalEvento', related_name='profissionais_eventos')
+
+    def __str__(self):
+        return f"{self.nome}"
+
+    class Meta:
+        verbose_name = "Profissional"
+        verbose_name_plural = "Profissionais"
+        ordering = ['-id']
+
+
+class ProfissionalEvento(models.Model):
+    profissional = models.ForeignKey(Profissional, on_delete=models.CASCADE, related_name='profissional_evento_set')
+    evento = models.ForeignKey(Evento, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = "Evento do Profissional"
+        verbose_name_plural = "Eventos dos Profissionais"
+        unique_together = [['profissional', 'evento']]
+
+    def __str__(self):
+        return f"{self.profissional.nome} - {self.evento.descricao}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.evento.atualizar_contador_inscricoes()
+
+    def delete(self, *args, **kwargs):
+        evento = self.evento
+        super().delete(*args, **kwargs)
+        evento.atualizar_contador_inscricoes()

@@ -7,11 +7,13 @@ from django.contrib import messages
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.db.models.functions import Lower
-from .models import Lote, Categoria, TipoEvento, Evento, Camisa,Planejamento,Artista, Inscricao, InscricaoEvento
-from .form import LoteForm,CategoriaForm,TipoEventoForm,EventoForm,CamisaForm,PlanejamentoForm,ArtistaForm, InscricaoForm, InscricaoEventoForm
+from .models import Lote, Categoria, TipoEvento, Evento, Camisa,Planejamento,Inscricao, InscricaoEvento, Profissional, ProfissionalEvento
+from .form import LoteForm,CategoriaForm,TipoEventoForm,EventoForm,CamisaForm,PlanejamentoForm,InscricaoForm, InscricaoEventoForm, ProfissionalForm, ProfissionalEventoForm
 from django.shortcuts import redirect
 from django.db.models import Q
 from django.core.exceptions import ValidationError
+
+
 
 
 def index(request):
@@ -426,76 +428,6 @@ class PlanejamentoDeleteView(DeleteView):
         return reverse_lazy('list_planejamentos')
 
 
-@method_decorator(never_cache, name="dispatch")
-class ArtistaListView(ListView):
-    model = Artista
-    template_name = 'artista/list.html'
-    context_object_name = 'artistas'
-
-    def get_queryset(self):
-        return Artista.objects.all().order_by('nome')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['eventos'] = Evento.objects.all()
-        context['create_url'] = reverse('create_artista')
-        return context
-
-
-@method_decorator(never_cache, name="dispatch")
-class ArtistaDetailView(TemplateView):
-    template_name = "artista/artista.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        artista = get_object_or_404(Artista, id=self.kwargs['artista_id'])
-        context['artista'] = artista
-        return context
-
-
-@method_decorator(never_cache, name="dispatch")
-class ArtistaFormView(View):
-    form_class = ArtistaForm
-    template_name = "artista/form.html"
-
-    def get(self, request, artista_id=None):
-        form = self.form_class()
-        if artista_id:
-            artista = get_object_or_404(Artista, id=artista_id)
-            form = self.form_class(instance=artista)
-        return render(request, self.template_name, {"form": form})
-
-    def post(self, request, artista_id=None):
-        form = self.form_class(request.POST)
-        msg = 'Artista cadastrado com sucesso'
-
-        if artista_id:
-            artista = get_object_or_404(Artista, id=artista_id)
-            form = self.form_class(request.POST, instance=artista)
-            msg = 'Artista atualizado com sucesso'
-        
-        if form.is_valid():
-            artista = form.save(commit=False)
-            artista.save()
-            eventos = request.POST.getlist('eventos')
-            if eventos:
-                eventos = Evento.objects.filter(id__in=eventos)
-                artista.eventos.set(eventos)
-            messages.success(request, msg)
-            return redirect('list_artistas')
-        
-        return render(request, self.template_name, {"form": form})
-
-
-@method_decorator(never_cache, name="dispatch")
-class ArtistaDeleteView(DeleteView):
-    model = Artista
-    pk_url_kwarg = "artista_id"
-
-    def get_success_url(self):
-        messages.success(self.request, "Artista removido com sucesso")
-        return reverse_lazy('list_artistas')
-
 
 @method_decorator(never_cache, name="dispatch")
 class InscricaoListView(ListView):
@@ -709,3 +641,140 @@ class EventoInscritosView(DetailView):
         context['total_inscritos'] = len(lista_inscritos)
         return context
 
+
+@method_decorator(never_cache, name="dispatch")
+class ProfissionalListView(ListView):
+    model = Profissional
+    paginate_by = 10
+    template_name = "profissional/list.html"
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query:
+            return Profissional.objects.filter(nome__icontains=query).order_by(Lower('nome'))
+        return Profissional.objects.all().order_by(Lower('nome'))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['q'] = self.request.GET.get('q', '')
+        context['create_url'] = reverse('create_profissional')
+        return context
+
+
+@method_decorator(never_cache, name="dispatch")
+class ProfissionalDetailView(TemplateView):
+    template_name = "profissional/profissional.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        profissional = get_object_or_404(Profissional, id=self.kwargs['profissional_id'])
+        context['profissional'] = profissional
+        return context
+
+
+@method_decorator(never_cache, name="dispatch")
+class ProfissionalFormView(View):
+    form_class = ProfissionalForm
+    template_name = "profissional/form.html"
+
+    def get(self, request, profissional_id=None):
+        form = self.form_class()
+        eventos = Evento.objects.all()
+        profissional = None
+
+        if profissional_id:
+            profissional = get_object_or_404(Profissional, id=profissional_id)
+            form = self.form_class(instance=profissional)
+
+        return render(request, self.template_name, {
+            "form": form,
+            "eventos": eventos,
+            "profissional": profissional,
+        })
+
+    def post(self, request, profissional_id=None):
+        profissional = None
+        if profissional_id:
+            profissional = get_object_or_404(Profissional, id=profissional_id)
+            form = self.form_class(request.POST, instance=profissional)
+        else:
+            form = self.form_class(request.POST)
+
+        if form.is_valid():
+            profissional = form.save(commit=False)
+            profissional.save()
+
+            # Associa os eventos selecionados
+            eventos_ids = request.POST.getlist('eventos')
+            eventos = Evento.objects.filter(id__in=eventos_ids)
+            profissional.eventos.set(eventos)
+
+            messages.success(request, "Profissional salvo com sucesso!")
+            return redirect('list_profissionais')
+
+        return render(request, self.template_name, {
+            "form": form,
+            "eventos": Evento.objects.all(),
+            "profissional": profissional,
+        })
+
+
+@method_decorator(never_cache, name="dispatch")
+class ProfissionalDeleteView(DeleteView):
+    model = Profissional
+    pk_url_kwarg = "profissional_id"
+
+    def get_success_url(self):
+        messages.success(self.request, "Profissional removido com sucesso")
+        return reverse_lazy('list_profissionais')
+
+
+@method_decorator(never_cache, name="dispatch")
+class ProfissionalEventoFormView(View):
+    form_class = ProfissionalEventoForm
+    template_name = "profissional/form_evento.html"
+
+    def get(self, request, profissional_id):
+        form = self.form_class()
+        eventos = Evento.objects.all()
+        profissional = get_object_or_404(Profissional, id=profissional_id)
+        eventos = profissional.eventos.all()
+        
+        return render(request, self.template_name, {
+            "form": form,
+            "profissional": profissional,
+            'eventos': eventos,
+        })
+
+    def post(self, request, profissional_id):
+        form = self.form_class(request.POST)
+        profissional = get_object_or_404(Profissional, id=profissional_id)
+        msg = 'Evento adicionado ao profissional com sucesso'
+
+        if form.is_valid():
+            profissional_evento = form.save(commit=False)
+            profissional_evento.profissional = profissional
+            profissional_evento.save()
+
+            # Atualiza o contador de inscrições para o evento
+            profissional_evento.evento.atualizar_contador_inscricoes()
+
+            messages.success(request, msg)
+            return redirect('list_profissionais')
+
+
+@method_decorator(never_cache, name="dispatch")
+class ProfissionalEventoDeleteView(DeleteView):
+    model = ProfissionalEvento
+    pk_url_kwarg = "profissional_evento_id"
+
+    def get_success_url(self):
+        profissional_id = self.kwargs['profissional_id']
+        profissional = get_object_or_404(Profissional, id=profissional_id)
+        
+        # Atualiza o contador de inscrições para o evento associado
+        profissional_evento = self.object
+        profissional_evento.evento.atualizar_contador_inscricoes()
+        
+        messages.success(self.request, "Evento removido do profissional com sucesso")
+        return reverse('detail_profissional', kwargs={'profissional_id': profissional_id})

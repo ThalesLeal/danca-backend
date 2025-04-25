@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Lote,Categoria,TipoEvento,Evento,Camisa,Planejamento,Artista, Inscricao, InscricaoEvento
+from .models import Lote,Categoria,TipoEvento,Evento,Camisa,Planejamento,Inscricao, InscricaoEvento,Profissional, ProfissionalEvento
 
 class LoteForm(forms.ModelForm):
     class Meta:
@@ -150,50 +150,6 @@ class PlanejamentoForm(forms.ModelForm):
         return valor_planejado
 
 
-class ArtistaForm(forms.ModelForm):
-    eventos = forms.ModelMultipleChoiceField(
-        queryset=Evento.objects.all(),
-        widget=forms.HiddenInput(),
-        required=False,
-        label='Eventos'
-    )
-
-    class Meta:
-        model = Artista
-        fields = ['nome', 'funcao', 'cache']
-        widgets = {
-            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do Artista'}),
-            'funcao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Função'}),
-            'cache': forms.TextInput(attrs={'class': 'form-control mask-valor', 'placeholder': 'R$ 0,00'}),
-        }
-        labels = {
-            'nome': 'Nome do Artista',
-            'funcao': 'Função',
-            'cache': 'Cache',
-        }
-
-    def clean_eventos(self):
-        eventos = self.cleaned_data.get('eventos')
-        if eventos:
-            for evento in eventos:
-                if evento.quantidade_pessoas is not None and evento.quantidade_pessoas <= 0:
-                    raise ValidationError(f"O evento '{evento.descricao}' não tem vagas disponíveis.")
-        return eventos
-
-    def clean_cache(self):
-        cache = self.cleaned_data.get('cache')
-        if cache is not None and cache < 0:
-            raise ValidationError("O cache não pode ser negativo.")
-        return cache
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['eventos'] = forms.ModelMultipleChoiceField(
-            queryset=Evento.objects.all(),
-            widget=forms.HiddenInput(),
-            required=False,
-            label='Eventos'
-        )
 
 
 class InscricaoForm(forms.ModelForm):
@@ -269,6 +225,59 @@ class InscricaoForm(forms.ModelForm):
 class InscricaoEventoForm(forms.ModelForm):
     class Meta:
         model = InscricaoEvento
+        fields = ['evento']
+        widgets = {
+            'evento': forms.Select(attrs={'class': 'form-select'}),
+        }
+        labels = {
+            'evento': 'Evento',
+        }
+
+
+class ProfissionalForm(forms.ModelForm):
+    eventos = forms.ModelMultipleChoiceField(
+        queryset=Evento.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=True,
+        label="Eventos"
+    )
+
+    class Meta:
+        model = Profissional
+        fields = ['nome', 'cache', 'funcao', 'local_partida', 'local_volta', 'eventos']
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'required': True}),
+            'cache': forms.TextInput(attrs={'class': 'form-control mask-valor', 'placeholder': 'R$ 0,00'}),
+            'funcao': forms.TextInput(attrs={'class': 'form-control'}),
+            'local_partida': forms.TextInput(attrs={'class': 'form-control'}),
+            'local_volta': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'nome': 'Nome completo',
+            'cache': 'Valor do Cachê',
+            'funcao': 'Função',
+            'local_partida': 'Local de Partida',
+            'local_volta': 'Local de Volta',
+        }
+
+    def clean_cache(self):
+        cache = self.cleaned_data.get('cache')
+        if cache is not None and cache < 0:
+            raise ValidationError("O valor do cachê não pode ser negativo")
+        return cache
+
+    def clean(self):
+        cleaned_data = super().clean()
+        # Verifica apenas se o nome está preenchido
+        nome = cleaned_data.get('nome')
+        if not nome:
+            self.add_error('nome', 'Este campo é obrigatório.')
+        return cleaned_data
+
+
+class ProfissionalEventoForm(forms.ModelForm):
+    class Meta:
+        model = ProfissionalEvento
         fields = ['evento']
         widgets = {
             'evento': forms.Select(attrs={'class': 'form-select'}),

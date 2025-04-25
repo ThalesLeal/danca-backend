@@ -45,14 +45,7 @@ urlpatterns = [
     path('planejamentos/create/', PlanejamentoFormView.as_view(), name='create_planejamento'),
     path('planejamentos/<int:planejamento_id>/update/', PlanejamentoFormView.as_view(), name='update_planejamento'),
     path('planejamentos/<int:planejamento_id>/delete/', PlanejamentoDeleteView.as_view(), name='delete_planejamento'),
-
-    # Artista
-    path('artistas/', ArtistaListView.as_view(), name='list_artistas'),
-    path('artistas/<int:artista_id>/', ArtistaDetailView.as_view(), name='detail_artista'),
-    path('artistas/create/', ArtistaFormView.as_view(), name='create_artista'),
-    path('artistas/<int:artista_id>/update/', ArtistaFormView.as_view(), name='update_artista'),
-    path('artistas/<int:artista_id>/delete/', ArtistaDeleteView.as_view(), name='delete_artista'),
-
+    
     # Inscricao
     path('inscricoes/', InscricaoListView.as_view(), name='list_inscricoes'),
     path('inscricoes/<int:inscricao_id>/', InscricaoDetailView.as_view(), name='detail_inscricao'),
@@ -61,4 +54,15 @@ urlpatterns = [
     path('inscricoes/<int:inscricao_id>/delete/', InscricaoDeleteView.as_view(), name='delete_inscricao'),
     path('inscricoes/<int:inscricao_id>/eventos/create/', InscricaoEventoFormView.as_view(), name='create_inscricao_evento'),
     path('inscricoes/<int:inscricao_id>/eventos/<int:inscricao_evento_id>/delete/', InscricaoEventoDeleteView.as_view(), name='delete_inscricao_evento'),
-]
+
+    # Profissional
+    path('profissionais/', ProfissionalListView.as_view(), name='list_profissionais'),
+    path('profissionais/<int:profissional_id>/', ProfissionalDetailView.as_view(), name='detail_profissional'),
+    path('profissionais/create/', ProfissionalFormView.as_view(), name='create_profissional'),
+    path('profissionais/<int:profissional_id>/update/', ProfissionalFormView.as_view(), name='update_profissional'),
+    path('profissionais/<int:profissional_id>/delete/', ProfissionalDeleteView.as_view(), name='delete_profissional'),
+    path('profissionais/<int:profissional_id>/eventos/create/', ProfissionalEventoFormView.as_view(), name='create_profissional_evento'),
+    path('profissionais/<int:profissional_id>/eventos/<int:profissional_evento_id>/delete/', ProfissionalEventoDeleteView.as_view(), name='delete_profissional_evento'),
+
+
+] 
