@@ -197,6 +197,7 @@ class InscricaoEvento(models.Model):
 
 class Profissional(models.Model):
     nome = models.CharField(max_length=100)
+    cpf = models.CharField(max_length=14, null=True, blank=True)
     cache = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     funcao = models.CharField(max_length=100, null=True, blank=True)
     local_partida = models.CharField(max_length=100, null=True, blank=True)

@@ -632,13 +632,24 @@ class EventoInscritosView(DetailView):
             lista_inscritos.append({
                 'nome': inscricao.nome,
                 'cpf': inscricao.cpf,
-                'categoria': inscricao.categoria.descricao,
-                'valor_total': inscricao.valor_total,
-                'numero_parcelas': inscricao.numero_parcelas
+            })
+
+        # Obtém todos os profissionais associados a este evento
+        profissionais = ProfissionalEvento.objects.filter(evento=self.object).select_related('profissional')
+        
+        # Cria uma lista de profissionais com informações relevantes
+        lista_profissionais = []
+        for profissional_evento in profissionais:
+            profissional = profissional_evento.profissional
+            lista_profissionais.append({
+                'nome': profissional.nome,
+                'cpf': profissional.cpf,  # <- Adiciona o CPF aqui
             })
         
         context['inscritos'] = lista_inscritos
+        context['profissionais'] = lista_profissionais
         context['total_inscritos'] = len(lista_inscritos)
+        context['total_profissionais'] = len(lista_profissionais)
         return context
 
 
@@ -679,16 +690,12 @@ class ProfissionalFormView(View):
 
     def get(self, request, profissional_id=None):
         form = self.form_class()
-        eventos = Evento.objects.all()
         profissional = None
-
         if profissional_id:
             profissional = get_object_or_404(Profissional, id=profissional_id)
             form = self.form_class(instance=profissional)
-
         return render(request, self.template_name, {
             "form": form,
-            "eventos": eventos,
             "profissional": profissional,
         })
 
@@ -706,15 +713,13 @@ class ProfissionalFormView(View):
 
             # Associa os eventos selecionados
             eventos_ids = request.POST.getlist('eventos')
-            eventos = Evento.objects.filter(id__in=eventos_ids)
-            profissional.eventos.set(eventos)
+            profissional.eventos.set(eventos_ids)
 
             messages.success(request, "Profissional salvo com sucesso!")
             return redirect('list_profissionais')
 
         return render(request, self.template_name, {
             "form": form,
-            "eventos": Evento.objects.all(),
             "profissional": profissional,
         })
 
