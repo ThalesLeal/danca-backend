@@ -694,9 +694,12 @@ class ProfissionalFormView(View):
         if profissional_id:
             profissional = get_object_or_404(Profissional, id=profissional_id)
             form = self.form_class(instance=profissional)
+        eventos = Evento.objects.all()
         return render(request, self.template_name, {
             "form": form,
             "profissional": profissional,
+            "eventos": eventos,
+            "titulo": "Editar Profissional" if profissional else "Novo Profissional"
         })
 
     def post(self, request, profissional_id=None):
@@ -721,6 +724,8 @@ class ProfissionalFormView(View):
         return render(request, self.template_name, {
             "form": form,
             "profissional": profissional,
+            "eventos": Evento.objects.all(),
+            "titulo": "Editar Profissional" if profissional else "Novo Profissional"
         })
 
 
