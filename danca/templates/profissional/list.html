@@ -40,8 +40,8 @@
       {% for profissional in page_obj %}
       <tr>
         <td class="align-middle">{{ profissional.nome }}</td>
-        <td class="align-middle">{{ profissional.função }}</td>
-        <td class="align-middle">R$ {{ profissional.cachê|floatformat:2|intcomma }}</td>
+        <td class="align-middle">{{ profissional.funcao }}</td>
+        <td class="align-middle">R$ {{ profissional.calcular_cache|floatformat:2|intcomma }}</td>
         <td class="align-middle">{{ profissional.local_partida }}</td>
         <td class="align-middle">{{ profissional.local_volta }}</td>
         <td class="align-middle">

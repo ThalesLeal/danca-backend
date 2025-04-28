@@ -43,10 +43,21 @@
           {% endif %}
         </div>
         <div class="col-md-6 mb-3">
-          <label class="me-3" for="{{ form.cache.id_for_label }}">{{ form.cache.label }}</label>
-          {{ form.cache }}
-          {% if form.cache.errors %}
-            {% for error in form.cache.errors %}
+          <label class="me-3" for="{{ form.valor_hora_aula.id_for_label }}">{{ form.valor_hora_aula.label }}</label>
+          {{ form.valor_hora_aula }}
+          {% if form.valor_hora_aula.errors %}
+            {% for error in form.valor_hora_aula.errors %}
+            <div class="text-danger small mt-1">
+              {{ error }}
+            </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="me-3" for="{{ form.qt_aulas.id_for_label }}">{{ form.qt_aulas.label }}</label>
+          {{ form.qt_aulas }}
+          {% if form.qt_aulas.errors %}
+            {% for error in form.qt_aulas.errors %}
             <div class="text-danger small mt-1">
               {{ error }}
             </div>
@@ -149,8 +160,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const form = document.querySelector("#profissionalForm");
     if (form) {
         form.addEventListener("submit", function (e) {
-            const cache = document.getElementById("{{ form.cache.id_for_label }}").value;
-            if (cache && parseFloat(cache) < 0) {
+            const valorHoraAula = document.getElementById("{{ form.valor_hora_aula.id_for_label }}").value;
+            const qtAulas = document.getElementById("{{ form.qt_aulas.id_for_label }}").value;
+            const cache = valorHoraAula * qtAulas;
+            if (cache < 0) {
                 e.preventDefault();
                 alert("O valor do cachê não pode ser negativo");
                 return false;

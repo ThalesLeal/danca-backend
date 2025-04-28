@@ -198,11 +198,17 @@ class InscricaoEvento(models.Model):
 class Profissional(models.Model):
     nome = models.CharField(max_length=100)
     cpf = models.CharField(max_length=14, null=True, blank=True)
-    cache = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    valor_hora_aula = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    qt_aulas = models.IntegerField(null=True, blank=True)
     funcao = models.CharField(max_length=100, null=True, blank=True)
     local_partida = models.CharField(max_length=100, null=True, blank=True)
     local_volta = models.CharField(max_length=100, null=True, blank=True)
     eventos = models.ManyToManyField(Evento, through='ProfissionalEvento', related_name='profissionais_eventos')
+
+    def calcular_cache(self):
+        if self.valor_hora_aula is not None and self.qt_aulas is not None:
+            return self.valor_hora_aula * self.qt_aulas
+        return None
 
     def __str__(self):
         return f"{self.nome}"

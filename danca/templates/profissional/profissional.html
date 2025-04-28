@@ -21,8 +21,16 @@
                                 <p>{{ profissional.funcao_profissional }}</p>
                             </div>
                             <div class="mb-3">
-                                <label class="text-muted">Cachê:</label>
-                                <p>R$ {{ profissional.cache_profissional|floatformat:2|intcomma }}</p>
+                                <label class="text-muted">Valor da Hora Aula:</label>
+                                <p>R$ {{ profissional.valor_hora_aula|floatformat:2|intcomma }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="text-muted">Quantidade de Aulas:</label>
+                                <p>{{ profissional.qt_aulas }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="text-muted">Valor Total do Cachê:</label>
+                                <p>R$ {{ profissional.calcular_cache|floatformat:2|intcomma }}</p>
                             </div>
                         </div>
                         <div class="col-md-6">

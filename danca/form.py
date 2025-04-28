@@ -244,27 +244,35 @@ class ProfissionalForm(forms.ModelForm):
 
     class Meta:
         model = Profissional
-        fields = ['nome', 'cache', 'funcao', 'local_partida', 'local_volta', 'eventos']
+        fields = ['nome', 'valor_hora_aula', 'qt_aulas', 'funcao', 'local_partida', 'local_volta', 'eventos']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control', 'required': True}),
-            'cache': forms.TextInput(attrs={'class': 'form-control mask-valor', 'placeholder': 'R$ 0,00'}),
+            'valor_hora_aula': forms.TextInput(attrs={'class': 'form-control mask-valor', 'placeholder': 'R$ 0,00'}),
+            'qt_aulas': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'placeholder': 'Quantidade de aulas'}),
             'funcao': forms.TextInput(attrs={'class': 'form-control'}),
             'local_partida': forms.TextInput(attrs={'class': 'form-control'}),
             'local_volta': forms.TextInput(attrs={'class': 'form-control'}),
         }
         labels = {
             'nome': 'Nome completo',
-            'cache': 'Valor do Cachê',
+            'valor_hora_aula': 'Valor da Hora Aula',
+            'qt_aulas': 'Quantidade de Aulas',
             'funcao': 'Função',
             'local_partida': 'Local de Partida',
             'local_volta': 'Local de Volta',
         }
 
-    def clean_cache(self):
-        cache = self.cleaned_data.get('cache')
-        if cache is not None and cache < 0:
-            raise ValidationError("O valor do cachê não pode ser negativo")
-        return cache
+    def clean_valor_hora_aula(self):
+        valor_hora_aula = self.cleaned_data.get('valor_hora_aula')
+        if valor_hora_aula is not None and valor_hora_aula < 0:
+            raise ValidationError("O valor da hora aula não pode ser negativo")
+        return valor_hora_aula
+
+    def clean_qt_aulas(self):
+        qt_aulas = self.cleaned_data.get('qt_aulas')
+        if qt_aulas is not None and qt_aulas < 0:
+            raise ValidationError("A quantidade de aulas não pode ser negativa")
+        return qt_aulas
 
     def clean(self):
         cleaned_data = super().clean()
