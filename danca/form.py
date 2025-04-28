@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Lote,Categoria,TipoEvento,Evento,Camisa,Planejamento,Inscricao, InscricaoEvento,Profissional, ProfissionalEvento
+from .models import Lote,Categoria,TipoEvento,Evento,Camisa,Planejamento,Inscricao, InscricaoEvento,Profissional, ProfissionalEvento, Entrada, Saida
 
 class LoteForm(forms.ModelForm):
     class Meta:
@@ -293,3 +293,45 @@ class ProfissionalEventoForm(forms.ModelForm):
         labels = {
             'evento': 'Evento',
         }
+
+class EntradaForm(forms.ModelForm):
+    class Meta:
+        model = Entrada
+        fields = ['descricao', 'valor', 'data']
+        widgets = {
+            'descricao': forms.TextInput(attrs={'class': 'form-control', 'required': True}),
+            'valor': forms.NumberInput(attrs={'class': 'form-control', 'required': True, 'step': '0.01', 'min': '0.01'}),
+            'data': forms.DateInput(attrs={'class': 'form-control', 'type': 'date', 'required': True}),
+        }
+        labels = {
+            'descricao': 'Descrição',
+            'valor': 'Valor (R$)',
+            'data': 'Data',
+        }
+
+    def clean_valor(self):
+        valor = self.cleaned_data.get('valor')
+        if valor is not None and valor <= 0:
+            raise ValidationError("O valor deve ser maior que zero")
+        return valor
+
+class SaidaForm(forms.ModelForm):
+    class Meta:
+        model = Saida
+        fields = ['descricao', 'valor', 'data']
+        widgets = {
+            'descricao': forms.TextInput(attrs={'class': 'form-control', 'required': True}),
+            'valor': forms.NumberInput(attrs={'class': 'form-control', 'required': True, 'step': '0.01', 'min': '0.01'}),
+            'data': forms.DateInput(attrs={'class': 'form-control', 'type': 'date', 'required': True}),
+        }
+        labels = {
+            'descricao': 'Descrição',
+            'valor': 'Valor (R$)',
+            'data': 'Data',
+        }
+
+    def clean_valor(self):
+        valor = self.cleaned_data.get('valor')
+        if valor is not None and valor <= 0:
+            raise ValidationError("O valor deve ser maior que zero")
+        return valor

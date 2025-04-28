@@ -64,5 +64,17 @@ urlpatterns = [
     path('profissionais/<int:profissional_id>/eventos/create/', ProfissionalEventoFormView.as_view(), name='create_profissional_evento'),
     path('profissionais/<int:profissional_id>/eventos/<int:profissional_evento_id>/delete/', ProfissionalEventoDeleteView.as_view(), name='delete_profissional_evento'),
 
-
+    # Entrada
+    path('entrada/', EntradaListView.as_view(), name='list_entradas'),
+    path('entrada/<int:entrada_id>/', EntradaDetailView.as_view(), name='detail_entrada'),
+    path('entrada/create/', EntradaFormView.as_view(), name='create_entrada'),
+    path('entrada/<int:entrada_id>/update/', EntradaFormView.as_view(), name='update_entrada'),
+    path('entrada/<int:entrada_id>/delete/', EntradaDeleteView.as_view(), name='delete_entrada'),
+    
+    # Saida
+    path('saida/', SaidaListView.as_view(), name='list_saidas'),
+    path('saida/<int:saida_id>/', SaidaDetailView.as_view(), name='detail_saida'),
+    path('saida/create/', SaidaFormView.as_view(), name='create_saida'),
+    path('saida/<int:saida_id>/update/', SaidaFormView.as_view(), name='update_saida'),
+    path('saida/<int:saida_id>/delete/', SaidaDeleteView.as_view(), name='delete_saida'),
 ] 

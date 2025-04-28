@@ -7,11 +7,12 @@ from django.contrib import messages
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.db.models.functions import Lower
-from .models import Lote, Categoria, TipoEvento, Evento, Camisa,Planejamento,Inscricao, InscricaoEvento, Profissional, ProfissionalEvento
-from .form import LoteForm,CategoriaForm,TipoEventoForm,EventoForm,CamisaForm,PlanejamentoForm,InscricaoForm, InscricaoEventoForm, ProfissionalForm, ProfissionalEventoForm
+from .models import Lote, Categoria, TipoEvento, Evento, Camisa,Planejamento,Inscricao, InscricaoEvento, Profissional, ProfissionalEvento, Entrada, Saida
+from .form import LoteForm,CategoriaForm,TipoEventoForm,EventoForm,CamisaForm,PlanejamentoForm,InscricaoForm, InscricaoEventoForm, ProfissionalForm, ProfissionalEventoForm, EntradaForm, SaidaForm
 from django.shortcuts import redirect
 from django.db.models import Q
 from django.core.exceptions import ValidationError
+from django.db import models
 
 
 
@@ -788,3 +789,129 @@ class ProfissionalEventoDeleteView(DeleteView):
         
         messages.success(self.request, "Evento removido do profissional com sucesso")
         return reverse('detail_profissional', kwargs={'profissional_id': profissional_id})
+
+@method_decorator(never_cache, name="dispatch")
+class EntradaListView(ListView):
+    model = Entrada
+    paginate_by = 10
+    template_name = "entrada/list.html"
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query:
+            return Entrada.objects.filter(descricao__icontains=query).order_by('-data')
+        return Entrada.objects.all().order_by('-data')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['q'] = self.request.GET.get('q', '')
+        context['total_entradas'] = sum(entrada.valor for entrada in context['object_list'])
+        return context
+
+@method_decorator(never_cache, name="dispatch")
+class EntradaDetailView(TemplateView):
+    template_name = "entrada/entrada.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        entrada = get_object_or_404(Entrada, id=self.kwargs['entrada_id'])
+        context['entrada'] = entrada
+        return context
+
+@method_decorator(never_cache, name="dispatch")
+class EntradaFormView(View):
+    form_class = EntradaForm
+    template_name = "entrada/form.html"
+
+    def get(self, request, entrada_id=None):
+        form = self.form_class()
+        if entrada_id:
+            entrada = get_object_or_404(Entrada, id=entrada_id)
+            form = self.form_class(instance=entrada)
+        return render(request, self.template_name, {"form": form})
+
+    def post(self, request, entrada_id=None):
+        form = self.form_class(request.POST)
+        msg = 'Entrada criada com sucesso'
+
+        if entrada_id:
+            entrada = get_object_or_404(Entrada, id=entrada_id)
+            form = self.form_class(request.POST, instance=entrada)
+            msg = 'Entrada modificada com sucesso'
+    
+        if form.is_valid():
+            form.save()
+            messages.success(request, msg)
+            return redirect('list_entradas')
+
+@method_decorator(never_cache, name="dispatch")
+class EntradaDeleteView(DeleteView):  
+    model = Entrada
+    pk_url_kwarg = "entrada_id"    
+
+    def get_success_url(self):
+        messages.success(self.request, "Entrada removida com sucesso")
+        return reverse_lazy('list_entradas')
+
+@method_decorator(never_cache, name="dispatch")
+class SaidaListView(ListView):
+    model = Saida
+    paginate_by = 10
+    template_name = "saida/list.html"
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query:
+            return Saida.objects.filter(descricao__icontains=query).order_by('-data')
+        return Saida.objects.all().order_by('-data')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['q'] = self.request.GET.get('q', '')
+        context['total_saidas'] = sum(saida.valor for saida in context['object_list'])
+        return context
+
+@method_decorator(never_cache, name="dispatch")
+class SaidaDetailView(TemplateView):
+    template_name = "saida/saida.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        saida = get_object_or_404(Saida, id=self.kwargs['saida_id'])
+        context['saida'] = saida
+        return context
+
+@method_decorator(never_cache, name="dispatch")
+class SaidaFormView(View):
+    form_class = SaidaForm
+    template_name = "saida/form.html"
+
+    def get(self, request, saida_id=None):
+        form = self.form_class()
+        if saida_id:
+            saida = get_object_or_404(Saida, id=saida_id)
+            form = self.form_class(instance=saida)
+        return render(request, self.template_name, {"form": form})
+
+    def post(self, request, saida_id=None):
+        form = self.form_class(request.POST)
+        msg = 'Saída criada com sucesso'
+
+        if saida_id:
+            saida = get_object_or_404(Saida, id=saida_id)
+            form = self.form_class(request.POST, instance=saida)
+            msg = 'Saída modificada com sucesso'
+    
+        if form.is_valid():
+            form.save()
+            messages.success(request, msg)
+            return redirect('list_saidas')
+
+@method_decorator(never_cache, name="dispatch")
+class SaidaDeleteView(DeleteView):  
+    model = Saida
+    pk_url_kwarg = "saida_id"    
+
+    def get_success_url(self):
+        messages.success(self.request, "Saída removida com sucesso")
+        return reverse_lazy('list_saidas')
