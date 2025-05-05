@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load custom_filters %}
 
 {% block content %}
 <h2 class="pb-2">Planejamentos</h2>
@@ -19,6 +20,12 @@
 {% endif %}
 
 {% include "partials/_filters.html" with search_url=request.path create_url=create_url %}
+
+<div class="d-flex justify-content-end mb-3">
+  <small class="text-danger">
+    Total Planejado: R$ {{ page_obj|sum_attribute:"valor_planejado"|default:0|floatformat:2 }}
+  </small>
+</div>
 
 <table class="table table-striped table-hover">
   <thead>
