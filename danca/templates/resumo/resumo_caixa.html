@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="pb-2">Resumo de Caixa</h2>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-header bg-success text-white">
+        <h5 class="mb-0">Entradas</h5>
+      </div>
+      <div class="card-body">
+        <p class="fs-4">R$ {{ total_entradas|floatformat:2 }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-header bg-danger text-white">
+        <h5 class="mb-0">Saídas</h5>
+      </div>
+      <div class="card-body">
+        <p class="fs-4">R$ {{ total_saidas|floatformat:2 }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Inscrições</h5>
+      </div>
+      <div class="card-body">
+        <p class="fs-4">R$ {{ total_inscricoes|floatformat:2 }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0">Planejamentos</h5>
+      </div>
+      <div class="card-body">
+        <p class="fs-4">R$ {{ total_planejamentos|floatformat:2 }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-header bg-info text-white">
+        <h5 class="mb-0">Camisas</h5>
+      </div>
+      <div class="card-body">
+        <p class="fs-4">R$ {{ total_camisas|floatformat:2 }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

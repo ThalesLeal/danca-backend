@@ -77,4 +77,7 @@ urlpatterns = [
     path('saida/create/', SaidaFormView.as_view(), name='create_saida'),
     path('saida/<int:saida_id>/update/', SaidaFormView.as_view(), name='update_saida'),
     path('saida/<int:saida_id>/delete/', SaidaDeleteView.as_view(), name='delete_saida'),
-] 
+
+    # Resumo Caixa
+    path('resumo/', resumo_caixa, name='resumo_caixa'),
+]

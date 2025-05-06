@@ -13,8 +13,7 @@ from django.shortcuts import redirect
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.db import models
-
-
+from django.db.models import Sum
 
 
 def index(request):
@@ -59,10 +58,14 @@ class LoteFormView(View):
 
     def get(self, request, lote_id=None):
         form = self.form_class()
+        titulo = "Novo Lote" if not lote_id else "Editar Lote"
         if lote_id:
             lote = get_object_or_404(Lote, id=lote_id)
             form = self.form_class(instance=lote)
-        return render(request, self.template_name, {"form": form})
+        return render(request, self.template_name, {
+            "form": form,
+            "titulo": titulo,
+        })
 
     def post(self, request, lote_id=None):
         form = self.form_class(request.POST)
@@ -126,10 +129,14 @@ class CategoriaFormView(View):
 
     def get(self, request, categoria_id=None):
         form = self.form_class()
+        titulo = "Nova Categoria" if not categoria_id else "Editar Categoria"        
         if categoria_id:
             categoria = get_object_or_404(Categoria, id=categoria_id)
             form = self.form_class(instance=categoria)
-        return render(request, self.template_name, {"form": form})
+        return render(request, self.template_name, {
+            "form": form,
+            "titulo": titulo,           
+        })
 
     def post(self, request, categoria_id=None):
         form = self.form_class(request.POST)
@@ -262,10 +269,14 @@ class EventoFormView(View):
 
     def get(self, request, evento_id=None):
         form = self.form_class()
+        titulo = "Novo Evento" if not evento_id else "Editar Evento"
         if evento_id:
             evento = get_object_or_404(Evento, id=evento_id)
             form = self.form_class(instance=evento)
-        return render(request, self.template_name, {"form": form})
+        return render(request, self.template_name, {
+            "form": form,
+            "titulo": titulo,
+        })
 
     def post(self, request, evento_id=None):
         form = self.form_class(request.POST)
@@ -399,10 +410,14 @@ class PlanejamentoFormView(View):
 
     def get(self, request, planejamento_id=None):
         form = self.form_class()
+        titulo = "Novo Planejamento" if not planejamento_id else "Editar Planejamento"
         if planejamento_id:
             planejamento = get_object_or_404(Planejamento, id=planejamento_id)
             form = self.form_class(instance=planejamento)
-        return render(request, self.template_name, {"form": form})
+        return render(request, self.template_name, {
+            "form": form,
+            "titulo": titulo,
+        })
 
     def post(self, request, planejamento_id=None):
         form = self.form_class(request.POST)
@@ -825,10 +840,11 @@ class EntradaFormView(View):
 
     def get(self, request, entrada_id=None):
         form = self.form_class()
+        titulo = "Nova Entrada" if not entrada_id else "Editar Entrada"
         if entrada_id:
             entrada = get_object_or_404(Entrada, id=entrada_id)
             form = self.form_class(instance=entrada)
-        return render(request, self.template_name, {"form": form})
+        return render(request, self.template_name, {"form": form,"titulo": titulo,})
 
     def post(self, request, entrada_id=None):
         form = self.form_class(request.POST)
@@ -888,10 +904,11 @@ class SaidaFormView(View):
 
     def get(self, request, saida_id=None):
         form = self.form_class()
+        titulo = "Nova Saída" if not saida_id else "Editar Saída"
         if saida_id:
             saida = get_object_or_404(Saida, id=saida_id)
             form = self.form_class(instance=saida)
-        return render(request, self.template_name, {"form": form})
+        return render(request, self.template_name, {"form": form,"titulo": titulo,})
 
     def post(self, request, saida_id=None):
         form = self.form_class(request.POST)
@@ -915,3 +932,22 @@ class SaidaDeleteView(DeleteView):
     def get_success_url(self):
         messages.success(self.request, "Saída removida com sucesso")
         return reverse_lazy('list_saidas')
+
+def resumo_caixa(request):
+    # Calcula os totais
+    total_entradas = Entrada.objects.aggregate(total=Sum('valor'))['total'] or 0
+    total_saidas = Saida.objects.aggregate(total=Sum('valor'))['total'] or 0
+    total_inscricoes = Inscricao.objects.aggregate(total=Sum('valor_total'))['total'] or 0
+    total_planejamentos = Planejamento.objects.aggregate(total=Sum('valor_planejado'))['total'] or 0
+    total_camisas = Camisa.objects.aggregate(total=Sum('valor'))['total'] or 0
+
+    # Contexto para o template
+    context = {
+        'total_entradas': total_entradas,
+        'total_saidas': total_saidas,
+        'total_inscricoes': total_inscricoes,
+        'total_planejamentos': total_planejamentos,
+        'total_camisas': total_camisas,
+    }
+
+    return render(request, 'resumo/resumo_caixa.html', context)
