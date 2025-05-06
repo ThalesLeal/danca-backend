@@ -4,59 +4,95 @@
 <h2 class="pb-2">Resumo de Caixa</h2>
 
 <div class="row">
-  <div class="col-md-6">
-    <div class="card mb-3">
-      <div class="card-header bg-success text-white">
-        <h5 class="mb-0">Entradas</h5>
+  <!-- Fieldset: Planejamentos, Pagamentos e Saídas -->
+  <fieldset class="border p-2 mb-3" style="max-width: 800px;">
+    <legend class="w-auto px-2 fs-6">Planejamentos, Pagamentos e Saídas</legend>
+    <div class="row">
+      <div class="col-md-4">
+        <div class="card border-warning mb-2">
+          <div class="card-header bg-warning text-dark py-2">
+            <h6 class="mb-0">Planejamentos</h6>
+          </div>
+          <div class="card-body py-2">
+            <p class="fs-6 mb-0">R$ {{ total_planejamentos|floatformat:2 }}</p>
+          </div>
+        </div>
       </div>
-      <div class="card-body">
-        <p class="fs-4">R$ {{ total_entradas|floatformat:2 }}</p>
-      </div>
-    </div>
-  </div>
 
-  <div class="col-md-6">
-    <div class="card mb-3">
-      <div class="card-header bg-danger text-white">
-        <h5 class="mb-0">Saídas</h5>
+      <div class="col-md-4">
+        <div class="card border-secondary mb-2">
+          <div class="card-header bg-secondary text-white py-2">
+            <h6 class="mb-0">Pagamentos</h6>
+          </div>
+          <div class="card-body py-2">
+            <p class="fs-6 mb-0">R$ {{ total_pagamentos|default:0|floatformat:2 }}</p>
+          </div>
+        </div>
       </div>
-      <div class="card-body">
-        <p class="fs-4">R$ {{ total_saidas|floatformat:2 }}</p>
-      </div>
-    </div>
-  </div>
 
-  <div class="col-md-6">
-    <div class="card mb-3">
-      <div class="card-header bg-primary text-white">
-        <h5 class="mb-0">Inscrições</h5>
-      </div>
-      <div class="card-body">
-        <p class="fs-4">R$ {{ total_inscricoes|floatformat:2 }}</p>
+      <div class="col-md-4">
+        <div class="card border-danger mb-2">
+          <div class="card-header bg-danger text-white py-2">
+            <h6 class="mb-0">Saídas</h6>
+          </div>
+          <div class="card-body py-2">
+            <p class="fs-6 mb-0">R$ {{ total_saidas|floatformat:2 }}</p>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
+  </fieldset>
 
-  <div class="col-md-6">
-    <div class="card mb-3">
-      <div class="card-header bg-warning text-dark">
-        <h5 class="mb-0">Planejamentos</h5>
+  <!-- Fieldset: Entradas, Camisas e Inscrições -->
+  <fieldset class="border p-2 mb-3" style="max-width: 800px;">
+    <legend class="w-auto px-2 fs-6">Entradas, Camisas e Inscrições</legend>
+    <div class="row">
+      <div class="col-md-4">
+        <div class="card border-success mb-2">
+          <div class="card-header bg-success text-white py-2">
+            <h6 class="mb-0">Entradas</h6>
+          </div>
+          <div class="card-body py-2">
+            <p class="fs-6 mb-0">R$ {{ total_entradas|floatformat:2 }}</p>
+          </div>
+        </div>
       </div>
-      <div class="card-body">
-        <p class="fs-4">R$ {{ total_planejamentos|floatformat:2 }}</p>
-      </div>
-    </div>
-  </div>
 
-  <div class="col-md-6">
-    <div class="card mb-3">
-      <div class="card-header bg-info text-white">
-        <h5 class="mb-0">Camisas</h5>
+      <div class="col-md-4">
+        <div class="card border-info mb-2">
+          <div class="card-header bg-info text-white py-2">
+            <h6 class="mb-0">Camisas</h6>
+          </div>
+          <div class="card-body py-2">
+            <p class="fs-6 mb-0">R$ {{ total_camisas|floatformat:2 }}</p>
+          </div>
+        </div>
       </div>
-      <div class="card-body">
-        <p class="fs-4">R$ {{ total_camisas|floatformat:2 }}</p>
+
+      <div class="col-md-4">
+        <div class="card border-primary mb-2">
+          <div class="card-header bg-primary text-white py-2">
+            <h6 class="mb-0">Inscrições</h6>
+          </div>
+          <div class="card-body py-2">
+            <p class="fs-6 mb-0">R$ {{ total_inscricoes|floatformat:2 }}</p>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
+  </fieldset>
+
+  <!-- Fieldset: Valor em Caixa -->
+  <fieldset class="border p-2 mt-5 mb-3" style="max-width: 300px; margin-left: 0;">
+    <legend class="w-auto px-2 fs-6">Valor em Caixa</legend>
+    <div class="card border-dark mb-2">
+      <div class="card-header bg-dark text-white py-2">
+        <h6 class="mb-0">Valor em Caixa</h6>
+      </div>
+      <div class="card-body py-2">
+        <p class="fs-6 mb-0">R$ {{ valor_em_caixa|default:0|floatformat:2 }}</p>
+      </div>
+    </div>
+  </fieldset>
 </div>
 {% endblock %}
