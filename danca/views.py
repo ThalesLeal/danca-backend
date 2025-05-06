@@ -878,7 +878,7 @@ class SaidaListView(ListView):
     def get_queryset(self):
         query = self.request.GET.get('q')
         if query:
-            return Saida.objects.filter(descricao__icontains=query).order_by('-data')
+            return Saida.objects.filter(descricao__icontains(query)).order_by('-data')
         return Saida.objects.all().order_by('-data')
 
     def get_context_data(self, **kwargs):
@@ -939,7 +939,7 @@ def resumo_caixa(request):
     total_saidas = Saida.objects.aggregate(total=Sum('valor'))['total'] or 0
     total_inscricoes = Inscricao.objects.aggregate(total=Sum('valor_total'))['total'] or 0
     total_planejamentos = Planejamento.objects.aggregate(total=Sum('valor_planejado'))['total'] or 0
-    total_camisas = Camisa.objects.aggregate(total=Sum('valor'))['total'] or 0
+    total_camisas = Camisa.objects.aggregate(total=Sum('valor_unitario'))['total'] or 0  # Corrigido
 
     # Contexto para o template
     context = {
