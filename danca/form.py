@@ -1,6 +1,9 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Lote,Categoria,TipoEvento,Evento,Camisa,Planejamento,Inscricao, InscricaoEvento,Profissional, ProfissionalEvento, Entrada, Saida
+from .models import Lote,Categoria,TipoEvento,Evento,Camisa,Planejamento,Inscricao, InscricaoEvento,Profissional, ProfissionalEvento, Entrada, Saida,Pagamento
+
+from django.contrib.contenttypes.models import ContentType
+from django.utils.translation import gettext_lazy as _
 
 class LoteForm(forms.ModelForm):
     class Meta:
@@ -335,3 +338,73 @@ class SaidaForm(forms.ModelForm):
         if valor is not None and valor <= 0:
             raise ValidationError("O valor deve ser maior que zero")
         return valor
+
+
+
+class PagamentoForm(forms.ModelForm):
+    tipo_modelo = forms.ChoiceField(
+        choices=Pagamento.TIPOS_MODELO,
+        label="Tipo de Modelo",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    pagamento_relacionado_id = forms.ChoiceField(
+        choices=[],  # Será preenchido dinamicamente via JavaScript
+        label="Pagamento Relacionado",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    class Meta:
+        model = Pagamento
+        fields = ['tipo_modelo', 'valor_pago', ]
+        widgets = {
+            'valor_pago': forms.TextInput(attrs={'class': 'form-control mask-valor', 'placeholder': 'R$ 0,00'}),
+            'data_pagamento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        }
+        labels = {
+            'valor_pago': 'Valor Pago',
+            'data_pagamento': 'Data do Pagamento',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Preencher dinamicamente o campo `pagamento_relacionado_id` com base no tipo_modelo
+        tipo_modelo = self.data.get('tipo_modelo') or self.initial.get('tipo_modelo')
+        if tipo_modelo == 'planejamento':
+            self.fields['pagamento_relacionado_id'].choices = [
+                (p.id, str(p)) for p in Planejamento.objects.all()
+            ]
+        elif tipo_modelo == 'inscricao':
+            self.fields['pagamento_relacionado_id'].choices = [
+                (i.id, str(i)) for i in Inscricao.objects.all()
+            ]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo_modelo = cleaned_data.get('tipo_modelo')
+        rel_id = cleaned_data.get('pagamento_relacionado')
+
+        if tipo_modelo and rel_id:
+            model_class = {
+                'planejamento': Planejamento,
+                'inscricao': Inscricao
+            }.get(tipo_modelo)
+
+            if model_class:
+                try:
+                    obj = model_class.objects.get(id=rel_id)
+                    cleaned_data['content_type'] = ContentType.objects.get_for_model(model_class)
+                    cleaned_data['object_id'] = obj.id
+                except model_class.DoesNotExist:
+                    self.add_error('pagamento_relacionado', 'Objeto relacionado não encontrado.')
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.content_type = self.cleaned_data.get('content_type')
+        instance.object_id = self.cleaned_data.get('object_id')
+        if commit:
+            instance.save()
+        return instance

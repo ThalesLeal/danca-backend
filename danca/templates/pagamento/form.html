@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<h2 class="pb-2">{{ titulo }}</h2>
+<h4 class="pb-3 text-muted">{{ form_name }}</h4>
+
+{% if form.errors %}
+<div class="alert alert-danger">
+  <ul>
+    {% for field in form %}
+      {% for error in field.errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<form method="post" id="pagamentoForm">
+  {% csrf_token %}
+
+  <div class="row">
+    <!-- Tipo de Pagamento -->
+    <div class="col-md-6 mb-3">
+      <label class="me-3" for="{{ form.tipo_modelo.id_for_label }}">{{ form.tipo_modelo.label }}</label>
+      {{ form.tipo_modelo }}
+    </div>
+    
+    <!-- Pagamento Relacionado -->
+    <div class="col-md-6 mb-3" id="pagamento_relacionado_field" style="display: none;">
+      <label class="me-3" for="id_pagamento_relacionado_id">Pagamento Relacionado</label>
+      {{ form.pagamento_relacionado_id }}
+    </div>
+    
+    <!-- Valor do Pagamento -->
+    <div class="col-md-6 mb-3">
+      <label class="me-3" for="{{ form.valor_pago.id_for_label }}">{{ form.valor_pago.label }}</label>
+      {{ form.valor_pago }}
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-success me-2 float-end"><i class="bi bi-floppy"></i> Salvar</button>
+  <a href="{% url 'list_pagamentos' %}" class="btn btn-secondary"><i class="bi bi-arrow-90deg-left"></i> Voltar</a>
+</form>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const tipoPagamento = document.getElementById('id_tipo_modelo');
+    const pagamentoRelacionadoField = document.getElementById('pagamento_relacionado_field');
+    const pagamentoRelacionado = document.getElementById('id_pagamento_relacionado_id');
+
+    tipoPagamento.addEventListener('change', function () {
+      pagamentoRelacionadoField.style.display = 'none';
+      pagamentoRelacionado.innerHTML = '<option value="">Selecione um pagamento relacionado</option>';
+
+      if (this.value === 'planejamento') {
+        pagamentoRelacionadoField.style.display = 'block';
+
+        // Busca os Planejamentos via API
+        fetch('/api/planejamentos/') // Substitua pela URL da sua API
+          .then(response => response.json())
+          .then(data => {
+            data.forEach(item => {
+              const option = document.createElement('option');
+              option.value = item.id;
+              option.textContent = item.descricao;
+              pagamentoRelacionado.appendChild(option);
+            });
+          });
+      } else if (this.value === 'inscricao') {
+        pagamentoRelacionadoField.style.display = 'block';
+
+        // Busca as Inscrições via API
+        fetch('/api/inscricoes/') // Substitua pela URL da sua API
+          .then(response => response.json())
+          .then(data => {
+            data.forEach(item => {
+              const option = document.createElement('option');
+              option.value = item.id;
+              option.textContent = item.nome;
+              pagamentoRelacionado.appendChild(option);
+            });
+          });
+      }
+    });
+  });
+</script>
+{% endblock %}

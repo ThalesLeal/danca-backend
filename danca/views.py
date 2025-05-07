@@ -1,19 +1,22 @@
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views import View
 from django.views.generic import ListView, TemplateView, DeleteView, DetailView
-
+from django.contrib.contenttypes.models import ContentType
 from django.contrib import messages
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.db.models.functions import Lower
-from .models import Lote, Categoria, TipoEvento, Evento, Camisa,Planejamento,Inscricao, InscricaoEvento, Profissional, ProfissionalEvento, Entrada, Saida
-from .form import LoteForm,CategoriaForm,TipoEventoForm,EventoForm,CamisaForm,PlanejamentoForm,InscricaoForm, InscricaoEventoForm, ProfissionalForm, ProfissionalEventoForm, EntradaForm, SaidaForm
+from .models import Lote, Categoria, TipoEvento, Evento, Camisa,Planejamento,Inscricao, InscricaoEvento, Profissional, ProfissionalEvento, Entrada, Saida,Pagamento
+from .form import LoteForm,CategoriaForm,TipoEventoForm,EventoForm,CamisaForm,PlanejamentoForm,InscricaoForm, InscricaoEventoForm, ProfissionalForm, ProfissionalEventoForm, EntradaForm, SaidaForm, PagamentoForm
 from django.shortcuts import redirect
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Sum
+from django.views.decorators.http import require_GET
+
 
 
 def index(request):
@@ -951,3 +954,92 @@ def resumo_caixa(request):
     }
 
     return render(request, 'resumo/resumo_caixa.html', context)
+
+
+@method_decorator(never_cache, name="dispatch")
+class PagamentoListView(ListView):
+    model = Pagamento
+    paginate_by = 10
+    template_name = "pagamento/list.html"
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query:
+            return Pagamento.objects.filter(valor_pago__icontains=query).order_by('-id')
+        return Pagamento.objects.all().order_by('-id')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['q'] = self.request.GET.get('q', '')
+        context['create_url'] = reverse('create_pagamento')
+        return context
+
+
+@method_decorator(never_cache, name="dispatch")
+class PagamentoFormView(View):
+    form_class = PagamentoForm
+    template_name = "pagamento/form.html"
+
+    def get(self, request, pagamento_id=None):
+        form = self.form_class()
+        titulo = "Novo Pagamento" if not pagamento_id else "Editar Pagamento"
+        if pagamento_id:
+            pagamento = get_object_or_404(Pagamento, id=pagamento_id)
+            form = self.form_class(instance=pagamento)
+        return render(request, self.template_name, {
+            "form": form,
+            "titulo": titulo,
+        })
+
+    def post(self, request, pagamento_id=None):
+        form = self.form_class(request.POST)
+        msg = 'Pagamento criado com sucesso'
+
+        if pagamento_id:
+            pagamento = get_object_or_404(Pagamento, id=pagamento_id)
+            form = self.form_class(request.POST, instance=pagamento)
+            msg = 'Pagamento modificado com sucesso'
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, msg)
+            return redirect('list_pagamentos')
+
+        titulo = "Novo Pagamento" if not pagamento_id else "Editar Pagamento"
+        return render(request, self.template_name, {
+            "form": form,
+            "titulo": titulo,
+        })
+
+
+@method_decorator(never_cache, name="dispatch")
+class PagamentoDetailView(TemplateView):
+    template_name = "pagamento/pagamento.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        pagamento = get_object_or_404(Pagamento, id=self.kwargs['pagamento_id'])
+        context['pagamento'] = pagamento
+        return context
+
+
+@method_decorator(never_cache, name="dispatch")
+class PagamentoDeleteView(DeleteView):
+    model = Pagamento
+    pk_url_kwarg = "pagamento_id"
+
+    def get_success_url(self):
+        messages.success(self.request, "Pagamento removido com sucesso")
+        return reverse_lazy('list_pagamentos')
+    
+
+def carregar_objetos_pagamento(request):
+    tipo = request.GET.get('tipo_modelo')
+    data = []
+
+    if tipo == 'planejamento':
+        data = [{'id': obj.id, 'nome': str(obj)} for obj in Planejamento.objects.all()]
+    elif tipo == 'inscricao':
+        data = [{'id': obj.id, 'nome': str(obj)} for obj in Inscricao.objects.all()]
+
+    return JsonResponse({'objetos': data})

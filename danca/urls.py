@@ -80,4 +80,16 @@ urlpatterns = [
 
     # Resumo Caixa
     path('resumo/', resumo_caixa, name='resumo_caixa'),
+
+    # Pagamento
+    path('pagamento/', PagamentoListView.as_view(), name='list_pagamentos'),
+    path('pagamento/<int:pagamento_id>/', PagamentoDetailView.as_view(), name='detail_pagamento'),
+    path('pagamento/create/', PagamentoFormView.as_view(), name='create_pagamento'),
+    path('pagamento/<int:pagamento_id>/update/', PagamentoFormView.as_view(), name='update_pagamento'),
+    path('pagamento/<int:pagamento_id>/delete/', PagamentoDeleteView.as_view(), name='delete_pagamento'),
+    path('pagamentos/relacionados/', carregar_objetos_pagamento, name='carregar_objetos_pagamento'),  # AJAX
+
+    
+
+
 ]

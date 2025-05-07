@@ -112,7 +112,7 @@
           </li>
 
           <!-- Pagamentos -->
-          <li class="nav-item mb-2">
+        <li class="nav-item mb-2">
             <button class="nav-link dropdown" data-bs-toggle="collapse" data-bs-target="#pagamentos-collapse">
                 <i class="bi bi-cash-coin"></i>
                 <span style="margin-left: 10px;">Pagamentos</span>
@@ -121,14 +121,20 @@
             <div class="collapse" id="pagamentos-collapse">
                 <ul class="nav nav-pills flex-column mb-auto">
                     <li class="nav-item mb-2">
-                        <a class="nav-link" href="#">
+                        <a class="nav-link" href="{% url 'list_pagamentos' %}">
                             <i class="bi bi-receipt"></i>
-                            <span style="margin-left: 10px;">Pagamentos</span>
+                            <span style="margin-left: 10px;">Lista de Pagamentos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link" href="{% url 'create_pagamento' %}">
+                            <i class="bi bi-plus-circle"></i>
+                            <span style="margin-left: 10px;">Novo Pagamento</span>
                         </a>
                     </li>
                 </ul>
             </div>
-          </li>
+        </li>
       </ul>
   </div>
 </div>

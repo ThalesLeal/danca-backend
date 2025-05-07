@@ -1,6 +1,8 @@
 from django.db import models
 from .constants import STATUS_EVENTO, TAMANHO_CAMISA, TIPO_CAMISA, STATUS_LOTE
 from django.core.exceptions import ValidationError
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 
 class Lote(models.Model):
     descricao = models.CharField(max_length=255)
@@ -268,3 +270,21 @@ class Saida(models.Model):
         verbose_name = "Saída"
         verbose_name_plural = "Saídas"
         ordering = ['-data']
+
+
+class Pagamento(models.Model):
+    TIPOS_MODELO = [
+        ('planejamento', 'Planejamento'),
+        ('inscricao', 'Inscrição'),
+    ]
+    tipo_modelo = models.CharField(max_length=20, choices=TIPOS_MODELO)
+
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    pagamento_relacionado = GenericForeignKey('content_type', 'object_id')
+
+    valor_pago = models.DecimalField(max_digits=10, decimal_places=2)
+    data_pagamento = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.tipo_modelo} - {self.pagamento_relacionado}"
