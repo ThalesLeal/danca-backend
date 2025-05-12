@@ -983,9 +983,6 @@ class PagamentoFormView(View):
     def get(self, request, pagamento_id=None):
         form = self.form_class()
         titulo = "Novo Pagamento" if not pagamento_id else "Editar Pagamento"
-        if pagamento_id:
-            pagamento = get_object_or_404(Pagamento, id=pagamento_id)
-            form = self.form_class(instance=pagamento)
         return render(request, self.template_name, {
             "form": form,
             "titulo": titulo,
@@ -993,22 +990,13 @@ class PagamentoFormView(View):
 
     def post(self, request, pagamento_id=None):
         form = self.form_class(request.POST)
-        msg = 'Pagamento criado com sucesso'
-
-        if pagamento_id:
-            pagamento = get_object_or_404(Pagamento, id=pagamento_id)
-            form = self.form_class(request.POST, instance=pagamento)
-            msg = 'Pagamento modificado com sucesso'
-
         if form.is_valid():
             form.save()
-            messages.success(request, msg)
+            messages.success(request, "Pagamento salvo com sucesso!")
             return redirect('list_pagamentos')
-
-        titulo = "Novo Pagamento" if not pagamento_id else "Editar Pagamento"
         return render(request, self.template_name, {
             "form": form,
-            "titulo": titulo,
+            "titulo": "Novo Pagamento" if not pagamento_id else "Editar Pagamento",
         })
 
 
@@ -1033,13 +1021,14 @@ class PagamentoDeleteView(DeleteView):
         return reverse_lazy('list_pagamentos')
     
 
+@require_GET
 def carregar_objetos_pagamento(request):
     tipo = request.GET.get('tipo_modelo')
     data = []
 
     if tipo == 'planejamento':
-        data = [{'id': obj.id, 'nome': str(obj)} for obj in Planejamento.objects.all()]
+        data = [{'id': obj.id, 'descricao': obj.descricao} for obj in Planejamento.objects.all()]
     elif tipo == 'inscricao':
-        data = [{'id': obj.id, 'nome': str(obj)} for obj in Inscricao.objects.all()]
+        data = [{'id': obj.id, 'descricao': obj.nome} for obj in Inscricao.objects.all()]
 
     return JsonResponse({'objetos': data})

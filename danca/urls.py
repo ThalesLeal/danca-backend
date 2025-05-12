@@ -88,8 +88,9 @@ urlpatterns = [
     path('pagamento/<int:pagamento_id>/update/', PagamentoFormView.as_view(), name='update_pagamento'),
     path('pagamento/<int:pagamento_id>/delete/', PagamentoDeleteView.as_view(), name='delete_pagamento'),
     path('pagamentos/relacionados/', carregar_objetos_pagamento, name='carregar_objetos_pagamento'),  # AJAX
+    path('carregar_objetos_pagamento/', carregar_objetos_pagamento, name='carregar_objetos_pagamento'),
+]
 
     
 
 
-]
