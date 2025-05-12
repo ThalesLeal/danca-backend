@@ -29,6 +29,8 @@
       <th>Valor Total</th>
       <th>Nº Parcelas</th>
       <th>Valor Parcela</th>
+      <th>Valor Restante</th>
+      <th>Status</th>
       <th class="text-center">Ações</th>
     </tr>
   </thead>
@@ -41,6 +43,15 @@
         <td class="align-middle">R$ {{ inscricao.valor_total|floatformat:2 }}</td>
         <td class="align-middle">{{ inscricao.numero_parcelas }}</td>
         <td class="align-middle">R$ {{ inscricao.valor_parcela|floatformat:2 }}</td>
+        <td class="align-middle">R$ {{ inscricao.valor_restante|floatformat:2 }}</td>
+      <td class="align-middle">
+        {% if inscricao.status == "Pago" %}
+          <span class="badge bg-success">{{ inscricao.status }}</span>
+        {% elif inscricao.status == "Parcial" %}
+          <span class="badge bg-warning">{{ inscricao.status }}</span>
+        {% else %}
+          <span class="badge bg-danger">{{ inscricao.status }}</span>
+        {% endif %}
         <td class="col-2 text-center botoes">
             <a href="{% url 'detail_inscricao' inscricao.id %}" class="btn btn-sm btn-info me-1" title="Visualizar">
                 <i class="bi bi-eye-fill"></i>

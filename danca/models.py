@@ -3,6 +3,9 @@ from .constants import STATUS_EVENTO, TAMANHO_CAMISA, TIPO_CAMISA, STATUS_LOTE
 from django.core.exceptions import ValidationError
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.db.models import Sum
+
+
 
 class Lote(models.Model):
     descricao = models.CharField(max_length=255)
@@ -108,8 +111,27 @@ class Planejamento(models.Model):
         ordering = ['-id']
         verbose_name = "Planejamento"
         verbose_name_plural = "Planejamentos"
+    
+    @property
+    def valor_pago(self):
+        content_type = ContentType.objects.get_for_model(self)
+        total_pago = Pagamento.objects.filter(
+            content_type=content_type,
+            object_id=self.id
+        ).aggregate(total=Sum('valor_pago'))['total'] or 0
+        return total_pago
 
+    @property
+    def valor_restante(self):
+        return (self.valor_planejado or 0) - self.valor_pago
 
+    @property
+    def status(self):
+        if self.valor_restante <= 0:
+            return "Pago"
+        elif self.valor_pago > 0:
+            return "Parcial"
+        return "Pendente"
 
 
 
@@ -155,6 +177,7 @@ class Inscricao(models.Model):
         self.valor_total = self.calcular_valor_total()
         self.valor_parcela = self.calcular_valor_parcela()
         super().save(update_fields=['valor_total', 'valor_parcela'])
+    
 
     def __str__(self):
         return f"{self.nome} - {self.categoria.descricao}"
@@ -163,7 +186,27 @@ class Inscricao(models.Model):
         verbose_name = "Inscrição"
         verbose_name_plural = "Inscrições"
         ordering = ['-id']
+    
+    @property
+    def valor_pago(self):
+        content_type = ContentType.objects.get_for_model(self)
+        total_pago = Pagamento.objects.filter(
+            content_type=content_type,
+            object_id=self.id
+        ).aggregate(total=Sum('valor_pago'))['total'] or 0
+        return total_pago
 
+    @property
+    def valor_restante(self):
+        return self.valor_total - self.valor_pago
+    
+    @property
+    def status(self):
+        if self.valor_restante <= 0:
+            return "Pago"
+        elif self.valor_pago > 0:
+            return "Parcial"
+        return "Pendente"
 
 class InscricaoEvento(models.Model):
     inscricao = models.ForeignKey(Inscricao, on_delete=models.CASCADE, related_name='inscricao_evento_set')

@@ -993,8 +993,7 @@ class PagamentoFormView(View):
             "titulo": titulo,
         })
 
-    def post(self, request, pagamento_id=None):
-        print("POST recebido:", request.POST)  # 🟡 1. Veja os dados recebidos
+    def post(self, request, pagamento_id=None):       
 
         if pagamento_id:
             pagamento = get_object_or_404(Pagamento, pk=pagamento_id)
@@ -1002,13 +1001,12 @@ class PagamentoFormView(View):
         else:
             form = self.form_class(request.POST)
 
-        if form.is_valid():
-            print("Formulário válido!")  # 🟢 2. Confirma que passou pela validação
+        if form.is_valid():           
             form.save()
             messages.success(request, "Pagamento salvo com sucesso!")
             return redirect('list_pagamentos')
         else:
-            print("Formulário inválido:", form.errors)  # 🔴 3. Mostra os erros
+            print("Formulário inválido:", form.errors)  
 
         titulo = "Editar Pagamento" if pagamento_id else "Novo Pagamento"
         return render(request, self.template_name, {

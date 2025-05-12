@@ -32,6 +32,8 @@
     <tr>
       <th>Descrição</th>    
       <th>Valor Planejado</th>
+      <th>Valor Restante</th>
+      <th>Status</th>
       <th class="text-center">Ações</th>
     </tr>
   </thead>
@@ -40,6 +42,16 @@
     <tr>
       <td class="align-middle">{{ planejamento.descricao }}</td>
       <td class="align-middle">R$ {{ planejamento.valor_planejado|floatformat:2 }}</td>
+      <td class="align-middle">R$ {{ planejamento.valor_restante|floatformat:2 }}</td>
+      <td class="align-middle">
+        {% if planejamento.status == "Pago" %}
+          <span class="badge bg-success">{{ planejamento.status }}</span>
+        {% elif planejamento.status == "Parcial" %}
+          <span class="badge bg-warning">{{ planejamento.status }}</span>
+        {% else %}
+          <span class="badge bg-danger">{{ planejamento.status }}</span>
+        {% endif %}
+      </td>
       <td class="col-3 text-center botoes">
         <a href="{% url 'detail_planejamento' planejamento.id %}" class="btn btn-info"><i class="bi bi-eye-fill"></i></a>
         <a href="{% url 'update_planejamento' planejamento.id %}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a>
