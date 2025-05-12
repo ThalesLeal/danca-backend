@@ -23,13 +23,76 @@
 <table class="table table-striped table-hover">
   <thead>
     <tr>
-      <th>Nome</th>
-      <th>Categoria</th>
-      <th>Lote</th>
-      <th>Valor Total</th>
-      <th>Nº Parcelas</th>
-      <th>Valor Parcela</th>
-      <th>Valor Restante</th>
+      <th>
+        <a href="?ordering=nome" class="text-decoration-none">
+          Nome
+          {% if request.GET.ordering == "nome" %}
+            <i class="bi bi-arrow-down"></i>
+          {% elif request.GET.ordering == "-nome" %}
+            <i class="bi bi-arrow-up"></i>
+          {% endif %}
+        </a>
+      </th>
+      <th>
+        <a href="?ordering=categoria" class="text-decoration-none">
+          Categoria
+          {% if request.GET.ordering == "categoria" %}
+            <i class="bi bi-arrow-down"></i>
+          {% elif request.GET.ordering == "-categoria" %}
+            <i class="bi bi-arrow-up"></i>
+          {% endif %}
+        </a>
+      </th>
+      <th>
+        <a href="?ordering=lote" class="text-decoration-none">
+          Lote
+          {% if request.GET.ordering == "lote" %}
+            <i class="bi bi-arrow-down"></i>
+          {% elif request.GET.ordering == "-lote" %}
+            <i class="bi bi-arrow-up"></i>
+          {% endif %}
+        </a>
+      </th>
+      <th>
+        <a href="?ordering=valor_total" class="text-decoration-none">
+          Valor Total
+          {% if request.GET.ordering == "valor_total" %}
+            <i class="bi bi-arrow-down"></i>
+          {% elif request.GET.ordering == "-valor_total" %}
+            <i class="bi bi-arrow-up"></i>
+          {% endif %}
+        </a>
+      </th>
+      <th>
+        <a href="?ordering=numero_parcelas" class="text-decoration-none">
+          Nº Parcelas
+          {% if request.GET.ordering == "numero_parcelas" %}
+            <i class="bi bi-arrow-down"></i>
+          {% elif request.GET.ordering == "-numero_parcelas" %}
+            <i class="bi bi-arrow-up"></i>
+          {% endif %}
+        </a>
+      </th>
+      <th>
+        <a href="?ordering=valor_parcela" class="text-decoration-none">
+          Valor Parcela
+          {% if request.GET.ordering == "valor_parcela" %}
+            <i class="bi bi-arrow-down"></i>
+          {% elif request.GET.ordering == "-valor_parcela" %}
+            <i class="bi bi-arrow-up"></i>
+          {% endif %}
+        </a>
+      </th>
+      <th>
+        <a href="?ordering=valor_restante" class="text-decoration-none">
+          Valor Restante
+          {% if request.GET.ordering == "valor_restante" %}
+            <i class="bi bi-arrow-down"></i>
+          {% elif request.GET.ordering == "-valor_restante" %}
+            <i class="bi bi-arrow-up"></i>
+          {% endif %}
+        </a>
+      </th>
       <th>Status</th>
       <th class="text-center">Ações</th>
     </tr>
@@ -66,7 +129,7 @@
     </tr>
     {% empty %}
     <tr>
-        <td colspan="7">Nenhuma inscrição encontrada.</td>
+        <td colspan="9">Nenhuma inscrição encontrada.</td>
     </tr>
     {% endfor %}
   </tbody>

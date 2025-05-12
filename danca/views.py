@@ -379,7 +379,7 @@ class CamisaDeleteView(DeleteView):
 @method_decorator(never_cache, name="dispatch")
 class PlanejamentoListView(ListView):
     model = Planejamento
-    paginate_by = 10
+    paginate_by = 20
     template_name = "planejamento/list.html"
 
     def get_queryset(self):
@@ -451,18 +451,29 @@ class PlanejamentoDeleteView(DeleteView):
 @method_decorator(never_cache, name="dispatch")
 class InscricaoListView(ListView):
     model = Inscricao
-    paginate_by = 10
+    paginate_by = 25
     template_name = "inscricao/list.html"
 
     def get_queryset(self):
-        query = self.request.GET.get('q')
-        if query:
-            return Inscricao.objects.filter(nome__icontains=query).order_by(Lower('nome'))
-        return Inscricao.objects.all().order_by(Lower('nome'))
+        ordering = self.request.GET.get('ordering', 'nome')  # Ordena por 'nome' por padrão
+        status = self.request.GET.get('status')  # Obtém o filtro de status
+        inscricoes = Inscricao.objects.all()
+
+        # Filtra por status, se fornecido
+        if status:
+            if status == 'pago':
+                inscricoes = inscricoes.filter(valor_restante__lte=0)
+            elif status == 'parcial':
+                inscricoes = inscricoes.filter(valor_pago__gt=0, valor_restante__gt=0)
+            elif status == 'pendente':
+                inscricoes = inscricoes.filter(valor_pago=0)
+
+        return inscricoes.order_by(ordering)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['q'] = self.request.GET.get('q', '')
+        context['status'] = self.request.GET.get('status', '')
         context['create_url'] = reverse('create_inscricao')
         return context
 

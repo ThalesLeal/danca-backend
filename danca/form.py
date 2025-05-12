@@ -186,7 +186,7 @@ class InscricaoForm(forms.ModelForm):
             'categoria': forms.Select(attrs={'class': 'form-select'}),
             'cep': forms.TextInput(attrs={'class': 'form-control'}),
             'municipio': forms.TextInput(attrs={'class': 'form-control'}),
-            'uf': forms.Select(attrs={'class': 'form-select'}),
+            'uf': forms.TextInput(attrs={'class': 'form-control'}),
             'lote': forms.Select(attrs={'class': 'form-select'}),
             'desconto': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'numero_parcelas': forms.NumberInput(attrs={'class': 'form-control'}),
