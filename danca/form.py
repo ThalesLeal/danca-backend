@@ -4,6 +4,7 @@ from .models import Lote,Categoria,TipoEvento,Evento,Camisa,Planejamento,Inscric
 
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext_lazy as _
+import re 
 
 class LoteForm(forms.ModelForm):
     class Meta:
@@ -355,15 +356,33 @@ class PagamentoForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'form-control'})
     )
 
+    # Modifiquei o campo 'valor_pago' para CharField
+    valor_pago = forms.CharField(
+        label='Valor Pago',
+        widget=forms.TextInput(attrs={'class': 'form-control mask-valor', 'placeholder': 'R$ 0,00'})
+    )
+
     class Meta:
         model = Pagamento
         fields = ['tipo_modelo', 'valor_pago']
         widgets = {
-            'valor_pago': forms.TextInput(attrs={'class': 'form-control mask-valor', 'placeholder': 'R$ 0,00'}),
+            # Não é necessário alterar o widget aqui, pois 'valor_pago' foi mudado para CharField
         }
         labels = {
             'valor_pago': 'Valor Pago',
         }
+
+    def clean_valor_pago(self):
+        valor = self.cleaned_data.get('valor_pago')
+        # Usando regex para remover R$, ponto e substituir vírgula por ponto
+        if valor:
+            valor = re.sub(r'[^0-9,]', '', valor)  # Remove qualquer coisa que não seja número ou vírgula
+            valor = valor.replace(",", ".")  # Substitui vírgula por ponto
+
+        try:
+            return float(valor)  # Converte para float
+        except ValueError:
+            raise forms.ValidationError("Informe um valor numérico válido.")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
