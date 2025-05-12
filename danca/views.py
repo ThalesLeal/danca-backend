@@ -981,22 +981,34 @@ class PagamentoFormView(View):
     template_name = "pagamento/form.html"
 
     def get(self, request, pagamento_id=None):
-        form = self.form_class()
-        titulo = "Novo Pagamento" if not pagamento_id else "Editar Pagamento"
+        if pagamento_id:
+            pagamento = get_object_or_404(Pagamento, pk=pagamento_id)
+            form = self.form_class(instance=pagamento)
+            titulo = "Editar Pagamento"
+        else:
+            form = self.form_class()
+            titulo = "Novo Pagamento"
         return render(request, self.template_name, {
             "form": form,
             "titulo": titulo,
         })
 
     def post(self, request, pagamento_id=None):
-        form = self.form_class(request.POST)
+        if pagamento_id:
+            pagamento = get_object_or_404(Pagamento, pk=pagamento_id)
+            form = self.form_class(request.POST, instance=pagamento)
+        else:
+            form = self.form_class(request.POST)
+
         if form.is_valid():
             form.save()
             messages.success(request, "Pagamento salvo com sucesso!")
             return redirect('list_pagamentos')
+
+        titulo = "Editar Pagamento" if pagamento_id else "Novo Pagamento"
         return render(request, self.template_name, {
             "form": form,
-            "titulo": "Novo Pagamento" if not pagamento_id else "Editar Pagamento",
+            "titulo": titulo,
         })
 
 

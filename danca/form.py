@@ -349,41 +349,39 @@ class PagamentoForm(forms.ModelForm):
     )
 
     pagamento_relacionado_id = forms.ChoiceField(
-        choices=[],  # Será preenchido dinamicamente via JavaScript
+        required=False,
         label="Pagamento Relacionado",
+        choices=[],
         widget=forms.Select(attrs={'class': 'form-control'})
     )
 
     class Meta:
         model = Pagamento
-        fields = ['tipo_modelo', 'valor_pago', ]
+        fields = ['tipo_modelo', 'valor_pago']
         widgets = {
             'valor_pago': forms.TextInput(attrs={'class': 'form-control mask-valor', 'placeholder': 'R$ 0,00'}),
-            'data_pagamento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
         labels = {
             'valor_pago': 'Valor Pago',
-            'data_pagamento': 'Data do Pagamento',
         }
 
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    #     # Preencher dinamicamente o campo `pagamento_relacionado_id` com base no tipo_modelo
-    #     tipo_modelo = self.data.get('tipo_modelo') or self.initial.get('tipo_modelo')
-    #     if tipo_modelo == 'planejamento':
-    #         self.fields['pagamento_relacionado_id'].choices = [
-    #             (p.id, str(p)) for p in Planejamento.objects.all()
-    #         ]
-    #     elif tipo_modelo == 'inscricao':
-    #         self.fields['pagamento_relacionado_id'].choices = [
-    #             (i.id, str(i)) for i in Inscricao.objects.all()
-    #         ]
+        tipo_modelo = self.data.get('tipo_modelo') or self.initial.get('tipo_modelo')
+        if tipo_modelo == 'planejamento':
+            self.fields['pagamento_relacionado_id'].choices = [
+                (obj.id, str(obj)) for obj in Planejamento.objects.all()
+            ]
+        elif tipo_modelo == 'inscricao':
+            self.fields['pagamento_relacionado_id'].choices = [
+                (obj.id, str(obj)) for obj in Inscricao.objects.all()
+            ]
 
     def clean(self):
         cleaned_data = super().clean()
         tipo_modelo = cleaned_data.get('tipo_modelo')
-        rel_id = cleaned_data.get('pagamento_relacionado_id')
+        rel_id = self.data.get('pagamento_relacionado_id')
 
         if tipo_modelo and rel_id:
             model_class = {

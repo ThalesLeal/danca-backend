@@ -38,23 +38,24 @@
     const pagamentoRelacionado = document.getElementById('id_pagamento_relacionado_id');
 
     tipoPagamento.addEventListener('change', function () {
-      pagamentoRelacionadoField.style.display = 'none';
-      pagamentoRelacionado.innerHTML = '<option value="">Selecione um pagamento relacionado</option>';
+        pagamentoRelacionadoField.style.display = 'none';
+        pagamentoRelacionado.innerHTML = '<option value="">Selecione um pagamento relacionado</option>';
 
-      if (this.value) {
-        fetch(`/danca/carregar_objetos_pagamento/?tipo_modelo=${this.value}`)
-          .then(response => response.json())
-          .then(data => {
-            data.objetos.forEach(item => {
-              const option = document.createElement('option');
-              option.value = item.id;
-              option.textContent = item.descricao;
-              pagamentoRelacionado.appendChild(option);
-            });
-            pagamentoRelacionadoField.style.display = 'block';
-          });
-      }
+        if (this.value) {
+            fetch(`/danca/carregar_objetos_pagamento/?tipo_modelo=${this.value}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.objetos.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.id;
+                        option.textContent = item.descricao;
+                        pagamentoRelacionado.appendChild(option);
+                    });
+                    pagamentoRelacionadoField.style.display = 'block';
+                })
+                .catch(error => console.error('Erro ao carregar objetos:', error));
+        }
     });
-  });
+});
 </script>
 {% endblock %}

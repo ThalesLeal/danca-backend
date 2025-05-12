@@ -288,3 +288,8 @@ class Pagamento(models.Model):
 
     def __str__(self):
         return f"{self.tipo_modelo} - {self.pagamento_relacionado}"
+    
+    class Meta:
+        verbose_name = "Pagamento"
+        verbose_name_plural = "Pagamentos"
+        ordering = ['-data_pagamento']
