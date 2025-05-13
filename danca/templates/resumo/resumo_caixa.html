@@ -5,7 +5,7 @@
 <h2 class="pb-2">Resumo de Caixa</h2>
 
 <div class="row">
-  <!-- Fieldset: Planejamentos, Pagamentos e Saídas -->
+  <!-- Planejamentos, Pagamentos e Saídas -->
   <fieldset class="border p-2 mb-3" style="max-width: 800px;">
     <legend class="w-auto px-2 fs-6">Planejamentos, Pagamentos e Saídas</legend>
     <div class="row">
@@ -23,10 +23,10 @@
       <div class="col-md-4">
         <div class="card border-secondary mb-2">
           <div class="card-header bg-secondary text-white py-2">
-            <h6 class="mb-0">Pagamentos</h6>
+            <h6 class="mb-0">Pagamentos Planejamento</h6>
           </div>
           <div class="card-body py-2">
-            <p class="fs-6 mb-0">{{ total_pagamentos|default:0|format_currency }}</p>
+            <p class="fs-6 mb-0">{{ total_pago_planejamento|format_currency }}</p>
           </div>
         </div>
       </div>
@@ -44,7 +44,7 @@
     </div>
   </fieldset>
 
-  <!-- Fieldset: Entradas, Camisas e Inscrições -->
+  <!-- Entradas, Camisas e Inscrições -->
   <fieldset class="border p-2 mb-3" style="max-width: 800px;">
     <legend class="w-auto px-2 fs-6">Entradas, Camisas e Inscrições</legend>
     <div class="row">
@@ -73,7 +73,7 @@
       <div class="col-md-4">
         <div class="card border-primary mb-2">
           <div class="card-header bg-primary text-white py-2">
-            <h6 class="mb-0">Inscrições</h6>
+            <h6 class="mb-0">Inscrições (Pagas)</h6>
           </div>
           <div class="card-body py-2">
             <p class="fs-6 mb-0">{{ total_inscricoes|format_currency }}</p>
@@ -83,17 +83,59 @@
     </div>
   </fieldset>
 
-  <!-- Fieldset: Valor em Caixa -->
-  <fieldset class="border p-2 mt-5 mb-3" style="max-width: 300px; margin-left: 0;">
-    <legend class="w-auto px-2 fs-6">Valor em Caixa</legend>
-    <div class="card border-dark mb-2">
-      <div class="card-header bg-dark text-white py-2">
-        <h6 class="mb-0">Valor em Caixa</h6>
-      </div>
-      <div class="card-body py-2">
-        <p class="fs-6 mb-0">{{ valor_em_caixa|default:0|format_currency }}</p>
+ <!-- Pendências -->
+<fieldset class="border p-2 mb-3" style="max-width: 800px;">
+  <legend class="w-auto px-2 fs-6">Pendências</legend>
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card border-warning mb-2">
+        <div class="card-header bg-warning text-dark py-2">
+          <h6 class="mb-0">Total a Receber (Inscrições)</h6>
+        </div>
+        <div class="card-body py-2">
+          <p class="fs-6 mb-0">{{ total_a_receber|format_currency }}</p>
+        </div>
       </div>
     </div>
-  </fieldset>
+
+    <div class="col-md-4">
+      <div class="card border-warning mb-2">
+        <div class="card-header bg-warning text-dark py-2">
+          <h6 class="mb-0">Total a Pagar (Planejamentos)</h6>
+        </div>
+        <div class="card-body py-2">
+          <p class="fs-6 mb-0">{{ total_a_pagar|format_currency }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card border-info mb-2">
+        <div class="card-header bg-info text-white py-2">
+          <h6 class="mb-0">Saldo Futuro Previsto</h6>
+        </div>
+        <div class="card-body py-2">
+          <p class="fs-6 mb-0">{{ saldo_futuro_previsto|format_currency }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</fieldset>
+
+<!-- Valor em Caixa -->
+<div class="row mt-4">
+  <div class="col-md-12">
+    <fieldset class="border p-2 mb-3" style="max-width: 800px;">
+      <legend class="w-auto px-2 fs-6">Valor em Caixa</legend>
+      <div class="card border-dark mb-2">
+        <div class="card-header bg-dark text-white py-2">
+          <h6 class="mb-0">Valor em Caixa</h6>
+        </div>
+        <div class="card-body py-2">
+          <p class="fs-6 mb-0">{{ saldo_caixa|format_currency }}</p>
+        </div>
+      </div>
+    </fieldset>
+  </div>
 </div>
 {% endblock %}

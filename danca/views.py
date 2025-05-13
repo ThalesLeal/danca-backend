@@ -964,20 +964,46 @@ class SaidaDeleteView(DeleteView):
         return reverse_lazy('list_saidas')
 
 def resumo_caixa(request):
-    # Calcula os totais
+    # Entradas e saídas
     total_entradas = Entrada.objects.aggregate(total=Sum('valor'))['total'] or 0
     total_saidas = Saida.objects.aggregate(total=Sum('valor'))['total'] or 0
-    total_inscricoes = Inscricao.objects.aggregate(total=Sum('valor_total'))['total'] or 0
-    total_planejamentos = Planejamento.objects.aggregate(total=Sum('valor_planejado'))['total'] or 0
-    total_camisas = Camisa.objects.aggregate(total=Sum('valor_unitario'))['total'] or 0  # Corrigido
 
-    # Contexto para o template
+    # Total inscricoes pagas (somando os pagamentos com tipo_modelo='inscricao')
+    ct_inscricao = ContentType.objects.get_for_model(Inscricao)
+    total_pago_inscricoes = Pagamento.objects.filter(content_type=ct_inscricao).aggregate(total=Sum('valor_pago'))['total'] or 0
+
+    # Total a receber de inscrições (valor_total - valor_pago)
+    total_valor_inscricoes = Inscricao.objects.aggregate(total=Sum('valor_total'))['total'] or 0
+    total_a_receber = total_valor_inscricoes - total_pago_inscricoes
+
+    # Total camisas (considerado como entrada)
+    total_camisas = Camisa.objects.aggregate(total=Sum('valor_unitario'))['total'] or 0
+
+    # Total planejado e total pago em planejamentos
+    total_planejamentos = Planejamento.objects.aggregate(total=Sum('valor_planejado'))['total'] or 0
+    ct_planejamento = ContentType.objects.get_for_model(Planejamento)
+    total_pago_planejamento = Pagamento.objects.filter(content_type=ct_planejamento).aggregate(total=Sum('valor_pago'))['total'] or 0
+
+    # Valor a pagar = planejado - pago
+    total_a_pagar = total_planejamentos - total_pago_planejamento
+
+    # Saldo em caixa = entradas + inscrições pagas + camisas - saídas - pagamentos de planejamento
+    saldo_caixa = (total_entradas + total_pago_inscricoes + total_camisas) - (total_saidas + total_pago_planejamento)
+
+     # Cálculo da estimativa
+    saldo_futuro_previsto = (saldo_caixa + total_a_receber) - (total_planejamentos - total_saidas)
+
     context = {
         'total_entradas': total_entradas,
         'total_saidas': total_saidas,
-        'total_inscricoes': total_inscricoes,
+        'total_inscricoes': total_pago_inscricoes,  # Total recebido das inscrições
+        'total_a_receber': total_a_receber,
         'total_planejamentos': total_planejamentos,
+        'total_pago_planejamento': total_pago_planejamento,
+        'total_a_pagar': total_a_pagar,
         'total_camisas': total_camisas,
+        'saldo_caixa': saldo_caixa,
+        'saldo_futuro_previsto': saldo_futuro_previsto,
     }
 
     return render(request, 'resumo/resumo_caixa.html', context)
