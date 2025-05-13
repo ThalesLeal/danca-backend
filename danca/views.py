@@ -16,6 +16,8 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Sum, F, ExpressionWrapper, DecimalField
 from django.views.decorators.http import require_GET
+from datetime import date
+
 
 
 
@@ -459,6 +461,7 @@ class InscricaoListView(ListView):
     def get_queryset(self):
         ordering = self.request.GET.get('ordering', 'nome')  # Ordena por 'nome' por padrão
         status = self.request.GET.get('status')  # Obtém o filtro de status
+        proximo_pagamento = self.request.GET.get('proximo_pagamento')  # Filtro por próximo pagamento
         inscricoes = Inscricao.objects.all()
 
         # Filtra por status, se fornecido
@@ -469,6 +472,20 @@ class InscricaoListView(ListView):
                 inscricoes = inscricoes.filter(valor_pago__gt=0, valor_restante__gt=0)
             elif status == 'pendente':
                 inscricoes = inscricoes.filter(valor_pago=0)
+        
+         # Filtra por próximo pagamento, se fornecido
+        if proximo_pagamento == 'hoje':
+            inscricoes = inscricoes.filter(
+                pagamento__data_proximo_pagamento=date.today()
+            )
+        elif proximo_pagamento == 'atrasado':
+            inscricoes = inscricoes.filter(
+                pagamento__data_proximo_pagamento__lt=date.today()
+            )
+        elif proximo_pagamento == 'futuro':
+            inscricoes = inscricoes.filter(
+                pagamento__data_proximo_pagamento__gt=date.today()
+            )
 
         return inscricoes.order_by(ordering)
 
@@ -485,6 +502,7 @@ class InscricaoListView(ListView):
         context.update({
             'q': self.request.GET.get('q', ''),
             'status': self.request.GET.get('status', ''),
+            'proximo_pagamento': self.request.GET.get('proximo_pagamento', ''),
             'create_url': reverse('create_inscricao'),
             'total_pago': total_pago,
             'total_a_receber': total_a_receber,

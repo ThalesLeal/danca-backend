@@ -1,9 +1,11 @@
+from datetime import timedelta
 from django.db import models
 from .constants import STATUS_EVENTO, TAMANHO_CAMISA, TIPO_CAMISA, STATUS_LOTE
 from django.core.exceptions import ValidationError
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db.models import Sum
+from datetime import date, timedelta
 
 
 
@@ -328,6 +330,18 @@ class Pagamento(models.Model):
 
     valor_pago = models.DecimalField(max_digits=10, decimal_places=2)
     data_pagamento = models.DateField(auto_now_add=True)
+    data_proximo_pagamento = models.DateField(null=True, blank=True)  
+
+    def save(self, *args, **kwargs):
+        # Garante que data_pagamento não seja None
+        if not self.data_pagamento:
+            self.data_pagamento = date.today()
+
+        # Calcula a data do próximo pagamento apenas para inscrições
+        if self.tipo_modelo == 'inscricao':
+            self.data_proximo_pagamento = self.data_pagamento + timedelta(days=30)
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.tipo_modelo} - {self.pagamento_relacionado}"
@@ -336,3 +350,4 @@ class Pagamento(models.Model):
         verbose_name = "Pagamento"
         verbose_name_plural = "Pagamentos"
         ordering = ['-data_pagamento']
+        get_latest_by = 'data_pagamento'  # Define o campo para o método latest
