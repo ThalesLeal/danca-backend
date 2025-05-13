@@ -23,7 +23,7 @@
 
 <div class="d-flex justify-content-end mb-3">
   <small class="text-danger">
-    Total Planejado: R$ {{ page_obj|sum_attribute:"valor_planejado"|default:0|floatformat:2 }}
+    Total Planejado: R$ {{ total_planejado|format_currency }}
   </small>
 </div>
 

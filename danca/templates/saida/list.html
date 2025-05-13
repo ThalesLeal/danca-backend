@@ -25,7 +25,7 @@
 
 <div class="d-flex justify-content-end mb-3">
   <small class="text-danger">
-    Total: R$ {{ page_obj|sum_attribute:"valor"|default:0|floatformat:2 }}
+    Total: R$ {{ total_saida|format_currency }}
   </small>
 </div>
 

@@ -390,6 +390,7 @@ class PlanejamentoListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['total_planejado'] = Planejamento.objects.aggregate(total=Sum('valor_planejado'))['total'] or 0
         context['q'] = self.request.GET.get('q', '')
         context['create_url'] = reverse('create_planejamento')
         return context
@@ -472,6 +473,7 @@ class InscricaoListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        
         context['q'] = self.request.GET.get('q', '')
         context['status'] = self.request.GET.get('status', '')
         context['create_url'] = reverse('create_inscricao')
@@ -833,6 +835,7 @@ class EntradaListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['total_entrada'] = Entrada.objects.aggregate(total=Sum('valor'))['total'] or 0
         context['q'] = self.request.GET.get('q', '')
         context['total_entradas'] = sum(entrada.valor for entrada in context['object_list'])
         return context
@@ -892,11 +895,12 @@ class SaidaListView(ListView):
     def get_queryset(self):
         query = self.request.GET.get('q')
         if query:
-            return Saida.objects.filter(descricao__icontains(query)).order_by('-data')
+            return Saida.objects.filter(descricao__icontains(query)).order_by('-data') # type: ignore
         return Saida.objects.all().order_by('-data')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['total_saida'] = Saida.objects.aggregate(total=Sum('valor'))['total'] or 0
         context['q'] = self.request.GET.get('q', '')
         context['total_saidas'] = sum(saida.valor for saida in context['object_list'])
         return context
