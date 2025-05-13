@@ -14,8 +14,9 @@ from django.shortcuts import redirect
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Sum
+from django.db.models import Sum, F, ExpressionWrapper, DecimalField
 from django.views.decorators.http import require_GET
+
 
 
 
@@ -473,10 +474,21 @@ class InscricaoListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
-        context['q'] = self.request.GET.get('q', '')
-        context['status'] = self.request.GET.get('status', '')
-        context['create_url'] = reverse('create_inscricao')
+
+        queryset = self.get_queryset()
+
+        # Corrigindo a forma de calcular os totais
+        total_pago = sum(inscricao.valor_pago for inscricao in queryset)
+        total_total = queryset.aggregate(total=Sum('valor_total'))['total'] or 0
+        total_a_receber = total_total - total_pago
+
+        context.update({
+            'q': self.request.GET.get('q', ''),
+            'status': self.request.GET.get('status', ''),
+            'create_url': reverse('create_inscricao'),
+            'total_pago': total_pago,
+            'total_a_receber': total_a_receber,
+        })
         return context
 
 @method_decorator(never_cache, name="dispatch")
