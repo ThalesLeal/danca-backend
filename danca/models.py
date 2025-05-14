@@ -209,6 +209,19 @@ class Inscricao(models.Model):
         elif self.valor_pago > 0:
             return "Parcial"
         return "Pendente"
+    
+    @property
+    def proximo_pagamento(self):
+        content_type = ContentType.objects.get_for_model(self)
+        proximo = Pagamento.objects.filter(
+            content_type=content_type,
+            object_id=self.id,
+            data_proximo_pagamento__isnull=False
+        ).order_by('data_proximo_pagamento').first()
+
+        if proximo:
+            return proximo.data_proximo_pagamento  # Retorna como objeto de data
+        return None
 
 class InscricaoEvento(models.Model):
     inscricao = models.ForeignKey(Inscricao, on_delete=models.CASCADE, related_name='inscricao_evento_set')

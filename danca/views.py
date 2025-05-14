@@ -1026,7 +1026,7 @@ def resumo_caixa(request):
 
     return render(request, 'resumo/resumo_caixa.html', context)
 
-
+# Lista de Pagamentos
 @method_decorator(never_cache, name="dispatch")
 class PagamentoListView(ListView):
     model = Pagamento
@@ -1046,6 +1046,7 @@ class PagamentoListView(ListView):
         return context
 
 
+# Criar e Editar Pagamento
 @method_decorator(never_cache, name="dispatch")
 class PagamentoFormView(View):
     form_class = PagamentoForm
@@ -1057,35 +1058,39 @@ class PagamentoFormView(View):
             form = self.form_class(instance=pagamento)
             titulo = "Editar Pagamento"
         else:
+            pagamento = None
             form = self.form_class()
             titulo = "Novo Pagamento"
         return render(request, self.template_name, {
             "form": form,
             "titulo": titulo,
+            "pagamento": pagamento,
         })
 
-    def post(self, request, pagamento_id=None):       
-
+    def post(self, request, pagamento_id=None):
         if pagamento_id:
             pagamento = get_object_or_404(Pagamento, pk=pagamento_id)
             form = self.form_class(request.POST, instance=pagamento)
         else:
+            pagamento = None
             form = self.form_class(request.POST)
 
-        if form.is_valid():           
+        if form.is_valid():
             form.save()
             messages.success(request, "Pagamento salvo com sucesso!")
             return redirect('list_pagamentos')
         else:
-            print("Formulário inválido:", form.errors)  
+            print("Formulário inválido:", form.errors)
 
         titulo = "Editar Pagamento" if pagamento_id else "Novo Pagamento"
         return render(request, self.template_name, {
             "form": form,
             "titulo": titulo,
+            "pagamento": pagamento,
         })
 
 
+# Detalhamento do Pagamento
 @method_decorator(never_cache, name="dispatch")
 class PagamentoDetailView(TemplateView):
     template_name = "pagamento/pagamento.html"
@@ -1097,6 +1102,7 @@ class PagamentoDetailView(TemplateView):
         return context
 
 
+# Remover Pagamento
 @method_decorator(never_cache, name="dispatch")
 class PagamentoDeleteView(DeleteView):
     model = Pagamento
@@ -1105,8 +1111,9 @@ class PagamentoDeleteView(DeleteView):
     def get_success_url(self):
         messages.success(self.request, "Pagamento removido com sucesso")
         return reverse_lazy('list_pagamentos')
-    
 
+
+# Carregar objetos relacionados com AJAX
 @require_GET
 def carregar_objetos_pagamento(request):
     tipo = request.GET.get('tipo_modelo')
