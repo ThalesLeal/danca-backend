@@ -17,7 +17,7 @@ from django.db import models
 from django.db.models import Sum, F, ExpressionWrapper, DecimalField
 from django.views.decorators.http import require_GET
 from datetime import date
-
+from django.db.models import OuterRef, Subquery
 
 
 
@@ -486,12 +486,33 @@ class InscricaoListView(ListView):
             inscricoes = inscricoes.filter(
                 pagamento__data_proximo_pagamento__gt=date.today()
             )
+        
+        proximo_pagamento_subquery = Pagamento.objects.filter(
+            content_type=ContentType.objects.get_for_model(Inscricao),
+            object_id=OuterRef('id'),
+            data_proximo_pagamento__isnull=False
+        ).order_by('data_proximo_pagamento').values('data_proximo_pagamento')[:1]
+
+        # Anota o campo data_proximo_pagamento no queryset
+        inscricoes = Inscricao.objects.annotate(
+            data_proximo_pagamento=Subquery(proximo_pagamento_subquery)
+        )
+
+        # Verifica se o ordering é data_proximo_pagamento ou valor_restante
+        if ordering == 'data_proximo_pagamento':
+            return inscricoes.order_by('data_proximo_pagamento')
+        elif ordering == '-data_proximo_pagamento':
+            return inscricoes.order_by('-data_proximo_pagamento')
+        elif ordering == 'valor_restante':
+            return inscricoes.order_by('valor_restante')
+        elif ordering == '-valor_restante':
+            return inscricoes.order_by('-valor_restante')
 
         return inscricoes.order_by(ordering)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
+        context['ordering'] = self.request.GET.get('ordering', 'nome')
         queryset = self.get_queryset()
 
         # Corrigindo a forma de calcular os totais
