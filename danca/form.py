@@ -248,10 +248,11 @@ class ProfissionalForm(forms.ModelForm):
 
     class Meta:
         model = Profissional
-        fields = ['nome', 'valor_hora_aula', 'qt_aulas', 'funcao', 'local_partida', 'local_volta', 'eventos']
+        fields = ['nome','cpf' ,'valor_hora_aula', 'qt_aulas', 'funcao', 'local_partida', 'local_volta', 'eventos']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control', 'required': True}),
-            'valor_hora_aula': forms.TextInput(attrs={'class': 'form-control mask-valor', 'placeholder': 'R$ 0,00'}),
+            'cpf': forms.TextInput(attrs={'class': 'form-control mask-cpf', 'placeholder': 'XXX.XXX.XXX-XX'}),
+            'valor_hora_aula': forms.NumberInput(attrs={'class': 'form-control', 'required': True, 'step': '0.01', 'min': '0.01'}),
             'qt_aulas': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'placeholder': 'Quantidade de aulas'}),
             'funcao': forms.TextInput(attrs={'class': 'form-control'}),
             'local_partida': forms.TextInput(attrs={'class': 'form-control'}),
@@ -259,6 +260,7 @@ class ProfissionalForm(forms.ModelForm):
         }
         labels = {
             'nome': 'Nome completo',
+            'cpf': 'CPF',
             'valor_hora_aula': 'Valor da Hora Aula',
             'qt_aulas': 'Quantidade de Aulas',
             'funcao': 'Função',

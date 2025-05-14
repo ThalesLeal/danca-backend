@@ -33,6 +33,7 @@
         <th>Local de Partida</th>
         <th>Local de Volta</th>
         <th>Eventos</th>
+        <th>CPF</th>
         <th class="text-center">Ações</th>
       </tr>
     </thead>
@@ -40,6 +41,7 @@
       {% for profissional in page_obj %}
       <tr>
         <td class="align-middle">{{ profissional.nome }}</td>
+        <td class="align-middle">{{ profissional.cpf}}</td>
         <td class="align-middle">{{ profissional.funcao }}</td>
         <td class="align-middle">R$ {{ profissional.calcular_cache|floatformat:2|intcomma }}</td>
         <td class="align-middle">{{ profissional.local_partida }}</td>

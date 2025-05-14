@@ -43,6 +43,17 @@
           {% endif %}
         </div>
         <div class="col-md-6 mb-3">
+          <label class="me-3" for="{{ form.cpf.id_for_label }}">{{ form.cpf.label }}</label>
+          {{ form.cpf }}
+          {% if form.cpf.errors %}
+            {% for error in form.cpf.errors %}
+            <div class="text-danger small mt-1">
+              {{ error }}
+            </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+        <div class="col-md-6 mb-3">
           <label class="me-3" for="{{ form.valor_hora_aula.id_for_label }}">{{ form.valor_hora_aula.label }}</label>
           {{ form.valor_hora_aula }}
           {% if form.valor_hora_aula.errors %}
