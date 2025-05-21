@@ -170,7 +170,7 @@ class InscricaoForm(forms.ModelForm):
     eventos = forms.ModelMultipleChoiceField(
         queryset=Evento.objects.all(),
         widget=forms.CheckboxSelectMultiple,
-        required=True,
+        required=False,
         label="Eventos"
     )
 

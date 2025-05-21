@@ -520,6 +520,9 @@ class InscricaoListView(ListView):
         total_total = queryset.aggregate(total=Sum('valor_total'))['total'] or 0
         total_a_receber = total_total - total_pago
 
+        # Adiciona o total de inscrições
+        total_inscricoes = Inscricao.objects.count()
+
         context.update({
             'q': self.request.GET.get('q', ''),
             'status': self.request.GET.get('status', ''),
@@ -527,6 +530,7 @@ class InscricaoListView(ListView):
             'create_url': reverse('create_inscricao'),
             'total_pago': total_pago,
             'total_a_receber': total_a_receber,
+            'total_inscricoes': total_inscricoes,
         })
         return context
 
