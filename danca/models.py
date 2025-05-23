@@ -344,6 +344,7 @@ class Pagamento(models.Model):
     valor_pago = models.DecimalField(max_digits=10, decimal_places=2)
     data_pagamento = models.DateField(auto_now_add=True)
     data_proximo_pagamento = models.DateField(null=True, blank=True)  
+    numero_parcela =models.IntegerField()
 
     def save(self, *args, **kwargs):
         # Garante que data_pagamento não seja None
@@ -357,7 +358,8 @@ class Pagamento(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.tipo_modelo} - {self.pagamento_relacionado}"
+        return f"{self.tipo_modelo} - {self.pagamento_relacionado} - Parcela {self.numero_parcela}"
+
     
     class Meta:
         verbose_name = "Pagamento"

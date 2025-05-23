@@ -25,6 +25,14 @@
       <label for="{{ form.valor_pago.id_for_label }}">{{ form.valor_pago.label }}</label>
       {{ form.valor_pago }}
     </div>
+
+    <!-- Número da Parcela  -->    
+    <div class="col-md-6 mb-3">
+      <label for="{{ form.numero_parcela.id_for_label }}">{{ form.numero_parcela.label }}</label>
+      {{ form.numero_parcela  }}
+    </div>
+
+  
   </div>
 
   <button type="submit" class="btn btn-success">Salvar</button>
@@ -56,6 +64,6 @@
                 .catch(error => console.error('Erro ao carregar objetos:', error));
         }
     });
-});
+  });
 </script>
 {% endblock %}

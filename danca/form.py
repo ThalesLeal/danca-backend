@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from .models import Lote,Categoria,TipoEvento,Evento,Camisa,Planejamento,Inscricao, InscricaoEvento,Profissional, ProfissionalEvento, Entrada, Saida,Pagamento
-
+from decimal import Decimal, InvalidOperation
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext_lazy as _
 import re 
@@ -366,7 +366,7 @@ class PagamentoForm(forms.ModelForm):
 
     class Meta:
         model = Pagamento
-        fields = ['tipo_modelo', 'valor_pago']
+        fields = ['tipo_modelo', 'valor_pago','numero_parcela']
         widgets = {
             # Não é necessário alterar o widget aqui, pois 'valor_pago' foi mudado para CharField
         }
@@ -382,7 +382,7 @@ class PagamentoForm(forms.ModelForm):
             valor = valor.replace(",", ".")  # Substitui vírgula por ponto
 
         try:
-            return float(valor)  # Converte para float
+             return Decimal(valor) 
         except ValueError:
             raise forms.ValidationError("Informe um valor numérico válido.")
 

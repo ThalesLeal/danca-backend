@@ -1150,3 +1150,30 @@ def carregar_objetos_pagamento(request):
         data = [{'id': obj.id, 'descricao': obj.nome} for obj in Inscricao.objects.all()]
 
     return JsonResponse({'objetos': data})
+
+def pagamentos_list(request):
+    pagamentos = Pagamento.objects.all()
+    tipo_modelo = request.GET.get('tipo_modelo')
+    pagamento_relacionado = request.GET.get('pagamento_relacionado')
+
+    if tipo_modelo:
+        pagamentos = pagamentos.filter(tipo_modelo=tipo_modelo)
+
+    if pagamento_relacionado:
+        pagamentos = pagamentos.filter(pagamento_relacionado_id=pagamento_relacionado)
+
+    # Popula opções para pagamento_relacionado conforme tipo_modelo
+    if tipo_modelo == 'planejamento':
+        pagamentos_relacionados = Planejamento.objects.all()
+    elif tipo_modelo == 'inscricao':
+        pagamentos_relacionados = Inscricao.objects.all()
+    else:
+        pagamentos_relacionados = []
+
+    context = {
+        'page_obj': pagamentos,
+        'pagamentos_relacionados': pagamentos_relacionados,
+        'create_url': reverse('create_pagamento'),
+    }
+    return render(request, 'pagamentos.html', context)
+
