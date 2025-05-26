@@ -1056,7 +1056,7 @@ def resumo_caixa(request):
 @method_decorator(never_cache, name="dispatch")
 class PagamentoListView(ListView):
     model = Pagamento
-    paginate_by = 10
+    paginate_by = 35
     template_name = "pagamento/list.html"
 
     def get_queryset(self):

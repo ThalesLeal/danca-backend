@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 
 {% load static %}
+{% load humanize %}
+{% load custom_filters %}
+
 {% block head_extra %}
 <!-- Se quiser depois adicionar Select2, pode incluir aqui -->
 {% endblock %}
@@ -8,10 +11,25 @@
 {% block content %}
 <h2 class="pb-2">Pagamentos</h2>
 
+<!-- MENSAGENS -->
+{% if messages %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- FILTRO -->
 <form method="get" id="filtro-pagamentos" class="mb-4">
   <div class="row g-3 align-items-center">
-
-    <!-- Tipo Modelo -->
     <div class="col-auto">
       <label for="tipo_modelo" class="form-label">Tipo de Modelo</label>
       <select id="tipo_modelo" name="tipo_modelo" class="form-select">
@@ -21,7 +39,6 @@
       </select>
     </div>
 
-    <!-- Pagamento Relacionado -->
     <div class="col-auto">
       <label for="pagamento_relacionado" class="form-label">Pagamento Relacionado</label>
       <select id="pagamento_relacionado" name="pagamento_relacionado" class="form-select">
@@ -29,15 +46,14 @@
       </select>
     </div>
 
-    <!-- Botão Filtrar -->
     <div class="col-auto align-self-end">
       <button type="submit" class="btn btn-primary">Filtrar</button>
     </div>
-
   </div>
 </form>
 
-<table class="table table-striped">
+<!-- TABELA -->
+<table class="table table-striped table-hover">
   <thead>
     <tr>
       <th>Tipo de Modelo</th>
@@ -51,8 +67,8 @@
   <tbody>
     {% for pagamento in page_obj %}
     <tr>
-      <td>{{ pagamento.get_tipo_modelo_display }}</td>
-      <td>
+      <td class="align-middle">{{ pagamento.get_tipo_modelo_display }}</td>
+      <td class="align-middle">
         {% if pagamento.tipo_modelo == 'planejamento' %}
           {{ pagamento.pagamento_relacionado.descricao }}
         {% elif pagamento.tipo_modelo == 'inscricao' %}
@@ -61,18 +77,18 @@
           -
         {% endif %}
       </td>
-      <td>R$ {{ pagamento.valor_pago|floatformat:2 }}</td>
-      <td>{{ pagamento.numero_parcela }}</td>
-      <td>{{ pagamento.data_pagamento|date:"d/m/Y" }}</td>
-      <td class="text-center">
-        <a href="{% url 'detail_pagamento' pagamento.id %}" class="btn btn-info btn-sm">
-          <i class="bi bi-eye-fill"></i>
+      <td class="align-middle">R$ {{ pagamento.valor_pago|floatformat:2 }}</td>
+      <td class="align-middle">{{ pagamento.numero_parcela }}</td>
+      <td class="align-middle">{{ pagamento.data_pagamento|date:"d/m/Y" }}</td>
+      <td class="col-3 text-center botoes">
+        <a href="{% url 'detail_pagamento' pagamento.id %}" class="btn btn-info">
+          <i class="bi bi-eye-fill text-white"></i>
         </a>
-        <a href="{% url 'update_pagamento' pagamento.id %}" class="btn btn-warning btn-sm">
-          <i class="bi bi-pencil-square"></i>
+        <a href="{% url 'update_pagamento' pagamento.id %}" class="btn btn-warning">
+          <i class="bi bi-pencil-square text-dark"></i>
         </a>
-        <button type="button" class="btn btn-danger btn-sm btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="{{ pagamento.id }}">
-          <i class="bi bi-trash3-fill"></i>
+        <button type="button" class="btn btn-danger btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="{{ pagamento.id }}">
+          <i class="bi bi-trash3-fill text-white"></i>
         </button>
       </td>
     </tr>
@@ -82,7 +98,10 @@
   </tbody>
 </table>
 
-<!-- Modal de exclusão -->
+<!-- PAGINAÇÃO -->
+{% include "partials/_pagination.html" %}
+
+<!-- MODAL DE EXCLUSÃO -->
 <div class="modal fade" id="deleteModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -102,6 +121,7 @@
   </div>
 </div>
 
+<!-- VOLTAR -->
 <div class="mt-4">
   <a href="{% url 'index' %}" class="btn btn-secondary"><i class="bi bi-box-arrow-in-left"></i> Voltar</a>
 </div>
