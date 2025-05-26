@@ -45,7 +45,7 @@
       <th>Valor Pago</th>
       <th>Parcela</th>
       <th>Data do Pagamento</th>
-      <th>Ações</th>
+      <th class="text-center">Ações</th>
     </tr>
   </thead>
   <tbody>
@@ -64,13 +64,16 @@
       <td>R$ {{ pagamento.valor_pago|floatformat:2 }}</td>
       <td>{{ pagamento.numero_parcela }}</td>
       <td>{{ pagamento.data_pagamento|date:"d/m/Y" }}</td>
-      <td>
-        <a href="{% url 'detail_pagamento' pagamento.id %}" class="btn btn-info btn-sm">Ver</a>
-        <a href="{% url 'update_pagamento' pagamento.id %}" class="btn btn-warning btn-sm">Editar</a>
-        <form method="post" action="{% url 'delete_pagamento' pagamento.id %}" style="display:inline;">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Confirma exclusão?')">Excluir</button>
-        </form>
+      <td class="text-center">
+        <a href="{% url 'detail_pagamento' pagamento.id %}" class="btn btn-info btn-sm">
+          <i class="bi bi-eye-fill"></i>
+        </a>
+        <a href="{% url 'update_pagamento' pagamento.id %}" class="btn btn-warning btn-sm">
+          <i class="bi bi-pencil-square"></i>
+        </a>
+        <button type="button" class="btn btn-danger btn-sm btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="{{ pagamento.id }}">
+          <i class="bi bi-trash3-fill"></i>
+        </button>
       </td>
     </tr>
     {% empty %}
@@ -102,7 +105,6 @@
 <div class="mt-4">
   <a href="{% url 'index' %}" class="btn btn-secondary"><i class="bi bi-box-arrow-in-left"></i> Voltar</a>
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
@@ -134,6 +136,13 @@ $(document).ready(function() {
 
   $("#tipo_modelo").on('change', function() {
     carregarPagamentoRelacionado($(this).val(), '');
+  });
+
+  // Ação do botão excluir
+  $(document).on('click', '.btn-delete', function () {
+    const pagamentoId = $(this).data('id');
+    const urlBase = "{% url 'delete_pagamento' 0 %}".replace('/0/', '/' + pagamentoId + '/');
+    $('#delete-form').attr('action', urlBase);
   });
 });
 </script>

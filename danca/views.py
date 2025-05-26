@@ -1169,14 +1169,19 @@ class PagamentoDeleteView(DeleteView):
 @require_GET
 def carregar_objetos_pagamento(request):
     tipo = request.GET.get('tipo_modelo')
-    data = []
+    termo = request.GET.get('q', '')
 
     if tipo == 'planejamento':
-        data = [{'id': obj.id, 'descricao': obj.descricao} for obj in Planejamento.objects.all()]
+        objetos = Planejamento.objects.filter(descricao__icontains=termo)
     elif tipo == 'inscricao':
-        data = [{'id': obj.id, 'descricao': obj.nome} for obj in Inscricao.objects.all()]
+        objetos = Inscricao.objects.filter(nome__icontains=termo)
+    else:
+        objetos = []
 
-    return JsonResponse({'objetos': data})
+    data = {
+        'objetos': [{'id': obj.id, 'descricao': str(obj)} for obj in objetos]
+    }
+    return JsonResponse(data)
 
 def pagamentos_list(request):
     pagamentos = Pagamento.objects.all()
