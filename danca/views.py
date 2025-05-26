@@ -18,6 +18,7 @@ from django.db.models import Sum, F, ExpressionWrapper, DecimalField
 from django.views.decorators.http import require_GET
 from datetime import date
 from django.db.models import OuterRef, Subquery
+from django.contrib.contenttypes.models import ContentType
 
 
 
@@ -1059,16 +1060,42 @@ class PagamentoListView(ListView):
     template_name = "pagamento/list.html"
 
     def get_queryset(self):
+        queryset = Pagamento.objects.all().order_by('-id')
+
         query = self.request.GET.get('q')
         if query:
-            return Pagamento.objects.filter(valor_pago__icontains=query).order_by('-id')
-        return Pagamento.objects.all().order_by('-id')
+            queryset = queryset.filter(valor_pago__icontains=query)
+
+        tipo_modelo = self.request.GET.get('tipo_modelo')
+        pagamento_relacionado = self.request.GET.get('pagamento_relacionado')
+
+        if tipo_modelo:
+            content_type = ContentType.objects.get(model=tipo_modelo)
+            queryset = queryset.filter(content_type=content_type)
+
+            if pagamento_relacionado:
+                queryset = queryset.filter(object_id=pagamento_relacionado)
+
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['q'] = self.request.GET.get('q', '')
+        context['tipo_modelo'] = self.request.GET.get('tipo_modelo', '')
+        context['pagamento_relacionado'] = self.request.GET.get('pagamento_relacionado', '')
         context['create_url'] = reverse('create_pagamento')
+
+        # Carrega opções de pagamento_relacionado conforme tipo_modelo
+        tipo_modelo = self.request.GET.get('tipo_modelo')
+        if tipo_modelo == 'planejamento':
+            context['pagamentos_relacionados'] = Planejamento.objects.all()
+        elif tipo_modelo == 'inscricao':
+            context['pagamentos_relacionados'] = Inscricao.objects.all()
+        else:
+            context['pagamentos_relacionados'] = []
+
         return context
+
 
 
 # Criar e Editar Pagamento
@@ -1176,4 +1203,25 @@ def pagamentos_list(request):
         'create_url': reverse('create_pagamento'),
     }
     return render(request, 'pagamentos.html', context)
+
+
+def listar_pagamentos(request):
+    pagamentos = Pagamento.objects.all()
+
+    tipo_modelo = request.GET.get('tipo_modelo')
+    pagamento_relacionado = request.GET.get('pagamento_relacionado')
+
+    if tipo_modelo:
+        pagamentos = pagamentos.filter(tipo_modelo=tipo_modelo)
+
+    if pagamento_relacionado:
+        pagamentos = pagamentos.filter(pagamento_relacionado__id=pagamento_relacionado)
+
+    paginator = Paginator(pagamentos, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'pagamentos/lista.html', {
+        'page_obj': page_obj,
+    })
 
