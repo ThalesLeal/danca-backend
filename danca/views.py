@@ -19,6 +19,7 @@ from django.views.decorators.http import require_GET
 from datetime import date
 from django.db.models import OuterRef, Subquery
 from django.contrib.contenttypes.models import ContentType
+from datetime import date, timedelta
 
 
 
@@ -1061,40 +1062,33 @@ class PagamentoListView(ListView):
 
     def get_queryset(self):
         queryset = Pagamento.objects.all().order_by('-id')
+        filtro = self.request.GET.get('q', '').strip().lower()
 
-        query = self.request.GET.get('q')
-        if query:
-            queryset = queryset.filter(valor_pago__icontains=query)
+        if filtro:
+            # Busca os objetos relacionados que contenham o texto
+            planejamentos = Planejamento.objects.filter(descricao__icontains=filtro)
+            inscricoes = Inscricao.objects.filter(nome__icontains=filtro)
 
-        tipo_modelo = self.request.GET.get('tipo_modelo')
-        pagamento_relacionado = self.request.GET.get('pagamento_relacionado')
+            # Monta a lista de conteúdo genérico
+            content_type_planejamento = ContentType.objects.get_for_model(Planejamento)
+            content_type_inscricao = ContentType.objects.get_for_model(Inscricao)
 
-        if tipo_modelo:
-            content_type = ContentType.objects.get(model=tipo_modelo)
-            queryset = queryset.filter(content_type=content_type)
-
-            if pagamento_relacionado:
-                queryset = queryset.filter(object_id=pagamento_relacionado)
+            queryset = queryset.filter(
+                models.Q(content_type=content_type_planejamento, object_id__in=planejamentos.values_list('id', flat=True)) |
+                models.Q(content_type=content_type_inscricao, object_id__in=inscricoes.values_list('id', flat=True))
+            )
 
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['q'] = self.request.GET.get('q', '')
-        context['tipo_modelo'] = self.request.GET.get('tipo_modelo', '')
-        context['pagamento_relacionado'] = self.request.GET.get('pagamento_relacionado', '')
+        filtro = self.request.GET.get('q', '')
+        context['pagamento_relacionado'] = filtro
+        context['search_url'] = self.request.path
         context['create_url'] = reverse('create_pagamento')
-
-        # Carrega opções de pagamento_relacionado conforme tipo_modelo
-        tipo_modelo = self.request.GET.get('tipo_modelo')
-        if tipo_modelo == 'planejamento':
-            context['pagamentos_relacionados'] = Planejamento.objects.all()
-        elif tipo_modelo == 'inscricao':
-            context['pagamentos_relacionados'] = Inscricao.objects.all()
-        else:
-            context['pagamentos_relacionados'] = []
-
         return context
+           
+
 
 
 

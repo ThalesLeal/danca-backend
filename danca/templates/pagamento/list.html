@@ -4,9 +4,7 @@
 {% load humanize %}
 {% load custom_filters %}
 
-{% block head_extra %}
-<!-- Se quiser depois adicionar Select2, pode incluir aqui -->
-{% endblock %}
+{% block head_extra %}{% endblock %}
 
 {% block content %}
 <h2 class="pb-2">Pagamentos</h2>
@@ -28,29 +26,29 @@
 {% endif %}
 
 <!-- FILTRO -->
-<form method="get" id="filtro-pagamentos" class="mb-4">
-  <div class="row g-3 align-items-center">
-    <div class="col-auto">
-      <label for="tipo_modelo" class="form-label">Tipo de Modelo</label>
-      <select id="tipo_modelo" name="tipo_modelo" class="form-select">
-        <option value="">Todos</option>
-        <option value="planejamento" {% if request.GET.tipo_modelo == 'planejamento' %}selected{% endif %}>Planejamento</option>
-        <option value="inscricao" {% if request.GET.tipo_modelo == 'inscricao' %}selected{% endif %}>Inscrição</option>
-      </select>
-    </div>
-
-    <div class="col-auto">
-      <label for="pagamento_relacionado" class="form-label">Pagamento Relacionado</label>
-      <select id="pagamento_relacionado" name="pagamento_relacionado" class="form-select">
-        <option value="">Selecione o Tipo de Modelo primeiro</option>
-      </select>
-    </div>
-
-    <div class="col-auto align-self-end">
-      <button type="submit" class="btn btn-primary">Filtrar</button>
-    </div>
+<div class="row bg-light pt-2 border rounded">
+  <div class="col-9">
+    <form method="get" action="{{ search_url }}" class="mb-3">
+      <label for="search" class="form-label">Filtro por Pagamento Relacionado</label>
+      <div class="input-group">
+        <input type="text" name="q" id="search" placeholder="Filtrar pagamento relacionado" class="form-control"
+          value="{{ pagamento_relacionado }}" required />
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-funnel"></i><span class="esconder-sm"> Filtrar</span>
+        </button>
+        <a href="{{ search_url }}" class="btn btn-secondary">
+          <i class="bi bi-trash3-fill"></i><span class="esconder-sm"> Limpar</span>
+        </a>
+      </div>
+    </form>
   </div>
-</form>
+  <div class="col-3 mb-3 align-self-end">
+    <a href="{{ create_url }}" class="btn btn-primary float-end">
+      <i class="bi bi-plus"></i> Novo<span class="esconder-sm"> Registro</span>
+    </a>
+  </div>
+</div>
+
 
 <!-- TABELA -->
 <table class="table table-striped table-hover">
@@ -98,7 +96,6 @@
   </tbody>
 </table>
 
-<!-- PAGINAÇÃO -->
 {% include "partials/_pagination.html" %}
 
 <!-- MODAL DE EXCLUSÃO -->
@@ -128,42 +125,26 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
-$(document).ready(function() {
-  function carregarPagamentoRelacionado(tipo, selecionado) {
-    if (!tipo) {
-      $("#pagamento_relacionado").html('<option value="">Selecione o Tipo de Modelo primeiro</option>').prop('disabled', true);
-      return;
-    }
-    $.ajax({
-      url: "{% url 'carregar_objetos_pagamento' %}",
-      data: {'tipo_modelo': tipo},
-      success: function(data) {
-        let options = '<option value="">Todos</option>';
-        data.objetos.forEach(function(obj) {
-          const selected = (obj.id == selecionado) ? 'selected' : '';
-          options += `<option value="${obj.id}" ${selected}>${obj.descricao}</option>`;
-        });
-        $("#pagamento_relacionado").html(options).prop('disabled', false);
-      }
+  document.addEventListener("DOMContentLoaded", function () {
+    // Select2 para busca digitável
+    $('.select2').select2({
+      placeholder: "Selecione",
+      allowClear: true,
+      width: '100%'
     });
-  }
 
-  const tipoSelecionado = $("#tipo_modelo").val();
-  const pagamentoSelecionado = "{{ request.GET.pagamento_relacionado|default:'' }}";
-  carregarPagamentoRelacionado(tipoSelecionado, pagamentoSelecionado);
-
-  $("#tipo_modelo").on('change', function() {
-    carregarPagamentoRelacionado($(this).val(), '');
+    // Modal de exclusão
+    document.querySelectorAll(".btn-delete").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        const pagamentoId = this.dataset.id;
+        const urlBase = "{% url 'delete_pagamento' 0 %}".replace("/0/", "/" + pagamentoId + "/");
+        document.getElementById("delete-form").action = urlBase;
+      });
+    });
   });
-
-  // Ação do botão excluir
-  $(document).on('click', '.btn-delete', function () {
-    const pagamentoId = $(this).data('id');
-    const urlBase = "{% url 'delete_pagamento' 0 %}".replace('/0/', '/' + pagamentoId + '/');
-    $('#delete-form').attr('action', urlBase);
-  });
-});
 </script>
 {% endblock %}
+
+
