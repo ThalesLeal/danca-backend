@@ -5,6 +5,8 @@ from decimal import Decimal, InvalidOperation
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext_lazy as _
 import re 
+from django.forms import DateInput
+
 
 class LoteForm(forms.ModelForm):
     class Meta:
@@ -15,12 +17,14 @@ class LoteForm(forms.ModelForm):
             'valor_unitario': forms.TextInput(attrs={'class': 'form-control mask-valor', 'placeholder': 'R$ 0,00'}),
             'unidades': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'placeholder': 'Quantidade'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
+            
         }
         labels = {
             'descricao': 'Descrição do Lote',
             'valor_unitario': 'Valor Unitário',
             'unidades': 'Quantidade de Unidades',
             'status': 'Status',
+            
         }
 
     def clean_unidades(self):
@@ -173,6 +177,11 @@ class InscricaoForm(forms.ModelForm):
         required=False,
         label="Eventos"
     )
+    data_proximo_pagamento = forms.DateField(
+        required=False,
+        widget=DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        label='Data do próximo pagamento'
+    )
 
     class Meta:
         model = Inscricao
@@ -190,6 +199,7 @@ class InscricaoForm(forms.ModelForm):
             'lote': forms.Select(attrs={'class': 'form-select'}),
             'desconto': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'numero_parcelas': forms.NumberInput(attrs={'class': 'form-control'}),
+            'data_proximo_pagamento': DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
         labels = {
             'nome': 'Nome completo',
@@ -201,6 +211,7 @@ class InscricaoForm(forms.ModelForm):
             'lote': 'Lote',
             'desconto': 'Desconto (R$)',
             'numero_parcelas': 'Número de Parcelas',
+            'data_proximo_pagamento': 'Data do proximo Pagamento'
         }
         help_texts = {
             'numero_parcelas': 'Informe somente números inteiros.',
@@ -208,6 +219,32 @@ class InscricaoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['lote'].queryset = Lote.objects.all()
+        if self.instance.pk:  # Se a inscrição já existe
+            ultimo_pagamento = Pagamento.objects.filter(
+                tipo_modelo='inscricao',
+                object_id=self.instance.pk
+            ).last()
+            if ultimo_pagamento:
+                self.fields['data_proximo_pagamento'].initial = ultimo_pagamento.data_proximo_pagamento
+
+    def save(self, commit=True):
+        inscricao = super().save(commit=commit)
+        
+        if commit:
+            # Cria/atualiza o Pagamento associado
+            ultimo_pagamento = Pagamento.objects.filter(
+                tipo_modelo='inscricao',
+                object_id=inscricao.pk
+            ).last()
+            
+            if ultimo_pagamento:
+                # Atualiza a data se o campo foi modificado no form
+                nova_data = self.cleaned_data.get('data_proximo_pagamento')
+                if nova_data and nova_data != ultimo_pagamento.data_proximo_pagamento:
+                    ultimo_pagamento.data_proximo_pagamento = nova_data
+                    ultimo_pagamento.save()
+        
+        return inscricao
 
     def clean_desconto(self):
         desconto = self.cleaned_data.get('desconto')

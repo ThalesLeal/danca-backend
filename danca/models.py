@@ -6,6 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db.models import Sum
 from datetime import date, timedelta
+from dateutil.relativedelta import relativedelta
 
 
 
@@ -347,16 +348,14 @@ class Pagamento(models.Model):
     numero_parcela =models.IntegerField()
 
     def save(self, *args, **kwargs):
-        # Garante que data_pagamento não seja None
         if not self.data_pagamento:
             self.data_pagamento = date.today()
 
-        # Calcula a data do próximo pagamento apenas para inscrições
-        if self.tipo_modelo == 'inscricao':
-            self.data_proximo_pagamento = self.data_pagamento + timedelta(days=30)
-
+        if self.tipo_modelo == 'inscricao' and not self.data_proximo_pagamento:
+            # Usa relativedelta para evitar problemas com meses de 28/30/31 dias
+            self.data_proximo_pagamento = self.data_pagamento + relativedelta(months=1)
+        
         super().save(*args, **kwargs)
-
     def __str__(self):
         return f"{self.tipo_modelo} - {self.pagamento_relacionado} - Parcela {self.numero_parcela}"
 

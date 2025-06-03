@@ -560,6 +560,16 @@ class InscricaoFormView(View):
             inscricao = get_object_or_404(Inscricao, id=inscricao_id)
             form = self.form_class(instance=inscricao)
 
+        # Carrega a data_proximo_pagamento do último pagamento se existir
+            ultimo_pagamento = Pagamento.objects.filter(
+                content_type=ContentType.objects.get_for_model(inscricao),
+                object_id=inscricao.id,
+                tipo_modelo='inscricao'
+            ).order_by('-data_pagamento').first()
+            
+            if ultimo_pagamento:
+                form.fields['data_proximo_pagamento'].initial = ultimo_pagamento.data_proximo_pagamento
+
         # Certifique-se de que o queryset do lote está carregado
         form.fields['lote'].queryset = Lote.objects.all()
 
@@ -598,8 +608,26 @@ class InscricaoFormView(View):
             inscricao.valor_parcela = inscricao.calcular_valor_parcela()
             inscricao.save(update_fields=['valor_total', 'valor_parcela'])
 
+             # Atualização da data de próximo pagamento (apenas para edição)
+            if inscricao_id:
+                data_proximo = form.cleaned_data.get('data_proximo_pagamento')
+                if data_proximo:
+                    pagamento = Pagamento.objects.filter(
+                        content_type=ContentType.objects.get_for_model(inscricao),
+                        object_id=inscricao.id,
+                        tipo_modelo='inscricao'
+                    ).first()
+                    
+                    if pagamento:
+                        pagamento.data_proximo_pagamento = data_proximo
+                        pagamento.save(update_fields=['data_proximo_pagamento'])
+
             messages.success(request, "Inscrição salva com sucesso!")
             return redirect('list_inscricoes')
+
+            
+        # Garante que o lote esteja carregado mesmo em caso de erro
+        form.fields['lote'].queryset = Lote.objects.all()    
 
         return render(request, self.template_name, {
             "form": form,
