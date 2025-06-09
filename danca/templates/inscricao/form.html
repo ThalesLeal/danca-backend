@@ -76,6 +76,7 @@
             {{ form.data_proximo_pagamento.label }}
           </label>
           {{ form.data_proximo_pagamento }}
+          <small class="text-muted">Deixe em branco para usar a data calculada automaticamente</small>
           {% if form.data_proximo_pagamento.errors %}
             <div class="text-danger small">
               {{ form.data_proximo_pagamento.errors.0 }}

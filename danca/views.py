@@ -601,11 +601,7 @@ class InscricaoFormView(View):
                     if evento.quantidade_pessoas <= 0:
                         raise ValidationError(f"O evento '{evento.descricao}' não tem vagas disponíveis.")
                     
-                    # return render(request, self.template_name, {
-                    #     "form": form,
-                    #     "eventos": Evento.objects.all(),
-                    #     "inscricao": inscricao,
-                    # })
+                    
 
             inscricao.eventos.set(eventos)
 
@@ -614,15 +610,25 @@ class InscricaoFormView(View):
             inscricao.valor_parcela = inscricao.calcular_valor_parcela()
             inscricao.save(update_fields=['valor_total', 'valor_parcela'])
 
-             # Atualização da data de próximo pagamento (apenas para edição)
+            # Atualização MANUAL da data de próximo pagamento (apenas para edição)
             if inscricao_id:
                 data_proximo = form.cleaned_data.get('data_proximo_pagamento')
                 if data_proximo:
+                    # Busca o próximo pagamento não pago ou cria um novo se necessário
                     pagamento = Pagamento.objects.filter(
                         content_type=ContentType.objects.get_for_model(inscricao),
                         object_id=inscricao.id,
-                        tipo_modelo='inscricao'
-                    ).first()
+                        tipo_modelo='inscricao',
+                        valor_pago=0  # Ainda não foi pago
+                    ).order_by('numero_parcela').first()
+                    
+                    if not pagamento:
+                        # Se não encontrou, pega o último pagamento
+                        pagamento = Pagamento.objects.filter(
+                            content_type=ContentType.objects.get_for_model(inscricao),
+                            object_id=inscricao.id,
+                            tipo_modelo='inscricao'
+                        ).order_by('-numero_parcela').first()
                     
                     if pagamento:
                         pagamento.data_proximo_pagamento = data_proximo
@@ -630,7 +636,6 @@ class InscricaoFormView(View):
 
             messages.success(request, "Inscrição salva com sucesso!")
             return redirect('list_inscricoes')
-
             
         # Garante que o lote esteja carregado mesmo em caso de erro
         form.fields['lote'].queryset = Lote.objects.all()    

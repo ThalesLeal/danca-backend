@@ -401,6 +401,12 @@ class PagamentoForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'form-control mask-valor', 'placeholder': 'R$ 0,00'})
     )
 
+    data_proximo_pagamento = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        label="Próximo Pagamento"
+    )
+
     class Meta:
         model = Pagamento
         fields = ['tipo_modelo', 'valor_pago','numero_parcela']
