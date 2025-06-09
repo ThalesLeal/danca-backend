@@ -213,16 +213,28 @@ class Inscricao(models.Model):
     
     @property
     def proximo_pagamento(self):
+        from django.utils import timezone
+        
         content_type = ContentType.objects.get_for_model(self)
+        hoje = timezone.now().date()
+        
+        # Busca o próximo pagamento que ainda não venceu (data_proximo_pagamento >= hoje)
+        # OU o último pagamento feito (se todos já estiverem vencidos)
         proximo = Pagamento.objects.filter(
             content_type=content_type,
             object_id=self.id,
             data_proximo_pagamento__isnull=False
         ).order_by('data_proximo_pagamento').first()
-
-        if proximo:
-            return proximo.data_proximo_pagamento  # Retorna como objeto de data
-        return None
+        
+        # Se não encontrou nenhum pagamento futuro, pega o último vencido
+        if not proximo or (proximo.data_proximo_pagamento < hoje):
+            ultimo = Pagamento.objects.filter(
+                content_type=content_type,
+                object_id=self.id
+            ).order_by('-data_pagamento').first()
+            return ultimo.data_proximo_pagamento if ultimo else None
+        
+        return proximo.data_proximo_pagamento
 
 class InscricaoEvento(models.Model):
     inscricao = models.ForeignKey(Inscricao, on_delete=models.CASCADE, related_name='inscricao_evento_set')
@@ -348,14 +360,24 @@ class Pagamento(models.Model):
     numero_parcela =models.IntegerField()
 
     def save(self, *args, **kwargs):
+        # Garante que a data de pagamento seja sempre definida
         if not self.data_pagamento:
             self.data_pagamento = date.today()
 
-        if self.tipo_modelo == 'inscricao' and not self.data_proximo_pagamento:
-            # Usa relativedelta para evitar problemas com meses de 28/30/31 dias
-            self.data_proximo_pagamento = self.data_pagamento + relativedelta(months=1)
-        
+        # Se for um novo pagamento (não está no banco ainda) ou está sendo atualizado
+        if not self.pk or 'data_pagamento' in kwargs.get('update_fields', []):
+            # Atualiza a data do próximo pagamento para 1 mês após o pagamento atual
+            if self.tipo_modelo == 'inscricao':
+                self.data_proximo_pagamento = self.data_pagamento + relativedelta(months=1)
+            # Adicione outros casos para diferentes tipos de pagamento se necessário
+
         super().save(*args, **kwargs)
+
+        # Atualiza a inscrição relacionada, se necessário
+        if self.tipo_modelo == 'inscricao' and self.pagamento_relacionado:
+            inscricao = self.pagamento_relacionado
+            inscricao.save(update_fields=[])  # Atualiza propriedades calculadas
+
     def __str__(self):
         return f"{self.tipo_modelo} - {self.pagamento_relacionado} - Parcela {self.numero_parcela}"
 
