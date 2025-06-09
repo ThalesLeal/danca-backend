@@ -6,10 +6,16 @@
 <h2 class="pb-2">{{ titulo }}</h2>
 
 <!--- Mensagens de erro -->
-{% if form.errors %}
+{% if form.errors or messages %}
 <div class="container">
   <div class="row">
     <div class="col-md-8 offset-md-2">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
       {% for error in form.non_field_errors %}
         <div class="alert alert-error alert-dismissible fade show" role="alert">
           {{ error }}
@@ -62,22 +68,21 @@
         <div class="col-md-6 mb-3">
           <label class="me-3" for="{{ form.uf.id_for_label }}">{{ form.uf.label }}</label>
           {{ form.uf }}
-        
-          {% if form.instance.pk %}
-          <div class="col-md-6 mb-3">
-            <label class="me-3" for="{{ form.data_proximo_pagamento.id_for_label }}">
-              {{ form.data_proximo_pagamento.label }}
-            </label>
-            {{ form.data_proximo_pagamento }}
-            {% if form.data_proximo_pagamento.errors %}
-              <div class="text-danger small">
-                {{ form.data_proximo_pagamento.errors.0 }}
-              </div>
-            {% endif %}
-          </div>
-          {% endif %}  
-          
         </div>
+        
+        {% if form.instance.pk %}
+        <div class="col-md-6 mb-3">
+          <label class="me-3" for="{{ form.data_proximo_pagamento.id_for_label }}">
+            {{ form.data_proximo_pagamento.label }}
+          </label>
+          {{ form.data_proximo_pagamento }}
+          {% if form.data_proximo_pagamento.errors %}
+            <div class="text-danger small">
+              {{ form.data_proximo_pagamento.errors.0 }}
+            </div>
+          {% endif %}
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -173,7 +178,13 @@
   </div>
 
   <!-- Campo oculto para enviar os IDs dos eventos -->
-  <div id="eventosInputsContainer"></div>
+  <div id="eventosInputsContainer">
+    {% if inscricao %}
+      {% for evento in inscricao.eventos.all %}
+        <input type="hidden" name="eventos" value="{{ evento.id }}">
+      {% endfor %}
+    {% endif %}
+  </div>
 
   <div class="mt-4">
     <button type="submit" class="btn btn-success me-2 float-end">
@@ -226,6 +237,13 @@
     const addEventoBtn = document.getElementById('addEventoBtn');
     const eventosTable = document.getElementById('eventosTable');
     const eventosSelecionados = new Set();
+
+    // Inicializa com os eventos já selecionados (para edição)
+    {% if inscricao %}
+      {% for evento in inscricao.eventos.all %}
+        eventosSelecionados.add('{{ evento.id }}');
+      {% endfor %}
+    {% endif %}
 
     addEventoBtn.addEventListener('click', function () {
       const eventoId = eventoSelect.value;
@@ -289,6 +307,12 @@
         container.appendChild(input);
       });
     }
+
+    // Garante que os eventos sejam enviados ao submeter o formulário
+    document.getElementById('inscricaoForm').addEventListener('submit', function(e) {
+      atualizarEventosInput();
+      return true;
+    });
   });
 </script>
 {% endblock %}

@@ -457,7 +457,7 @@ class PlanejamentoDeleteView(DeleteView):
 @method_decorator(never_cache, name="dispatch")
 class InscricaoListView(ListView):
     model = Inscricao
-    paginate_by = 25
+    paginate_by = 50
     template_name = "inscricao/list.html"
 
     def get_queryset(self):
@@ -600,6 +600,12 @@ class InscricaoFormView(View):
                 if evento.quantidade_pessoas is not None:
                     if evento.quantidade_pessoas <= 0:
                         raise ValidationError(f"O evento '{evento.descricao}' não tem vagas disponíveis.")
+                    
+                    # return render(request, self.template_name, {
+                    #     "form": form,
+                    #     "eventos": Evento.objects.all(),
+                    #     "inscricao": inscricao,
+                    # })
 
             inscricao.eventos.set(eventos)
 
