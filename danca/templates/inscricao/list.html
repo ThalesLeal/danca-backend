@@ -27,7 +27,7 @@
 
 {% include "partials/_filters.html" with search_url=request.path create_url=create_url %}
 
-<div class="d-flex justify-content-end mb-3">
+{% comment %} <div class="d-flex justify-content-end mb-3">
   <form method="get" class="d-flex">
     <select name="proximo_pagamento" class="form-select me-2">
       <option value="">Todos</option>
@@ -37,7 +37,8 @@
     </select>
     <button type="submit" class="btn btn-primary">Filtrar</button>
   </form>
-</div>
+</div> {% endcomment %}
+
 
 <div class="d-flex justify-content-end mb-3">
   <small class="text-success me-3">

@@ -453,7 +453,6 @@ class PlanejamentoDeleteView(DeleteView):
         return reverse_lazy('list_planejamentos')
 
 
-
 @method_decorator(never_cache, name="dispatch")
 class InscricaoListView(ListView):
     model = Inscricao
@@ -462,33 +461,16 @@ class InscricaoListView(ListView):
 
     def get_queryset(self):
         ordering = self.request.GET.get('ordering', 'nome')  # Ordena por 'nome' por padrão
-        status = self.request.GET.get('status')  # Obtém o filtro de status
-        proximo_pagamento = self.request.GET.get('proximo_pagamento')  # Filtro por próximo pagamento
+        filtro = self.request.GET.get('q', '').strip().lower()  # Obtém o parâmetro de busca 'q'
+
+        # Filtro principal
         inscricoes = Inscricao.objects.all()
 
-        # Filtra por status, se fornecido
-        if status:
-            if status == 'pago':
-                inscricoes = inscricoes.filter(valor_restante__lte=0)
-            elif status == 'parcial':
-                inscricoes = inscricoes.filter(valor_pago__gt=0, valor_restante__gt=0)
-            elif status == 'pendente':
-                inscricoes = inscricoes.filter(valor_pago=0)
-        
-         # Filtra por próximo pagamento, se fornecido
-        if proximo_pagamento == 'hoje':
-            inscricoes = inscricoes.filter(
-                pagamento__data_proximo_pagamento=date.today()
-            )
-        elif proximo_pagamento == 'atrasado':
-            inscricoes = inscricoes.filter(
-                pagamento__data_proximo_pagamento__lt=date.today()
-            )
-        elif proximo_pagamento == 'futuro':
-            inscricoes = inscricoes.filter(
-                pagamento__data_proximo_pagamento__gt=date.today()
-            )
-        
+        # Filtro de busca por nome (como no PagamentoListView)
+        if filtro:
+            inscricoes = inscricoes.filter(nome__icontains=filtro)
+
+        # Subquery para próximo pagamento (mantido do seu código original)
         proximo_pagamento_subquery = Pagamento.objects.filter(
             content_type=ContentType.objects.get_for_model(Inscricao),
             object_id=OuterRef('id'),
@@ -496,11 +478,11 @@ class InscricaoListView(ListView):
         ).order_by('data_proximo_pagamento').values('data_proximo_pagamento')[:1]
 
         # Anota o campo data_proximo_pagamento no queryset
-        inscricoes = Inscricao.objects.annotate(
+        inscricoes = inscricoes.annotate(
             data_proximo_pagamento=Subquery(proximo_pagamento_subquery)
         )
 
-        # Verifica se o ordering é data_proximo_pagamento ou valor_restante
+        # Lógica de ordenação (mantida do seu código original)
         if ordering == 'data_proximo_pagamento':
             return inscricoes.order_by('data_proximo_pagamento')
         elif ordering == '-data_proximo_pagamento':
@@ -514,25 +496,22 @@ class InscricaoListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['ordering'] = self.request.GET.get('ordering', 'nome')
         queryset = self.get_queryset()
-
-        # Corrigindo a forma de calcular os totais
+        
+        # Cálculo dos totais (mantido do seu código original)
         total_pago = sum(inscricao.valor_pago for inscricao in queryset)
         total_total = queryset.aggregate(total=Sum('valor_total'))['total'] or 0
         total_a_receber = total_total - total_pago
 
-        # Adiciona o total de inscrições
-        total_inscricoes = Inscricao.objects.count()
-
+        # Contexto (simplificado, apenas com o necessário)
         context.update({
-            'q': self.request.GET.get('q', ''),
-            'status': self.request.GET.get('status', ''),
-            'proximo_pagamento': self.request.GET.get('proximo_pagamento', ''),
+            'q': self.request.GET.get('q', ''),  # Adiciona o valor do filtro ao contexto
+            'ordering': self.request.GET.get('ordering', 'nome'),
             'create_url': reverse('create_inscricao'),
             'total_pago': total_pago,
             'total_a_receber': total_a_receber,
-            'total_inscricoes': total_inscricoes,
+            'total_inscricoes': Inscricao.objects.count(),
+            'search_url': self.request.path,  # Importante para manter a paginação com filtros
         })
         return context
 
