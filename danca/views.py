@@ -14,7 +14,7 @@ from django.shortcuts import redirect
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Sum, F, ExpressionWrapper, DecimalField
+from django.db.models import Sum, F, ExpressionWrapper, DecimalField, DateField
 from django.views.decorators.http import require_GET
 from datetime import date
 from django.db.models import OuterRef, Subquery
@@ -476,23 +476,43 @@ class InscricaoListView(ListView):
             object_id=OuterRef('id'),
             data_proximo_pagamento__isnull=False
         ).order_by('data_proximo_pagamento').values('data_proximo_pagamento')[:1]
-
-        # Anota o campo data_proximo_pagamento no queryset
+        
         inscricoes = inscricoes.annotate(
-            data_proximo_pagamento=Subquery(proximo_pagamento_subquery)
+        data_proximo_pagamento=Subquery(
+            proximo_pagamento_subquery,
+            output_field=DateField()  # Força ser tratado como Data no ORM
         )
+    )
 
-        # Lógica de ordenação (mantida do seu código original)
-        if ordering == 'data_proximo_pagamento':
-            return inscricoes.order_by('data_proximo_pagamento')
-        elif ordering == '-data_proximo_pagamento':
-            return inscricoes.order_by('-data_proximo_pagamento')
-        elif ordering == 'valor_restante':
-            return inscricoes.order_by('valor_restante')
-        elif ordering == '-valor_restante':
-            return inscricoes.order_by('-valor_restante')
+        # # Anota o campo data_proximo_pagamento no queryset
+        # inscricoes = inscricoes.annotate(
+        #     data_proximo_pagamento=Subquery(proximo_pagamento_subquery)
+        # )
 
-        return inscricoes.order_by(ordering)
+        # Mapa de ordenações permitidas
+        ordering_map = {
+            'nome': 'nome',
+            '-nome': '-nome',
+            'categoria': 'categoria__descricao',
+            '-categoria': '-categoria__descricao',
+            'lote': 'lote__descricao',
+            '-lote': '-lote__descricao',
+            'valor_total': 'valor_total',
+            '-valor_total': '-valor_total',
+            'numero_parcelas': 'numero_parcelas',
+            '-numero_parcelas': '-numero_parcelas',
+            'valor_parcela': 'valor_parcela',
+            '-valor_parcela': '-valor_parcela',
+            'valor_restante': 'valor_restante',
+            '-valor_restante': '-valor_restante',
+            'data_proximo_pagamento': 'data_proximo_pagamento',
+            '-data_proximo_pagamento': '-data_proximo_pagamento',
+        }
+        # Faz a ordenação apenas se for um campo permitido
+        if ordering in ordering_map:
+            return inscricoes.order_by(ordering_map[ordering])
+        else:
+            return inscricoes.order_by('nome')  # fallback padrão
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -763,7 +783,7 @@ class EventoInscritosView(DetailView):
 @method_decorator(never_cache, name="dispatch")
 class ProfissionalListView(ListView):
     model = Profissional
-    paginate_by = 10
+    paginate_by = 30
     template_name = "profissional/list.html"
 
     def get_queryset(self):

@@ -291,7 +291,7 @@ class ProfissionalForm(forms.ModelForm):
             'cpf': forms.TextInput(attrs={'class': 'form-control mask-cpf', 'placeholder': 'XXX.XXX.XXX-XX'}),
             'valor_hora_aula': forms.NumberInput(attrs={'class': 'form-control', 'required': True, 'step': '0.01', 'min': '0.01'}),
             'qt_aulas': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'placeholder': 'Quantidade de aulas'}),
-            'funcao': forms.TextInput(attrs={'class': 'form-control'}),
+            
             'local_partida': forms.TextInput(attrs={'class': 'form-control'}),
             'local_volta': forms.TextInput(attrs={'class': 'form-control'}),
         }

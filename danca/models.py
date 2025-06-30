@@ -273,7 +273,7 @@ class Profissional(models.Model):
     cpf = models.CharField(max_length=14, null=True, blank=True)
     valor_hora_aula = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     qt_aulas = models.IntegerField(null=True, blank=True)
-    funcao = models.CharField(max_length=100, null=True, blank=True)
+    funcao = models.ForeignKey(Categoria, on_delete=models.CASCADE)
     local_partida = models.CharField(max_length=100, null=True, blank=True)
     local_volta = models.CharField(max_length=100, null=True, blank=True)
     eventos = models.ManyToManyField(Evento, through='ProfissionalEvento', related_name='profissionais_eventos')

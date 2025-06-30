@@ -123,14 +123,15 @@
         </a>
       </th>
       <th>
-        <a href="?ordering=data_proximo_pagamento" class="text-decoration-none">
+        <a href="?ordering=proximo_pagamento" class="text-decoration-none">
           Próximo Pagamento
-          {% if request.GET.ordering == "data_proximo_pagamento" %}
+          {% if request.GET.ordering == "proximo_pagamento" %}
             <i class="bi bi-arrow-down"></i>
-          {% elif request.GET.ordering == "-data_proximo_pagamento" %}
+          {% elif request.GET.ordering == "-proximo_pagamento" %}
             <i class="bi bi-arrow-up"></i>
           {% endif %}
         </a>
+        
       </th>
       <th>Status</th>
       <th class="text-center">Ações</th>
