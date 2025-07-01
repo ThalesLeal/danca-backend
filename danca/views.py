@@ -15,7 +15,7 @@ from django.shortcuts import redirect
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Sum, F, ExpressionWrapper, DecimalField, DateField
+from django.db.models import Sum, F, ExpressionWrapper, DecimalField, DateField,Value
 from django.views.decorators.http import require_GET
 from datetime import date
 from django.db.models import OuterRef, Subquery
@@ -464,9 +464,28 @@ class InscricaoListView(ListView):
         ordering = self.request.GET.get('ordering', 'nome')  # Ordena por 'nome' por padrão
         filtro = self.request.GET.get('q', '').strip().lower()  # Obtém o parâmetro de busca 'q'
         proximo_pagamento_filter = self.request.GET.get('proximo_pagamento_filter')
+        status_filter = self.request.GET.get('status_filter')        
 
-        # Filtro principal
-        inscricoes = Inscricao.objects.all()
+        content_type = ContentType.objects.get_for_model(Inscricao)
+
+        inscricoes = Inscricao.objects.annotate(
+            valor_pago_db=Coalesce(
+                Subquery(
+                    Pagamento.objects.filter(
+                        content_type=content_type,
+                        object_id=OuterRef('id')
+                    ).values('object_id')
+                    .annotate(total=Sum('valor_pago'))
+                    .values('total')[:1]  # Adicionado [:1] para garantir um único resultado
+                ),
+                Value(0),
+                output_field=models.DecimalField()
+            ),
+            valor_restante_db=ExpressionWrapper(
+                F('valor_total') - F('valor_pago_db'),
+                output_field=models.DecimalField()
+            )
+        )
 
         # Filtro de busca por nome (como no PagamentoListView)
         if filtro:
@@ -505,7 +524,16 @@ class InscricaoListView(ListView):
                 inscricoes = inscricoes.filter(data_proximo_pagamento=hoje)
             elif proximo_pagamento_filter == 'futuro':
                 inscricoes = inscricoes.filter(data_proximo_pagamento__gt=hoje)
-        
+
+         # Filtro por Status (usando annotation)
+        if status_filter:
+            if status_filter == 'pago':
+                inscricoes = inscricoes.filter(valor_restante_db__lte=0)  # Alterado
+            elif status_filter == 'parcial':
+                inscricoes = inscricoes.filter(valor_pago_db__gt=0, valor_restante_db__gt=0)  # Alterado
+            elif status_filter == 'pendente':
+                inscricoes = inscricoes.filter(valor_pago_db=0)
+                    
         # Mapa de ordenações permitidas
         ordering_map = {
             'nome': 'nome',
@@ -520,9 +548,9 @@ class InscricaoListView(ListView):
             '-numero_parcelas': '-numero_parcelas',
             'valor_parcela': 'valor_parcela',
             '-valor_parcela': '-valor_parcela',
-            'valor_restante': 'valor_restante',
-            '-valor_restante': '-valor_restante',
-            'proximo_pagamento': 'data_proximo_pagamento',  # Corrigido para usar o campo anotado
+            'valor_restante': 'valor_restante_db',
+            '-valor_restante': '-valor_restante_db',
+            'proximo_pagamento': 'data_proximo_pagamento',  
             '-proximo_pagamento': '-data_proximo_pagamento',
         }
 
@@ -544,6 +572,7 @@ class InscricaoListView(ListView):
             'q': self.request.GET.get('q', ''),  # Adiciona o valor do filtro ao contexto
             'ordering': self.request.GET.get('ordering', 'nome'),
             'proximo_pagamento_filter': self.request.GET.get('proximo_pagamento_filter', ''),
+            'status_filter': self.request.GET.get('status_filter', ''),
             'create_url': reverse('create_inscricao'),
             'total_pago': total_pago,
             'total_a_receber': total_a_receber,

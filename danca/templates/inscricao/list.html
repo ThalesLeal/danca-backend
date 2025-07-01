@@ -27,19 +27,6 @@
 
 {% include "partials/_filters.html" with search_url=request.path create_url=create_url %}
 
-{% comment %} <div class="d-flex justify-content-end mb-3">
-  <form method="get" class="d-flex">
-    <select name="proximo_pagamento" class="form-select me-2">
-      <option value="">Todos</option>
-      <option value="hoje" {% if request.GET.proximo_pagamento == "hoje" %}selected{% endif %}>Hoje</option>
-      <option value="atrasado" {% if request.GET.proximo_pagamento == "atrasado" %}selected{% endif %}>Atrasado</option>
-      <option value="futuro" {% if request.GET.proximo_pagamento == "futuro" %}selected{% endif %}>Futuro</option>
-    </select>
-    <button type="submit" class="btn btn-primary">Filtrar</button>
-  </form>
-</div> {% endcomment %}
-
-
 <div class="d-flex justify-content-end mb-3">
   <small class="text-success me-3">
     Total Pago: {{ total_pago|format_currency }}
@@ -49,16 +36,32 @@
   </small>
 </div>
 
-<div class="d-flex justify-content-end mb-3">
-  <form method="get" class="d-flex">
-    <select name="proximo_pagamento_filter" class="form-select me-2">
-      <option value="">Todos os pagamentos</option>
+<!-- Filtros Duplos - Adicione esta seção -->
+<div class="d-flex justify-content-end mb-3 gap-2 flex-wrap">
+  <!-- Filtro por Status -->
+  <form method="get" class="d-flex mb-2 mb-md-0">
+    <select name="status_filter" class="form-select">
+      <option value="">Todos status</option>
+      <option value="pago" {% if request.GET.status_filter == "pago" %}selected{% endif %}>Pago</option>
+      <option value="parcial" {% if request.GET.status_filter == "parcial" %}selected{% endif %}>Parcial</option>
+      <option value="pendente" {% if request.GET.status_filter == "pendente" %}selected{% endif %}>Pendente</option>
+    </select>
+  </form>
+  
+  <!-- Filtro por Próximo Pagamento -->
+  <form method="get" class="d-flex mb-2 mb-md-0">
+    <select name="proximo_pagamento_filter" class="form-select">
+      <option value="">Todos vencimentos</option>
       <option value="atrasado" {% if request.GET.proximo_pagamento_filter == "atrasado" %}selected{% endif %}>Atrasados</option>
       <option value="hoje" {% if request.GET.proximo_pagamento_filter == "hoje" %}selected{% endif %}>Hoje</option>
       <option value="futuro" {% if request.GET.proximo_pagamento_filter == "futuro" %}selected{% endif %}>Futuros</option>
     </select>
-    <button type="submit" class="btn btn-primary">Filtrar</button>
   </form>
+
+  <!-- Botão de Limpar Filtros -->
+  <a href="{{ request.path }}" class="btn btn-outline-secondary ms-md-2 align-self-stretch d-flex align-items-center">
+    Limpar
+  </a>
 </div>
 
 <table class="table table-striped table-hover">
@@ -157,7 +160,7 @@
         <td class="align-middle">R$ {{ inscricao.valor_total|format_currency }}</td>
         <td class="align-middle">{{ inscricao.numero_parcelas }}</td>
         <td class="align-middle">R$ {{ inscricao.valor_parcela|format_currency }}</td>
-        <td class="align-middle">R$ {{ inscricao.valor_restante|format_currency }}</td>
+        <td class="align-middle">R$ {{ inscricao.valor_restante_db|format_currency }}</td>
         <td class="align-middle">
           {% if inscricao.proximo_pagamento %}
             {{ inscricao.proximo_pagamento|date:"d/m/Y" }}
@@ -220,11 +223,33 @@
 
 {% block extra_js %}
 <script>
-   $(document).ready(function () {
+  $(document).ready(function () {
+    // Seu código existente para deletar
     $(".btn-delete").on("click", function () {
-        let inscricaoId = $(this).data("id");
-        let deleteUrl = `{% url 'delete_inscricao' inscricao_id=0 %}`.replace('0', inscricaoId);
-        $("#delete-form").attr("action", deleteUrl);
+      let inscricaoId = $(this).data("id");
+      let deleteUrl = `{% url 'delete_inscricao' inscricao_id=0 %}`.replace('0', inscricaoId);
+      $("#delete-form").attr("action", deleteUrl);
+    });
+
+    // Novo código para auto-submit dos filtros
+    $('select[name="status_filter"], select[name="proximo_pagamento_filter"]').change(function() {
+      // Mantém todos os parâmetros existentes
+      const params = new URLSearchParams(window.location.search);
+      
+      // Atualiza ou remove o parâmetro do select modificado
+      const paramName = $(this).attr('name');
+      const paramValue = $(this).val();
+      
+      if(paramValue === '') {
+        params.delete(paramName);
+      } else {
+        params.set(paramName, paramValue);
+      }
+      
+      // Remove a página se existir para voltar à primeira
+      params.delete('page');
+      
+      window.location.search = params.toString();
     });
   });
 </script>
