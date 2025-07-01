@@ -6,6 +6,7 @@ from django.views.generic import ListView, TemplateView, DeleteView, DetailView
 from django.contrib.contenttypes.models import ContentType
 from django.contrib import messages
 from django.utils.decorators import method_decorator
+from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.db.models.functions import Lower
 from .models import Lote, Categoria, TipoEvento, Evento, Camisa,Planejamento,Inscricao, InscricaoEvento, Profissional, ProfissionalEvento, Entrada, Saida,Pagamento
@@ -19,7 +20,7 @@ from django.views.decorators.http import require_GET
 from datetime import date
 from django.db.models import OuterRef, Subquery
 from django.contrib.contenttypes.models import ContentType
-from datetime import date, timedelta
+from django.db.models.functions import Coalesce
 
 
 
@@ -470,25 +471,31 @@ class InscricaoListView(ListView):
         if filtro:
             inscricoes = inscricoes.filter(nome__icontains=filtro)
 
-        # Subquery para próximo pagamento (mantido do seu código original)
+         # Subquery para próximo pagamento (atualizada)
+        hoje = timezone.now().date()
         proximo_pagamento_subquery = Pagamento.objects.filter(
             content_type=ContentType.objects.get_for_model(Inscricao),
             object_id=OuterRef('id'),
-            data_proximo_pagamento__isnull=False
+            data_proximo_pagamento__gte=hoje  # Só considera pagamentos futuros
         ).order_by('data_proximo_pagamento').values('data_proximo_pagamento')[:1]
-        
+
+        # Se não houver pagamentos futuros, pega o último vencido
+        ultimo_pagamento_subquery = Pagamento.objects.filter(
+            content_type=ContentType.objects.get_for_model(Inscricao),
+            object_id=OuterRef('id')
+        ).order_by('-data_proximo_pagamento').values('data_proximo_pagamento')[:1]
+
         inscricoes = inscricoes.annotate(
-        data_proximo_pagamento=Subquery(
-            proximo_pagamento_subquery,
-            output_field=DateField()  # Força ser tratado como Data no ORM
+            proximo_pagamento_futuro=Subquery(proximo_pagamento_subquery),
+            ultimo_pagamento=Subquery(ultimo_pagamento_subquery)
+        ).annotate(
+            data_proximo_pagamento=Coalesce(
+                'proximo_pagamento_futuro',
+                'ultimo_pagamento',
+                output_field=DateField()
+            )
         )
-    )
-
-        # # Anota o campo data_proximo_pagamento no queryset
-        # inscricoes = inscricoes.annotate(
-        #     data_proximo_pagamento=Subquery(proximo_pagamento_subquery)
-        # )
-
+        
         # Mapa de ordenações permitidas
         ordering_map = {
             'nome': 'nome',
@@ -505,14 +512,13 @@ class InscricaoListView(ListView):
             '-valor_parcela': '-valor_parcela',
             'valor_restante': 'valor_restante',
             '-valor_restante': '-valor_restante',
-            'data_proximo_pagamento': 'data_proximo_pagamento',
-            '-data_proximo_pagamento': '-data_proximo_pagamento',
+            'proximo_pagamento': 'data_proximo_pagamento',  # Corrigido para usar o campo anotado
+            '-proximo_pagamento': '-data_proximo_pagamento',
         }
-        # Faz a ordenação apenas se for um campo permitido
+
         if ordering in ordering_map:
             return inscricoes.order_by(ordering_map[ordering])
-        else:
-            return inscricoes.order_by('nome')  # fallback padrão
+        return inscricoes.order_by('nome')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
