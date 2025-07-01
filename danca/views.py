@@ -463,6 +463,7 @@ class InscricaoListView(ListView):
     def get_queryset(self):
         ordering = self.request.GET.get('ordering', 'nome')  # Ordena por 'nome' por padrão
         filtro = self.request.GET.get('q', '').strip().lower()  # Obtém o parâmetro de busca 'q'
+        proximo_pagamento_filter = self.request.GET.get('proximo_pagamento_filter')
 
         # Filtro principal
         inscricoes = Inscricao.objects.all()
@@ -495,6 +496,15 @@ class InscricaoListView(ListView):
                 output_field=DateField()
             )
         )
+
+        # Filtro por status do próximo pagamento
+        if proximo_pagamento_filter:
+            if proximo_pagamento_filter == 'atrasado':
+                inscricoes = inscricoes.filter(data_proximo_pagamento__lt=hoje)
+            elif proximo_pagamento_filter == 'hoje':
+                inscricoes = inscricoes.filter(data_proximo_pagamento=hoje)
+            elif proximo_pagamento_filter == 'futuro':
+                inscricoes = inscricoes.filter(data_proximo_pagamento__gt=hoje)
         
         # Mapa de ordenações permitidas
         ordering_map = {
@@ -533,6 +543,7 @@ class InscricaoListView(ListView):
         context.update({
             'q': self.request.GET.get('q', ''),  # Adiciona o valor do filtro ao contexto
             'ordering': self.request.GET.get('ordering', 'nome'),
+            'proximo_pagamento_filter': self.request.GET.get('proximo_pagamento_filter', ''),
             'create_url': reverse('create_inscricao'),
             'total_pago': total_pago,
             'total_a_receber': total_a_receber,
