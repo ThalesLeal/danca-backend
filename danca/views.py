@@ -496,12 +496,13 @@ class InscricaoListView(ListView):
 
          # Subquery para próximo pagamento (atualizada)
         hoje = timezone.now().date()
+
         proximo_pagamento_subquery = Pagamento.objects.filter(
             content_type=ContentType.objects.get_for_model(Inscricao),
-            object_id=OuterRef('id')
+            object_id=OuterRef('id'),
+            data_proximo_pagamento__gte=hoje
         ).order_by('data_proximo_pagamento').values('data_proximo_pagamento')[:1]
 
-        # Se não houver pagamentos futuros, pega o último vencido
         ultimo_pagamento_subquery = Pagamento.objects.filter(
             content_type=ContentType.objects.get_for_model(Inscricao),
             object_id=OuterRef('id')
@@ -1039,7 +1040,7 @@ class SaidaListView(ListView):
     def get_queryset(self):
         query = self.request.GET.get('q')
         if query:
-            return Saida.objects.filter(descricao__icontains(query)).order_by('-data') # type: ignore
+            return Saida.objects.filter(descricao__icontains=query).order_by('-data') # type: ignore
         return Saida.objects.all().order_by('-data')
 
     def get_context_data(self, **kwargs):
