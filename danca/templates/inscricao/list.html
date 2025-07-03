@@ -1,6 +1,12 @@
 {% extends 'base.html' %}
 {% load custom_filters %}
 
+{% block head %}  {# <--- Adicione este bloco #}
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+{% endblock %}
+
 {% block content %}
 <h2 class="pb-2">{{ titulo }}</h2>
 <h2 class="pb-2">Inscrições</h2>
@@ -162,8 +168,8 @@
         <td class="align-middle">R$ {{ inscricao.valor_parcela|format_currency }}</td>
         <td class="align-middle">R$ {{ inscricao.valor_restante_db|format_currency }}</td>
         <td class="align-middle">
-          {% if inscricao.proximo_pagamento %}
-            {{ inscricao.proximo_pagamento|date:"d/m/Y" }}
+          {% if inscricao.data_proximo_pagamento %}
+            {{ inscricao.data_proximo_pagamento|date:"d/m/Y" }}
           {% else %}
             Não há pagamentos
           {% endif %}

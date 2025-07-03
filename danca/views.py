@@ -21,6 +21,9 @@ from datetime import date
 from django.db.models import OuterRef, Subquery
 from django.contrib.contenttypes.models import ContentType
 from django.db.models.functions import Coalesce
+from django.db import transaction
+from django.views import View
+from django.shortcuts import render, redirect
 
 
 
@@ -495,8 +498,7 @@ class InscricaoListView(ListView):
         hoje = timezone.now().date()
         proximo_pagamento_subquery = Pagamento.objects.filter(
             content_type=ContentType.objects.get_for_model(Inscricao),
-            object_id=OuterRef('id'),
-            data_proximo_pagamento__gte=hoje  # Só considera pagamentos futuros
+            object_id=OuterRef('id')
         ).order_by('data_proximo_pagamento').values('data_proximo_pagamento')[:1]
 
         # Se não houver pagamentos futuros, pega o último vencido
@@ -590,6 +592,7 @@ class InscricaoDetailView(TemplateView):
         inscricao = get_object_or_404(Inscricao, id=self.kwargs['inscricao_id'])
         context['inscricao'] = inscricao
         return context
+
 
 @method_decorator(never_cache, name="dispatch")
 class InscricaoFormView(View):
@@ -1177,6 +1180,7 @@ class PagamentoListView(ListView):
 
 
 # Criar e Editar Pagamento
+
 @method_decorator(never_cache, name="dispatch")
 class PagamentoFormView(View):
     form_class = PagamentoForm
@@ -1208,7 +1212,7 @@ class PagamentoFormView(View):
         if form.is_valid():
             form.save()
             messages.success(request, "Pagamento salvo com sucesso!")
-            return redirect('list_pagamentos')
+            return redirect('list_inscricoes')
         else:
             print("Formulário inválido:", form.errors)
 

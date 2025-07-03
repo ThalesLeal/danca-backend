@@ -205,10 +205,11 @@ class Inscricao(models.Model):
     
     @property
     def status(self):
-        if self.valor_restante <= 0:
-            return "Pago"
-        elif self.valor_pago > 0:
-            return "Parcial"
+        if hasattr(self, 'valor_restante_db'):  # Para funcionar com a annotation
+            if self.valor_restante_db <= 0:
+                return "Pago"
+            elif getattr(self, 'valor_pago_db', 0) > 0:
+                return "Parcial"
         return "Pendente"
     
     @property
