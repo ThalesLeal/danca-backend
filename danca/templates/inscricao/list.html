@@ -168,17 +168,12 @@
         <td class="align-middle">R$ {{ inscricao.valor_parcela|format_currency }}</td>
         <td class="align-middle">R$ {{ inscricao.valor_restante_db|format_currency }}</td>
         <td class="align-middle">
-          {% if inscricao.data_proximo_pagamento %}
-            {{ inscricao.data_proximo_pagamento|date:"d/m/Y" }}
+          {% if inscricao.ultimo_pagamento %}
+            {{ inscricao.ultimo_pagamento|date:"d/m/Y" }}
           {% else %}
             Não há pagamentos
           {% endif %}
-        </td>
-        <td>
-          data_proximo_pagamento: {{ inscricao.data_proximo_pagamento }}<br>
-          proximo_pagamento_futuro: {{ inscricao.proximo_pagamento_futuro }}<br>
-          ultimo_pagamento: {{ inscricao.ultimo_pagamento }}
-        </td>
+        </td>        
         <td class="align-middle">
           {% if inscricao.status == "Pago" %}
             <span class="badge bg-success">{{ inscricao.status }}</span>
