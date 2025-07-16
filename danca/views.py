@@ -467,7 +467,9 @@ class InscricaoListView(ListView):
         ordering = self.request.GET.get('ordering', 'nome')  # Ordena por 'nome' por padrão
         filtro = self.request.GET.get('q', '').strip().lower()  # Obtém o parâmetro de busca 'q'
         proximo_pagamento_filter = self.request.GET.get('proximo_pagamento_filter')
-        status_filter = self.request.GET.get('status_filter')        
+        status_filter = self.request.GET.get('status_filter')  
+        uf_filter = self.request.GET.get('uf_filter')  
+        categoria_filter = self.request.GET.get('categoria_filter')   
 
         content_type = ContentType.objects.get_for_model(Inscricao)
 
@@ -493,6 +495,14 @@ class InscricaoListView(ListView):
         # Filtro de busca por nome (como no PagamentoListView)
         if filtro:
             inscricoes = inscricoes.filter(nome__icontains=filtro)
+            
+        # filtro por UF    
+        if uf_filter:
+            inscricoes = inscricoes.filter(uf=uf_filter)
+        
+        #filtro por categoria
+        if categoria_filter:
+            inscricoes = inscricoes.filter(categoria_id=categoria_filter)
 
          # Subquery para próximo pagamento (atualizada)
         hoje = timezone.now().date()
@@ -543,6 +553,8 @@ class InscricaoListView(ListView):
             '-nome': '-nome',
             'categoria': 'categoria__descricao',
             '-categoria': '-categoria__descricao',
+            'uf': 'uf',  
+            '-uf': '-uf',
             'lote': 'lote__descricao',
             '-lote': '-lote__descricao',
             'valor_total': 'valor_total',
@@ -570,12 +582,38 @@ class InscricaoListView(ListView):
         total_total = queryset.aggregate(total=Sum('valor_total'))['total'] or 0
         total_a_receber = total_total - total_pago
 
+            # Busca as UFs existentes
+        ufs_existentes = Inscricao.objects.order_by('uf').values_list('uf', flat=True).distinct()
+        UFS_BRASIL = [...]  # Sua lista de UFs
+        
+        # Busca apenas as categorias que estão sendo usadas em inscrições
+        categorias_em_uso = Categoria.objects.filter(
+            inscricao__isnull=False
+        ).distinct().order_by('descricao')
+
+         # Lista de UFs do Brasil para o filtro
+        UFS_BRASIL = [
+            ('AC', 'Acre'), ('AL', 'Alagoas'), ('AP', 'Amapá'),
+            ('AM', 'Amazonas'), ('BA', 'Bahia'), ('CE', 'Ceará'),
+            ('DF', 'Distrito Federal'), ('ES', 'Espírito Santo'),
+            ('GO', 'Goiás'), ('MA', 'Maranhão'), ('MT', 'Mato Grosso'),
+            ('MS', 'Mato Grosso do Sul'), ('MG', 'Minas Gerais'),
+            ('PA', 'Pará'), ('PB', 'Paraíba'), ('PR', 'Paraná'),
+            ('PE', 'Pernambuco'), ('PI', 'Piauí'), ('RJ', 'Rio de Janeiro'),
+            ('RN', 'Rio Grande do Norte'), ('RS', 'Rio Grande do Sul'),
+            ('RO', 'Rondônia'), ('RR', 'Roraima'), ('SC', 'Santa Catarina'),
+            ('SP', 'São Paulo'), ('SE', 'Sergipe'), ('TO', 'Tocantins')
+        ]
         # Contexto (simplificado, apenas com o necessário)
         context.update({
             'q': self.request.GET.get('q', ''),  # Adiciona o valor do filtro ao contexto
             'ordering': self.request.GET.get('ordering', 'nome'),
             'proximo_pagamento_filter': self.request.GET.get('proximo_pagamento_filter', ''),
             'status_filter': self.request.GET.get('status_filter', ''),
+            'uf_filter': self.request.GET.get('uf_filter', ''),  # Novo
+            'categoria_filter': self.request.GET.get('categoria_filter', ''),
+            'categorias_disponiveis': categorias_em_uso,
+            'ufs_brasil': UFS_BRASIL,  # Lista de UFs para o template
             'create_url': reverse('create_inscricao'),
             'total_pago': total_pago,
             'total_a_receber': total_a_receber,

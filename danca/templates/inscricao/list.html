@@ -44,6 +44,29 @@
 
 <!-- Filtros Duplos - Adicione esta seção -->
 <div class="d-flex justify-content-end mb-3 gap-2 flex-wrap">
+   <!-- Filtro por Categoria -->
+  <form method="get" class="d-flex mb-2 mb-md-0">
+    <select name="categoria_filter" class="form-select">
+      <option value="">Todas categorias</option>
+      {% for categoria in categorias_disponiveis %}
+        <option value="{{ categoria.id }}" 
+                {% if request.GET.categoria_filter == categoria.id|stringformat:"s" %}selected{% endif %}>
+          {{ categoria.descricao }}
+        </option>
+      {% endfor %}
+    </select>
+  </form>
+  <!-- Filtro por UF -->
+  <form method="get" class="d-flex mb-2 mb-md-0">
+    <select name="uf_filter" class="form-select">
+      <option value="">Todas UFs</option>
+      {% for sigla, nome in ufs_brasil %}
+        <option value="{{ sigla }}" {% if request.GET.uf_filter == sigla %}selected{% endif %}>
+          {{ sigla }} - {{ nome }}
+        </option>
+      {% endfor %}
+    </select>
+  </form>
   <!-- Filtro por Status -->
   <form method="get" class="d-flex mb-2 mb-md-0">
     <select name="status_filter" class="form-select">
@@ -83,6 +106,15 @@
           {% endif %}
         </a>
       </th>
+      <th>
+        <a href="?ordering=uf" class="text-decoration-none">
+          UF
+          {% if request.GET.ordering == "uf" %}
+            <i class="bi bi-arrow-down"></i>
+          {% elif request.GET.ordering == "-uf" %}
+            <i class="bi bi-arrow-up"></i>
+          {% endif %}
+        </a>
       <th>
         <a href="?ordering=categoria" class="text-decoration-none">
           Categoria
@@ -161,6 +193,7 @@
     {% for inscricao in page_obj %}
     <tr>
         <td class="align-middle">{{ inscricao.nome }}</td>
+        <td class="align-middle">{{ inscricao.uf }}</td>
         <td class="align-middle">{{ inscricao.categoria.descricao }}</td>
         <td class="align-middle">{{ inscricao.lote.descricao }}</td>
         <td class="align-middle">R$ {{ inscricao.valor_total|format_currency }}</td>
@@ -238,7 +271,7 @@
     });
 
     // Novo código para auto-submit dos filtros
-    $('select[name="status_filter"], select[name="proximo_pagamento_filter"]').change(function() {
+    $('select[name="status_filter"], select[name="proximo_pagamento_filter"],select[name="uf_filter"]',select[name="categoria_filter"]').change(function() {
       // Mantém todos os parâmetros existentes
       const params = new URLSearchParams(window.location.search);
       
