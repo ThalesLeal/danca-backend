@@ -31,6 +31,8 @@ urlpatterns = [
     path('eventos/create/', EventoFormView.as_view(), name='create_evento'),
     path('eventos/<int:evento_id>/update/', EventoFormView.as_view(), name='update_evento'),
     path('eventos/<int:evento_id>/delete/', EventoDeleteView.as_view(), name='delete_evento'),
+    path('evento/<int:pk>/inscritos-docx/', evento_inscritos_docx, name='evento_inscritos_docx'),
+
 
     # Camisa
     path('camisas/', CamisaListView.as_view(), name='list_camisas'),

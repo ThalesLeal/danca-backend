@@ -839,34 +839,44 @@ class EventoInscritosView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Obtém todas as inscrições associadas a este evento
-        inscritos = InscricaoEvento.objects.filter(evento=self.object).select_related('inscricao')
-        
-        # Cria uma lista de inscritos com informações relevantes
-        lista_inscritos = []
-        for inscricao_evento in inscritos:
-            inscricao = inscricao_evento.inscricao
-            lista_inscritos.append({
-                'nome': inscricao.nome,
-                'cpf': inscricao.cpf,
-            })
+        # Congressistas (antigos "inscritos")
+        inscritos = (
+            InscricaoEvento.objects
+            .filter(evento=self.object)
+            .select_related('inscricao')
+            .order_by('inscricao__nome')
+        )
 
-        # Obtém todos os profissionais associados a este evento
-        profissionais = ProfissionalEvento.objects.filter(evento=self.object).select_related('profissional')
-        
-        # Cria uma lista de profissionais com informações relevantes
-        lista_profissionais = []
-        for profissional_evento in profissionais:
-            profissional = profissional_evento.profissional
-            lista_profissionais.append({
-                'nome': profissional.nome,
-                'cpf': profissional.cpf,  # <- Adiciona o CPF aqui
-            })
-        
-        context['inscritos'] = lista_inscritos
-        context['profissionais'] = lista_profissionais
-        context['total_inscritos'] = len(lista_inscritos)
-        context['total_profissionais'] = len(lista_profissionais)
+        lista_congressistas = [
+            {'nome': i.inscricao.nome, 'cpf': i.inscricao.cpf}
+            for i in inscritos
+        ]
+
+        # Profissionais
+        profissionais = (
+            ProfissionalEvento.objects
+            .filter(evento=self.object)
+            .select_related('profissional')
+            .order_by('profissional__nome')
+        )
+
+        lista_profissionais = [
+            {'nome': p.profissional.nome, 'cpf': p.profissional.cpf}
+            for p in profissionais
+        ]
+
+        total_congressistas = len(lista_congressistas)
+        total_profissionais = len(lista_profissionais)
+        total_geral = total_congressistas + total_profissionais
+
+        context.update({
+            'congressistas': lista_congressistas,
+            'profissionais': lista_profissionais,
+            'total_congressistas': total_congressistas,
+            'total_profissionais': total_profissionais,
+            'total_geral': total_geral,
+            'capacidade': 130,  # opcional
+        })
         return context
 
 
@@ -1384,3 +1394,77 @@ class InscricaoRelatorioDocxView(InscricaoListView):
         response['Content-Disposition'] = 'attachment; filename="relatorio_inscricoes.docx"'
         document.save(response)
         return response
+
+
+
+def evento_inscritos_docx(request, pk):
+    evento = Evento.objects.get(pk=pk)
+
+    # Congressistas
+    inscritos = (
+        InscricaoEvento.objects
+        .filter(evento=evento)
+        .select_related('inscricao')
+        .order_by('inscricao__nome')
+    )
+    lista_congressistas = [
+        {
+            'nome': i.inscricao.nome or 'Sem Cadastro',
+            'cpf': i.inscricao.cpf or 'Sem Cadastro'
+        }
+        for i in inscritos
+    ]
+
+    # Profissionais
+    profissionais = (
+        ProfissionalEvento.objects
+        .filter(evento=evento)
+        .select_related('profissional')
+        .order_by('profissional__nome')
+    )
+    lista_profissionais = [
+        {
+            'nome': p.profissional.nome or 'Sem Cadastro',
+            'cpf': p.profissional.cpf or 'Sem Cadastro'
+        }
+        for p in profissionais
+    ]
+
+    total_congressistas = len(lista_congressistas)
+    total_profissionais = len(lista_profissionais)
+    total_geral = total_congressistas + total_profissionais
+
+    document = Document()
+    document.add_heading(f'Lista - {evento.descricao}', 0)
+    document.add_paragraph(f'Gerado em: {now().strftime("%d/%m/%Y %H:%M")}')
+    document.add_paragraph('')
+
+    # Congressistas
+    document.add_heading('Congressistas', level=1)
+    document.add_paragraph(f'Total de congressistas: {total_congressistas}')
+    for c in lista_congressistas:
+        document.add_paragraph(
+            f'{c["nome"]} — {c["cpf"]}',
+            style='List Number'
+        )
+
+    document.add_paragraph('')
+
+    # Profissionais
+    document.add_heading('Profissionais', level=1)
+    document.add_paragraph(f'Total de profissionais: {total_profissionais}')
+    for p in lista_profissionais:
+        document.add_paragraph(
+            f'{p["nome"]} — {p["cpf"]}',
+            style='List Number'
+        )
+
+    document.add_paragraph('')
+    document.add_paragraph(f'Total geral (congressistas + profissionais): {total_geral}')
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    )
+    response['Content-Disposition'] = f'attachment; filename="evento_{evento.id}_inscritos.docx"'
+    document.save(response)
+    return response
