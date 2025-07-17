@@ -1251,7 +1251,7 @@ class PagamentoFormView(View):
         if form.is_valid():
             form.save()
             messages.success(request, "Pagamento salvo com sucesso!")
-            return redirect('list_inscricoes')
+            return redirect('list_pagamentos')
         else:
             print("Formulário inválido:", form.errors)
 
