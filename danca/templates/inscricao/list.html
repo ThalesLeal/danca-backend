@@ -41,6 +41,9 @@
     Total a Receber: {{ total_a_receber|format_currency }}
   </small>
 </div>
+<a href="{% url 'inscricao_relatorio_docx' %}?{{ request.GET.urlencode }}" class="btn btn-primary">
+  Baixar Relatório (.docx)
+</a>
 
 <!-- Filtros Duplos - Adicione esta seção -->
 <div class="d-flex justify-content-end mb-3 gap-2 flex-wrap">

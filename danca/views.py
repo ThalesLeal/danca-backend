@@ -11,7 +11,7 @@ from django.views.decorators.cache import never_cache
 from django.db.models.functions import Lower
 from .models import Lote, Categoria, TipoEvento, Evento, Camisa,Planejamento,Inscricao, InscricaoEvento, Profissional, ProfissionalEvento, Entrada, Saida,Pagamento
 from .form import LoteForm,CategoriaForm,TipoEventoForm,EventoForm,CamisaForm,PlanejamentoForm,InscricaoForm, InscricaoEventoForm, ProfissionalForm, ProfissionalEventoForm, EntradaForm, SaidaForm, PagamentoForm
-from django.shortcuts import redirect
+from django.shortcuts import redirect,render
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -21,10 +21,12 @@ from datetime import date
 from django.db.models import OuterRef, Subquery
 from django.contrib.contenttypes.models import ContentType
 from django.db.models.functions import Coalesce
-from django.db import transaction
 from django.views import View
-from django.shortcuts import render, redirect
-
+from django.http import HttpResponse
+from docx import Document
+from docx.shared import Inches
+from .models import Inscricao
+from django.utils.timezone import now
 
 
 
@@ -1351,3 +1353,34 @@ def listar_pagamentos(request):
         'page_obj': page_obj,
     })
 
+class InscricaoRelatorioDocxView(InscricaoListView):
+    """ Gera relatório .docx como lista enumerada """
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        document = Document()
+        document.add_heading('Relatório de Inscrições', 0)
+        document.add_paragraph(f'Gerado em: {now().strftime("%d/%m/%Y %H:%M")}')
+        document.add_paragraph(f'Total de inscrições: {queryset.count()}')
+        document.add_paragraph('')
+
+        for inscricao in queryset:
+            categoria = inscricao.categoria.descricao if inscricao.categoria else 'Sem categoria'
+            if inscricao.valor_restante_db <= 0:
+                status = 'Pago'
+            elif inscricao.valor_pago_db > 0:
+                status = 'Parcial'
+            else:
+                status = 'Pendente'
+            document.add_paragraph(
+                f'{inscricao.nome} — {categoria} — {status}',
+                style='List Number'
+            )
+
+
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        )
+        response['Content-Disposition'] = 'attachment; filename="relatorio_inscricoes.docx"'
+        document.save(response)
+        return response

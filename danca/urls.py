@@ -54,6 +54,7 @@ urlpatterns = [
     path('inscricoes/<int:inscricao_id>/delete/', InscricaoDeleteView.as_view(), name='delete_inscricao'),
     path('inscricoes/<int:inscricao_id>/eventos/create/', InscricaoEventoFormView.as_view(), name='create_inscricao_evento'),
     path('inscricoes/<int:inscricao_id>/eventos/<int:inscricao_evento_id>/delete/', InscricaoEventoDeleteView.as_view(), name='delete_inscricao_evento'),
+     path('inscricoes/relatorio/', InscricaoRelatorioDocxView.as_view(), name='inscricao_relatorio_docx'),
 
     # Profissional
     path('profissionais/', ProfissionalListView.as_view(), name='list_profissionais'),
