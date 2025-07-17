@@ -271,7 +271,7 @@
     });
 
     // Novo código para auto-submit dos filtros
-    $('select[name="status_filter"], select[name="proximo_pagamento_filter"],select[name="uf_filter"]',select[name="categoria_filter"]').change(function() {
+    $('select[name="status_filter"], select[name="proximo_pagamento_filter"],select[name="uf_filter"],select[name="categoria_filter"]').change(function() {
       // Mantém todos os parâmetros existentes
       const params = new URLSearchParams(window.location.search);
       
