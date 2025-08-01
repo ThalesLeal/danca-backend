@@ -1,6 +1,6 @@
 from datetime import timedelta
 from django.db import models
-from .constants import STATUS_EVENTO, TAMANHO_CAMISA, TIPO_CAMISA, STATUS_LOTE
+from .constants import STATUS_EVENTO, TAMANHO_CAMISA, TIPO_CAMISA, STATUS_LOTE,CORES_CAMISA, STATUS_CAMISA
 from django.core.exceptions import ValidationError
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -83,24 +83,23 @@ class Evento(models.Model):
 
 
 class Camisa(models.Model):
-    descricao = models.CharField(max_length=100)
     tipo = models.CharField(max_length=20, choices=TIPO_CAMISA, default='unissex')
+    descricao = models.CharField(max_length=100)    
     quantidade = models.IntegerField(default=0)
-    valor_unitario = models.DecimalField(max_digits=10, decimal_places=2)
-    data_criacao = models.DateTimeField(auto_now_add=True)
-    data_atualizacao = models.DateTimeField(auto_now=True)
-
+    valor_compra = models.DecimalField(max_digits=10, decimal_places=2,default=0, help_text="Custo para a organização")
+    valor_venda = models.DecimalField(max_digits=10, decimal_places=2,default=0, help_text="Preço para participantes")   
+    data_cadastro = models.DateTimeField(auto_now_add=True)
     def __str__(self):
-        return f"{self.descricao} - {self.get_tipo_display()}"
+        return f"{self.descricao} ({self.get_tipo_display()}) - R$ {self.valor_venda}"
 
     class Meta:
         verbose_name = "Camisa"
         verbose_name_plural = "Camisas"
-        ordering = ['tipo', '-data_atualizacao']
+        ordering = ['tipo', '-data_cadastro']
 
-    @property
-    def valor_total(self):
-        return self.quantidade * self.valor_unitario if self.quantidade and self.valor_unitario else 0
+    # @property
+    # def valor_total(self):
+    #     return self.quantidade * self.valor_unitario if self.quantidade and self.valor_unitario else 0
 
 
 class Planejamento(models.Model):
@@ -388,3 +387,33 @@ class Pagamento(models.Model):
         verbose_name_plural = "Pagamentos"
         ordering = ['-data_pagamento']
         get_latest_by = 'data_pagamento'  # Define o campo para o método latest
+
+class PedidoCamisa(models.Model):
+   
+    
+   
+
+    # Relacionamento genérico (pode ser Profissional ou Inscricao)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    cliente = GenericForeignKey('content_type', 'object_id')
+
+    camisa = models.ForeignKey(Camisa, on_delete=models.CASCADE)
+    cor = models.CharField(max_length=20, choices=CORES_CAMISA)
+    tamanho = models.CharField(max_length=5, choices=TAMANHO_CAMISA)
+    valor_venda = models.DecimalField(max_digits=10, decimal_places=2, editable=False)  # Copia automaticamente
+    status = models.CharField(max_length=20, choices=STATUS_CAMISA, default='pendente')
+    data_pedido = models.DateTimeField(auto_now_add=True)
+    data_entrega = models.DateTimeField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        # Garante que o valor de venda sempre vem do cadastro da camisa
+        self.valor_venda = self.camisa.valor_venda
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Pedido #{self.id} - {self.cliente.nome} - {self.camisa.descricao}"
+
+    class Meta:
+        verbose_name = "Pedido de Camisa"
+        verbose_name_plural = "Pedidos de Camisas"

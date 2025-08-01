@@ -103,18 +103,18 @@ class EventoForm(forms.ModelForm):
 class CamisaForm(forms.ModelForm):
     class Meta:
         model = Camisa
-        fields = ['descricao', 'tipo', 'quantidade', 'valor_unitario']
+        fields = ['descricao', 'tipo', 'quantidade',]
         widgets = {
             'descricao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Descrição da Camisa'}),
             'tipo': forms.Select(attrs={'class': 'form-select'}),
             'quantidade': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'placeholder': 'Quantidade em estoque'}),
-            'valor_unitario': forms.TextInput(attrs={'class': 'form-control mask-valor', 'placeholder': 'R$ 0,00'}),
+            # 'valor_unitario': forms.TextInput(attrs={'class': 'form-control mask-valor', 'placeholder': 'R$ 0,00'}),
         }
         labels = {
             'descricao': 'Descrição da Camisa',
             'tipo': 'Tipo',
             'quantidade': 'Quantidade em Estoque',
-            'valor_unitario': 'Valor Unitário',
+            # 'valor_unitario': 'Valor Unitário',
         }
     def clean_quantidade(self):
         """
@@ -125,14 +125,14 @@ class CamisaForm(forms.ModelForm):
             raise ValidationError("A quantidade não pode ser negativa.")
         return quantidade
 
-    def clean_valor_unitario(self):
-        """
-        Valida o campo valor_unitario para garantir que seja maior ou igual a zero.
-        """
-        valor_unitario = self.cleaned_data.get('valor_unitario')
-        if valor_unitario is not None and valor_unitario < 0:
-            raise ValidationError("O valor unitário não pode ser negativo.")
-        return valor_unitario
+    # def clean_valor_unitario(self):
+    #     """
+    #     Valida o campo valor_unitario para garantir que seja maior ou igual a zero.
+    #     """
+    #     valor_unitario = self.cleaned_data.get('valor_unitario')
+    #     if valor_unitario is not None and valor_unitario < 0:
+    #         raise ValidationError("O valor unitário não pode ser negativo.")
+    #     return valor_unitario
 
 
 class PlanejamentoForm(forms.ModelForm):

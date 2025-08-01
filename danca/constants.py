@@ -31,3 +31,20 @@ STATUS_LOTE = [
     ('ativo', 'Ativo'),
     ('inativo', 'Inativo'),
 ]
+
+CORES_CAMISA = [
+        ('branco', 'Branco'),
+        ('preto', 'Preto'),
+        ('azul', 'Azul'),
+        ('vermelho', 'Vermelho'),
+        ('verde', 'Verde'),
+        ('amarelo', 'Amarelo'),
+        ('cinza', 'Cinza'),
+]
+
+STATUS_CAMISA = [
+        ('pendente', 'Pendente (não pago)'),
+        ('pago', 'Pago'),
+        ('entregue', 'Entregue'),
+        ('cancelado', 'Cancelado'),
+ ]
