@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<h2 class="pb-2">{{ titulo }}</h2>
+
+<!--- Mensagens de erro -->
+{% if form.errors %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      {% for error in form.non_field_errors %}
+        <div class="alert alert-error alert-dismissible fade show" role="alert">
+          {{ error }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+      {% for field in form %}
+        {% for error in field.errors %}
+        <div class="alert alert-error alert-dismissible fade show" role="alert">
+          {{ error }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<form method="post" id="pedidoForm">
+  {% csrf_token %}
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label class="me-3" for="cliente_tipo">Tipo de Cliente</label>
+      <select class="form-select" id="cliente_tipo" name="cliente_tipo">
+        <option value="">Selecione...</option>
+        <option value="inscricao" {% if form.cliente_tipo.value == 'inscricao' %}selected{% endif %}>Congressista</option>
+        <option value="profissional" {% if form.cliente_tipo.value == 'profissional' %}selected{% endif %}>Profissional</option>
+      </select>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+      <label class="me-3" for="cliente_id">Cliente</label>
+      <select class="form-select" id="cliente_id" name="cliente_id" {% if not form.cliente_tipo.value %}disabled{% endif %}>
+        <option value="">Selecione o tipo de cliente primeiro</option>
+        {% if clientes %}
+          {% for cliente in clientes %}
+          <option value="{{ cliente.id }}" {% if form.cliente_id.value|add:0 == cliente.id %}selected{% endif %}>{{ cliente.nome }}</option>
+          {% endfor %}
+        {% endif %}
+      </select>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+      <label class="me-3" for="{{ form.camisa.id_for_label }}">{{ form.camisa.label }}</label>
+      {{ form.camisa }}
+    </div>
+    
+    <div class="col-md-3 mb-3">
+      <label class="me-3" for="{{ form.tamanho.id_for_label }}">{{ form.tamanho.label }}</label>
+      {{ form.tamanho }}
+    </div>
+    
+    <div class="col-md-3 mb-3">
+      <label class="me-3" for="{{ form.cor.id_for_label }}">{{ form.cor.label }}</label>
+      {{ form.cor }}
+    </div>
+    
+    <div class="col-md-6 mb-3">
+      <label class="me-3" for="{{ form.valor_venda.id_for_label }}">{{ form.valor_venda.label }}</label>
+      {{ form.valor_venda }}
+    </div>
+    
+    <div class="col-md-6 mb-3">
+      <label class="me-3" for="{{ form.status.id_for_label }}">{{ form.status.label }}</label>
+      {{ form.status }}
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-success me-2 float-end">
+    <i class="bi bi-floppy"></i> &nbsp; Salvar
+  </button>
+  <a href="{% url 'list_pedidos_camisas' %}" class="btn btn-secondary"><i class="bi bi-arrow-90deg-left"></i> Voltar</a>
+</form>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const clienteTipo = document.getElementById("cliente_tipo");
+    const clienteSelect = document.getElementById("cliente_id");
+    
+    clienteTipo.addEventListener("change", function() {
+        const tipo = this.value;
+        clienteSelect.disabled = !tipo;
+        
+        if (tipo) {
+            fetch(`/api/clientes/?tipo=${tipo}`)
+                .then(response => response.json())
+                .then(data => {
+                    clienteSelect.innerHTML = '<option value="">Selecione...</option>';
+                    data.forEach(cliente => {
+                        const option = document.createElement("option");
+                        option.value = cliente.id;
+                        option.textContent = cliente.nome;
+                        clienteSelect.appendChild(option);
+                    });
+                });
+        } else {
+            clienteSelect.innerHTML = '<option value="">Selecione o tipo de cliente primeiro</option>';
+        }
+    });
+    
+    // Dispara o evento se já tiver valor (edição)
+    if (clienteTipo.value) {
+        clienteTipo.dispatchEvent(new Event('change'));
+    }
+});
+</script>
+
+{% endblock %}

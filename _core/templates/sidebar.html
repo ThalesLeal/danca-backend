@@ -9,7 +9,7 @@
                     <span style="margin-left: 10px;">Cadastros</span>
                     <i class="bi bi-chevron-down ms-2"></i>
                 </button>
-                <div class="collapse {% if request.resolver_match.url_name == 'list_lotes' or request.resolver_match.url_name == 'list_categorias' or request.resolver_match.url_name == 'list_tipo_eventos' or request.resolver_match.url_name == 'list_camisas' %}show{% endif %}" id="cadastros-collapse">
+                <div class="collapse {% if request.resolver_match.url_name == 'list_lotes' or request.resolver_match.url_name == 'list_categorias' or request.resolver_match.url_name == 'list_tipo_eventos' or request.resolver_match.url_name == 'list_camisas' or request.resolver_match.url_name == 'list_pedidos_camisas' %}show{% endif %}" id="cadastros-collapse">
                     <ul class="nav nav-pills flex-column mb-auto">
                         <li class="nav-item mb-2 mt-2">
                             <a class="nav-link {% if request.resolver_match.url_name == 'list_lotes' %}active{% endif %}" href="{% url 'list_lotes' %}">
@@ -30,10 +30,27 @@
                             </a>
                         </li>
                         <li class="nav-item mb-2">
-                            <a class="nav-link {% if request.resolver_match.url_name == 'list_camisas' %}active{% endif %}" href="{% url 'list_camisas' %}">
+                            <button class="nav-link dropdown" data-bs-toggle="collapse" data-bs-target="#camisas-collapse">
                                 <i class="bi bi-shirt"></i>
                                 <span style="margin-left: 10px;">Camisas</span>
-                            </a>
+                                <i class="bi bi-chevron-down ms-2"></i>
+                            </button>
+                            <div class="collapse {% if request.resolver_match.url_name == 'list_camisas' or request.resolver_match.url_name == 'list_pedidos_camisas' %}show{% endif %}" id="camisas-collapse">
+                                <ul class="nav nav-pills flex-column mb-auto">
+                                    <li class="nav-item mb-2 mt-2">
+                                        <a class="nav-link {% if request.resolver_match.url_name == 'list_camisas' %}active{% endif %}" href="{% url 'list_camisas' %}">
+                                            <i class="bi bi-pencil-square"></i>
+                                            <span style="margin-left: 10px;">Cadastro</span>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item mb-2">
+                                        <a class="nav-link {% if request.resolver_match.url_name == 'list_pedidos_camisas' %}active{% endif %}" href="{% url 'list_pedidos_camisas' %}">
+                                            <i class="bi bi-cart"></i>
+                                            <span style="margin-left: 10px;">Pedidos</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </li>
                     </ul>
                 </div>

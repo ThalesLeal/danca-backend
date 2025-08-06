@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Lote,Categoria,TipoEvento,Evento,Camisa,Planejamento,Inscricao, InscricaoEvento,Profissional, ProfissionalEvento, Entrada, Saida,Pagamento
+from .models import Lote,Categoria,TipoEvento,Evento,Camisa,Planejamento,Inscricao, InscricaoEvento,Profissional, ProfissionalEvento, Entrada, Saida,Pagamento,PedidoCamisa
 from decimal import Decimal, InvalidOperation
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext_lazy as _
@@ -103,37 +103,61 @@ class EventoForm(forms.ModelForm):
 class CamisaForm(forms.ModelForm):
     class Meta:
         model = Camisa
-        fields = ['descricao', 'tipo', 'quantidade',]
+        fields = ['tipo', 'descricao', 'quantidade', 'valor_compra', 'valor_venda']
         widgets = {
             'descricao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Descrição da Camisa'}),
             'tipo': forms.Select(attrs={'class': 'form-select'}),
-            'quantidade': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'placeholder': 'Quantidade em estoque'}),
-            # 'valor_unitario': forms.TextInput(attrs={'class': 'form-control mask-valor', 'placeholder': 'R$ 0,00'}),
+            'quantidade': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'valor_compra': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'valor_venda': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
         labels = {
-            'descricao': 'Descrição da Camisa',
+            'descricao': 'Descrição',
             'tipo': 'Tipo',
             'quantidade': 'Quantidade em Estoque',
-            # 'valor_unitario': 'Valor Unitário',
+            'valor_compra': 'Valor de Custo',
+            'valor_venda': 'Valor de Venda',
         }
+
     def clean_quantidade(self):
-        """
-        Valida o campo quantidade para garantir que seja maior ou igual a zero.
-        """
         quantidade = self.cleaned_data.get('quantidade')
-        if quantidade is not None and quantidade < 0:
-            raise ValidationError("A quantidade não pode ser negativa.")
+        if quantidade < 0:
+            raise forms.ValidationError("A quantidade não pode ser negativa.")
         return quantidade
 
-    # def clean_valor_unitario(self):
-    #     """
-    #     Valida o campo valor_unitario para garantir que seja maior ou igual a zero.
-    #     """
-    #     valor_unitario = self.cleaned_data.get('valor_unitario')
-    #     if valor_unitario is not None and valor_unitario < 0:
-    #         raise ValidationError("O valor unitário não pode ser negativo.")
-    #     return valor_unitario
+    def clean_valor_venda(self):
+        valor_venda = self.cleaned_data.get('valor_venda')
+        valor_compra = self.cleaned_data.get('valor_compra')
+        if valor_venda < valor_compra:
+            raise forms.ValidationError("O valor de venda não pode ser menor que o valor de compra.")
+        return valor_venda
 
+class PedidoCamisaForm(forms.ModelForm):
+    TIPO_CLIENTE_CHOICES = (
+        ('inscricao', 'Congressista'),
+        ('profissional', 'Profissional'),
+    )
+    
+    tipo_cliente = forms.ChoiceField(choices=TIPO_CLIENTE_CHOICES, widget=forms.Select(attrs={'class': 'form-select'}))
+    cliente_id = forms.IntegerField(widget=forms.HiddenInput(), required=False)
+    
+    class Meta:
+        model = PedidoCamisa
+        fields = ['tipo_cliente', 'cliente_id', 'camisa', 'cor', 'tamanho', 'status']
+        widgets = {
+            'camisa': forms.Select(attrs={'class': 'form-select'}),
+            'cor': forms.Select(attrs={'class': 'form-select'}),
+            'tamanho': forms.Select(attrs={'class': 'form-select'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['camisa'].queryset = Camisa.objects.filter(quantidade__gt=0)
+        
+        if self.instance and self.instance.pk:
+            self.fields['tipo_cliente'].initial = self.instance.content_type.model
+            self.fields['cliente_id'].initial = self.instance.object_id
 
 class PlanejamentoForm(forms.ModelForm):
     class Meta:

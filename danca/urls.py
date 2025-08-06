@@ -33,13 +33,21 @@ urlpatterns = [
     path('eventos/<int:evento_id>/delete/', EventoDeleteView.as_view(), name='delete_evento'),
     path('evento/<int:pk>/inscritos-docx/', evento_inscritos_docx, name='evento_inscritos_docx'),
 
-
-    # Camisa
+   # Camisas
     path('camisas/', CamisaListView.as_view(), name='list_camisas'),
     path('camisas/<int:camisa_id>/', CamisaDetailView.as_view(), name='detail_camisa'),
     path('camisas/create/', CamisaFormView.as_view(), name='create_camisa'),
     path('camisas/<int:camisa_id>/update/', CamisaFormView.as_view(), name='update_camisa'),
     path('camisas/<int:camisa_id>/delete/', CamisaDeleteView.as_view(), name='delete_camisa'),
+
+        # Pedidos de Camisas
+    path('pedidos-camisas/', PedidoCamisaListView.as_view(), name='list_pedidos_camisas'),
+    path('pedidos-camisas/<int:pedido_id>/', PedidoCamisaDetailView.as_view(), name='detail_pedido_camisa'),
+    path('pedidos-camisas/create/', PedidoCamisaFormView.as_view(), name='create_pedido_camisa'),
+    path('pedidos-camisas/<int:pedido_id>/update/', PedidoCamisaFormView.as_view(), name='update_pedido_camisa'),
+    path('pedidos-camisas/<int:pedido_id>/delete/', PedidoCamisaDeleteView.as_view(), name='delete_pedido_camisa'),
+    path('api/clientes/', lista_clientes, name='api_clientes'),
+
 
     # Planejamento
     path('planejamentos/', PlanejamentoListView.as_view(), name='list_planejamentos'),

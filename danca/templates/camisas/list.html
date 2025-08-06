@@ -26,7 +26,8 @@
       <th>Descrição</th>    
       <th>Tipo</th>
       <th>Quantidade</th>
-      <th>Valor Unitário</th>
+      <th>Valor Compra</th>
+      <th>Valor Venda</th>
       <th class="text-center">Ações</th>
     </tr>
   </thead>
@@ -36,7 +37,8 @@
       <td class="align-middle">{{ camisa.descricao }}</td>
       <td class="align-middle">{{ camisa.get_tipo_display }}</td>
       <td class="align-middle">{{ camisa.quantidade }}</td>
-      <td class="align-middle">R$ {{ camisa.valor_unitario|floatformat:2 }}</td>
+      <td class="align-middle">R$ {{ camisa.valor_compra|floatformat:2 }}</td>
+      <td class="align-middle">R$ {{ camisa.valor_venda|floatformat:2 }}</td>
       <td class="col-3 text-center botoes">
         <a href="{% url 'detail_camisa' camisa.id %}" class="btn btn-info"><i class="bi bi-eye-fill"></i></a>
         <a href="{% url 'update_camisa' camisa.id %}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a>
@@ -62,7 +64,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body text-start">
-        <p>Tem certeza que deseja remover a camisa?</p>
+        <p>Tem certeza que deseja remover esta camisa?</p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>

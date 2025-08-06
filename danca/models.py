@@ -390,8 +390,6 @@ class Pagamento(models.Model):
 
 class PedidoCamisa(models.Model):
    
-    
-   
 
     # Relacionamento genérico (pode ser Profissional ou Inscricao)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
