@@ -352,15 +352,32 @@ class CamisaFormView(View):
     form_class = CamisaForm
     template_name = "camisas/form.html"
 
-    def get(self, request, camisa_id=None):
+    def get(self, request, pedido_id=None):
         form = self.form_class()
-        titulo = "Nova Camisa" if not camisa_id else "Editar Camisa"
-        if camisa_id:
-            camisa = get_object_or_404(Camisa, id=camisa_id)
-            form = self.form_class(instance=camisa)
+        titulo = "Novo Pedido de Camisa"
+        cliente_selecionado = None
+        
+        if pedido_id:
+            pedido = get_object_or_404(PedidoCamisa, id=pedido_id)
+            form = self.form_class(instance=pedido)
+            titulo = "Editar Pedido de Camisa"
+            
+            # Obtém o cliente selecionado para edição
+            if pedido.content_type.model == 'inscricao':
+                cliente = Inscricao.objects.filter(id=pedido.object_id).first()
+            elif pedido.content_type.model == 'profissional':
+                cliente = Profissional.objects.filter(id=pedido.object_id).first()
+            
+            if cliente:
+                cliente_selecionado = {
+                    'id': cliente.id,
+                    'nome': cliente.nome
+                }
+        
         return render(request, self.template_name, {
             "form": form,
             "titulo": titulo,
+            "cliente_selecionado": cliente_selecionado
         })
 
     def post(self, request, camisa_id=None):
@@ -432,15 +449,29 @@ class PedidoCamisaFormView(View):
     def get(self, request, pedido_id=None):
         form = self.form_class()
         titulo = "Novo Pedido de Camisa"
+        cliente_selecionado = None
         
         if pedido_id:
             pedido = get_object_or_404(PedidoCamisa, id=pedido_id)
             form = self.form_class(instance=pedido)
             titulo = "Editar Pedido de Camisa"
+            
+            # Obtém o cliente selecionado para edição
+            if pedido.content_type.model == 'inscricao':
+                cliente_selecionado = Inscricao.objects.filter(id=pedido.object_id).first()
+            elif pedido.content_type.model == 'profissional':
+                cliente_selecionado = Profissional.objects.filter(id=pedido.object_id).first()
+            
+            if cliente_selecionado:
+                cliente_selecionado = {
+                    'id': cliente_selecionado.id,
+                    'nome': cliente_selecionado.nome
+                }
         
         return render(request, self.template_name, {
             "form": form,
             "titulo": titulo,
+            "cliente_selecionado": cliente_selecionado
         })
 
     def post(self, request, pedido_id=None):
@@ -468,6 +499,7 @@ class PedidoCamisaFormView(View):
             return redirect('list_pedidos_camisa')
         
         return render(request, self.template_name, {"form": form})
+        
 class PedidoCamisaDeleteView(DeleteView):
     model = PedidoCamisa
     pk_url_kwarg = "pedido_id"
@@ -1561,15 +1593,15 @@ def evento_inscritos_docx(request, pk):
 
 #api Pedidos
 
+@require_GET
 def lista_clientes(request):
     tipo = request.GET.get('tipo')
-
+    
     if tipo == 'inscricao':
-        clientes = Inscricao.objects.all()
+        clientes = Inscricao.objects.all().values('id', 'nome')
     elif tipo == 'profissional':
-        clientes = Profissional.objects.all()
+        clientes = Profissional.objects.all().values('id', 'nome')
     else:
-        return JsonResponse([], safe=False)
-
-    data = [{"id": c.id, "nome": c.nome} for c in clientes]
-    return JsonResponse(data, safe=False)
+        clientes = []
+    
+    return JsonResponse(list(clientes), safe=False)
