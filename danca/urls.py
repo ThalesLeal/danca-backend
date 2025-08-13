@@ -46,7 +46,7 @@ urlpatterns = [
     path('pedidos-camisas/create/', PedidoCamisaFormView.as_view(), name='create_pedido_camisa'),
     path('pedidos-camisas/<int:pedido_id>/update/', PedidoCamisaFormView.as_view(), name='update_pedido_camisa'),
     path('pedidos-camisas/<int:pedido_id>/delete/', PedidoCamisaDeleteView.as_view(), name='delete_pedido_camisa'),
-    path('api/clientes/', views.lista_clientes, name='api_clientes'),
+    path('api/clientes/', lista_clientes, name='api_clientes'),
     path('pedidos-camisas/create/', PedidoCamisaFormView.as_view(), name='create_pedido_camisa'),
     path('pedidos-camisas/<int:pedido_id>/edit/', PedidoCamisaFormView.as_view(), name='edit_pedido_camisa'),
 

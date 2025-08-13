@@ -1595,13 +1595,17 @@ def evento_inscritos_docx(request, pk):
 
 @require_GET
 def lista_clientes(request):
-    tipo = request.GET.get('tipo')
+    tipo = request.GET.get('tipo', '').lower()
     
-    if tipo == 'inscricao':
-        clientes = Inscricao.objects.all().values('id', 'nome')
-    elif tipo == 'profissional':
-        clientes = Profissional.objects.all().values('id', 'nome')
-    else:
-        clientes = []
-    
-    return JsonResponse(list(clientes), safe=False)
+    try:
+        if tipo == 'inscricao':
+            data = list(Inscricao.objects.all().values('id', 'nome'))
+        elif tipo == 'profissional':
+            data = list(Profissional.objects.all().values('id', 'nome'))
+        else:
+            data = []
+            
+        return JsonResponse(data, safe=False)
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

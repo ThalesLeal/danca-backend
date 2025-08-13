@@ -86,65 +86,60 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-      const clienteTipo = document.getElementById("cliente_tipo");
-      const clienteSelect = document.getElementById("cliente_id");
-      
-      function carregarClientes(tipo) {
-          if (!tipo) {
-              clienteSelect.innerHTML = '<option value="">Selecione o tipo primeiro</option>';
-              clienteSelect.disabled = true;
-              return;
-          }
-  
-          fetch(`/api/clientes/?tipo=${tipo}`)
-              .then(response => {
-                  if (!response.ok) {
-                      throw new Error(`Erro ${response.status}: ${response.statusText}`);
-                  }
-                  return response.json();
-              })
-              .then(data => {
-                  let options = '<option value="">Selecione...</option>';
-                  data.forEach(cliente => {
-                      options += `<option value="${cliente.id}">${cliente.nome}</option>`;
-                  });
-                  clienteSelect.innerHTML = options;
-                  clienteSelect.disabled = false;
-                  
-                  // Restaura seleção se existir
-                  {% if cliente_selecionado %}
-                      if (document.querySelector(`#cliente_id option[value="{{ cliente_selecionado.id }}"]`)) {
-                          clienteSelect.value = "{{ cliente_selecionado.id }}";
-                      }
-                  {% endif %}
-              })
-              .catch(error => {
-                  console.error('Erro ao carregar clientes:', error);
-                  clienteSelect.innerHTML = `
-                      <option value="">
-                          Erro ao carregar clientes. Recarregue a página.
-                      </option>
-                  `;
-              });
-      }
-      
-      clienteTipo.addEventListener("change", function() {
-          carregarClientes(this.value);
-      });
-      
-      // Inicializa se já tiver valor
-      if (clienteTipo.value) {
-          carregarClientes(clienteTipo.value);
-      }
-      
-      // Validação do formulário
-      document.getElementById("pedidoForm").addEventListener("submit", function(e) {
-          if (!clienteTipo.value || !clienteSelect.value || clienteSelect.value === "") {
-              e.preventDefault();
-              alert("Por favor, selecione o tipo e o cliente");
-          }
-      });
-  });
+    const tipoSelect = document.getElementById("cliente_tipo");
+    const clienteSelect = document.getElementById("cliente_id");
+
+    async function carregarClientes() {
+        const tipo = tipoSelect.value;
+        if (!tipo) {
+            clienteSelect.innerHTML = '<option value="">Selecione o tipo primeiro</option>';
+            clienteSelect.disabled = true;
+            return;
+        }
+
+        try {
+            clienteSelect.disabled = true;
+            clienteSelect.innerHTML = '<option value="">Carregando...</option>';
+            
+            const response = await fetch(`/danca/api/clientes/?tipo=${tipo}`);
+            
+            if (!response.ok) {
+                throw new Error(`Erro ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            let options = '<option value="">Selecione...</option>';
+            data.forEach(cliente => {
+                options += `<option value="${cliente.id}">${cliente.nome}</option>`;
+            });
+            
+            clienteSelect.innerHTML = options;
+            clienteSelect.disabled = false;
+            
+            // Restaura seleção se existir
+            {% if cliente_selecionado %}
+                clienteSelect.value = "{{ cliente_selecionado.id }}";
+            {% endif %}
+            
+        } catch (error) {
+            console.error("Erro ao carregar clientes:", error);
+            clienteSelect.innerHTML = `
+                <option value="">
+                    Erro ao carregar. 
+                    <button onclick="window.location.reload()" class="btn btn-sm btn-warning">
+                        Recarregar
+                    </button>
+                </option>
+            `;
+        }
+    }
+
+    tipoSelect.addEventListener("change", carregarClientes);
+    
+    // Carrega inicialmente se já tiver valor
+    if (tipoSelect.value) carregarClientes();
+});
 </script>
 
 {% endblock %}
