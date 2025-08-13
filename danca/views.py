@@ -338,7 +338,7 @@ class CamisaListView(ListView):
 
 @method_decorator(never_cache, name="dispatch")
 class CamisaDetailView(TemplateView):
-    template_name = "camisas/detail.html"
+    template_name = "camisas/camisa.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -352,32 +352,18 @@ class CamisaFormView(View):
     form_class = CamisaForm
     template_name = "camisas/form.html"
 
-    def get(self, request, pedido_id=None):
+    def get(self, request, camisa_id=None):
         form = self.form_class()
-        titulo = "Novo Pedido de Camisa"
-        cliente_selecionado = None
+        titulo = "Nova Camisa"
         
-        if pedido_id:
-            pedido = get_object_or_404(PedidoCamisa, id=pedido_id)
-            form = self.form_class(instance=pedido)
-            titulo = "Editar Pedido de Camisa"
-            
-            # Obtém o cliente selecionado para edição
-            if pedido.content_type.model == 'inscricao':
-                cliente = Inscricao.objects.filter(id=pedido.object_id).first()
-            elif pedido.content_type.model == 'profissional':
-                cliente = Profissional.objects.filter(id=pedido.object_id).first()
-            
-            if cliente:
-                cliente_selecionado = {
-                    'id': cliente.id,
-                    'nome': cliente.nome
-                }
+        if camisa_id:
+            camisa = get_object_or_404(Camisa, id=camisa_id)
+            form = self.form_class(instance=camisa)
+            titulo = "Editar Camisa"
         
         return render(request, self.template_name, {
             "form": form,
             "titulo": titulo,
-            "cliente_selecionado": cliente_selecionado
         })
 
     def post(self, request, camisa_id=None):
@@ -387,14 +373,17 @@ class CamisaFormView(View):
         if camisa_id:
             camisa = get_object_or_404(Camisa, id=camisa_id)
             form = self.form_class(request.POST, instance=camisa)
-            msg = 'Camisa modificada com sucesso'
+            msg = 'Camisa atualizada com sucesso'
         
         if form.is_valid():
             form.save()
             messages.success(request, msg)
             return redirect('list_camisas')
         
-        return render(request, self.template_name, {"form": form})
+        return render(request, self.template_name, {
+            "form": form,
+            "titulo": "Editar Camisa" if camisa_id else "Nova Camisa"
+        })
 
 @method_decorator(never_cache, name="dispatch")
 class CamisaDeleteView(DeleteView):
@@ -496,7 +485,7 @@ class PedidoCamisaFormView(View):
             
             pedido.save()
             messages.success(request, msg)
-            return redirect('list_pedidos_camisa')
+            return redirect('list_pedidos_camisas')
         
         return render(request, self.template_name, {"form": form})
         
@@ -1348,10 +1337,6 @@ class PagamentoListView(ListView):
         context['create_url'] = reverse('create_pagamento')
         return context
            
-
-
-
-
 # Criar e Editar Pagamento
 
 @method_decorator(never_cache, name="dispatch")

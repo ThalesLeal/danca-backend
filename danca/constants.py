@@ -8,12 +8,13 @@ STATUS_EVENTO = [
 ]
 
 TAMANHO_CAMISA = [
-    ('P', 'Pequeno'),
-    ('M', 'Médio'),
-    ('G', 'Grande'),
-    ('GG', 'Extra Grande'),
-    ('XG', 'Extra Grande'),
-    ('XXG', 'Extra Extra Grande'),
+    ('PP', 'Pequeno(PP)'),
+    ('P', 'Pequeno(P)'),
+    ('M', 'Médio(M)'),
+    ('G', 'Grande(G)'),
+    ('GG', 'Extra Grande(GG)'),
+    ('XG', 'Extra Grande(XG)'),
+    ('XXG', 'Extra Extra Grande(XXG)'),
 ]
 
 TIPO_CAMISA = [
@@ -34,10 +35,14 @@ STATUS_LOTE = [
 
 CORES_CAMISA = [
         ('branco', 'Branco'),
+        ('verde', 'Verde'),
+        ('laranja', 'Laranja'),
+        ('rosa', 'Rosa'),
+        ('roxo', 'Roxo'),
+        ('marrom', 'Marrom'),
         ('preto', 'Preto'),
         ('azul', 'Azul'),
-        ('vermelho', 'Vermelho'),
-        ('verde', 'Verde'),
+        ('vermelho', 'Vermelho'),        
         ('amarelo', 'Amarelo'),
         ('cinza', 'Cinza'),
 ]
