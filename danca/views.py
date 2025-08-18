@@ -1271,7 +1271,7 @@ def resumo_caixa(request):
     total_a_receber = total_valor_inscricoes - total_pago_inscricoes
 
     # Total camisas (considerado como entrada)
-    total_camisas = Camisa.objects.aggregate(total=Sum('valor_unitario'))['total'] or 0
+    total_camisas = Camisa.objects.aggregate(total=Sum('valor_venda'))['total'] or 0
 
     # Total planejado e total pago em planejamentos
     total_planejamentos = Planejamento.objects.aggregate(total=Sum('valor_planejado'))['total'] or 0
