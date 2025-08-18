@@ -141,46 +141,50 @@ class PedidoCamisaForm(forms.ModelForm):
     
     tipo_cliente = forms.ChoiceField(
         choices=TIPO_CLIENTE_CHOICES,
-        widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
-        initial='inscricao'
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        required=True
     )
     
-    # Campos dinâmicos
-    inscricao = forms.ModelChoiceField(
-        queryset=Inscricao.objects.all(),
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-select cliente-select'})
-    )
-    
-    profissional = forms.ModelChoiceField(
-        queryset=Profissional.objects.all(),
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-select cliente-select'})
-    )
+    cliente_id = forms.IntegerField(required=False)  # Campo único para ambos os tipos
     
     # Campos para cliente externo
     nome_externo = forms.CharField(
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control cliente-externo'})
+        widget=forms.TextInput(attrs={'class': 'form-control'})
     )
     
     cidade_externo = forms.CharField(
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control cliente-externo'})
+        widget=forms.TextInput(attrs={'class': 'form-control'})
     )
 
     class Meta:
         model = PedidoCamisa
-        fields = ['camisa', 'cor', 'tamanho', 'status']
+        fields = ['tipo_cliente', 'camisa', 'cor', 'tamanho', 'status']
 
     def clean(self):
         cleaned_data = super().clean()
         tipo = cleaned_data.get('tipo_cliente')
+        cliente_id = cleaned_data.get('cliente_id')
         
-        if tipo == 'inscricao' and not cleaned_data.get('inscricao'):
-            self.add_error('inscricao', 'Selecione um congressista')
-        elif tipo == 'profissional' and not cleaned_data.get('profissional'):
-            self.add_error('profissional', 'Selecione um profissional')
+        if tipo == 'inscricao':
+            if not cliente_id:
+                self.add_error(None, 'Selecione um congressista')
+            else:
+                try:
+                    cleaned_data['inscricao'] = Inscricao.objects.get(id=cliente_id)
+                except Inscricao.DoesNotExist:
+                    self.add_error(None, 'Congressista não encontrado')
+                    
+        elif tipo == 'profissional':
+            if not cliente_id:
+                self.add_error(None, 'Selecione um profissional')
+            else:
+                try:
+                    cleaned_data['profissional'] = Profissional.objects.get(id=cliente_id)
+                except Profissional.DoesNotExist:
+                    self.add_error(None, 'Profissional não encontrado')
+                    
         elif tipo == 'externo':
             if not cleaned_data.get('nome_externo'):
                 self.add_error('nome_externo', 'Nome é obrigatório')
@@ -188,7 +192,19 @@ class PedidoCamisaForm(forms.ModelForm):
                 self.add_error('cidade_externo', 'Cidade é obrigatória')
         
         return cleaned_data
-    
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        
+        if self.cleaned_data['tipo_cliente'] == 'inscricao':
+            instance.inscricao = self.cleaned_data['inscricao']
+        elif self.cleaned_data['tipo_cliente'] == 'profissional':
+            instance.profissional = self.cleaned_data['profissional']
+        
+        if commit:
+            instance.save()
+        
+        return instance
 class PlanejamentoForm(forms.ModelForm):
     class Meta:
         model = Planejamento

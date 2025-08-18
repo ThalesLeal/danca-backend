@@ -114,74 +114,98 @@ document.addEventListener("DOMContentLoaded", function() {
     const clienteExternoFields = document.getElementById("cliente_externo_fields");
     const nomeExterno = document.getElementById("nome_externo");
     const cidadeExterno = document.getElementById("cidade_externo");
+    const form = document.getElementById("pedidoForm");
 
     async function carregarClientes() {
+    const tipo = tipoSelect.value;
+    
+    // Resetar estados
+    clienteSelect.disabled = true;
+    clienteExternoFields.style.display = 'none';
+    nomeExterno.disabled = true;
+    nomeExterno.required = false;
+    cidadeExterno.disabled = true;
+    cidadeExterno.required = false;
+    
+    if (tipo === 'externo') {
+        clienteSelect.innerHTML = '<option value="">Não necessário para cliente externo</option>';
+        clienteExternoFields.style.display = 'block';
+        nomeExterno.disabled = false;
+        nomeExterno.required = true;
+        cidadeExterno.disabled = false;
+        cidadeExterno.required = true;
+    } 
+    else if (tipo) {
+        try {
+            clienteSelect.innerHTML = '<option value="">Carregando...</option>';
+            
+            const response = await fetch(`/danca/api/clientes/?tipo=${tipo}`);
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Erro ao carregar clientes');
+            }
+            
+            const result = await response.json();
+            
+            if (!result.success) {
+                throw new Error(result.message || 'Dados inválidos retornados');
+            }
+            
+            const data = result.data;
+            
+            let options = '<option value="">Selecione...</option>';
+            data.forEach(cliente => {
+                options += `<option value="${cliente.id}">${cliente.nome}</option>`;
+            });
+            
+            clienteSelect.innerHTML = options;
+            clienteSelect.disabled = false;
+            
+            // Restaura seleção se existir
+            {% if cliente_selecionado and form.tipo_cliente.value != 'externo' %}
+                if (data.some(c => c.id == {{ cliente_selecionado.id }})) {
+                    clienteSelect.value = "{{ cliente_selecionado.id }}";
+                }
+            {% endif %}
+            
+        } catch (error) {
+            console.error("Erro ao carregar clientes:", error);
+            clienteSelect.innerHTML = `
+                <option value="">
+                    Erro: ${error.message}
+                </option>
+            `;
+        }
+    } else {
+        clienteSelect.innerHTML = '<option value="">Selecione o tipo primeiro</option>';
+    }
+}
+
+    // Validação antes do envio
+    form.addEventListener("submit", function(e) {
         const tipo = tipoSelect.value;
+        const clienteSelecionado = clienteSelect.value;
         
         if (tipo === 'externo') {
-            clienteSelect.disabled = true;
-            clienteSelect.innerHTML = '<option value="">Não necessário para cliente externo</option>';
-            
-            // Ativa campos do cliente externo
-            clienteExternoFields.style.display = 'block';
-            nomeExterno.disabled = false;
-            cidadeExterno.disabled = false;
-            
-        } else if (tipo) {
-            // Desativa campos do cliente externo
-            clienteExternoFields.style.display = 'none';
-            nomeExterno.disabled = true;
-            cidadeExterno.disabled = true;
-            
-            try {
-                clienteSelect.disabled = true;
-                clienteSelect.innerHTML = '<option value="">Carregando...</option>';
-                
-                const response = await fetch(`/danca/api/clientes/?tipo=${tipo}`);
-                
-                if (!response.ok) {
-                    throw new Error(`Erro ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                let options = '<option value="">Selecione...</option>';
-                data.forEach(cliente => {
-                    options += `<option value="${cliente.id}">${cliente.nome}</option>`;
-                });
-                
-                clienteSelect.innerHTML = options;
-                clienteSelect.disabled = false;
-                
-                // Restaura seleção se existir
-                {% if cliente_selecionado and form.tipo_cliente.value != 'externo' %}
-                    clienteSelect.value = "{{ cliente_selecionado.id }}";
-                {% endif %}
-                
-            } catch (error) {
-                console.error("Erro ao carregar clientes:", error);
-                clienteSelect.innerHTML = `
-                    <option value="">
-                        Erro ao carregar. 
-                        <button onclick="window.location.reload()" class="btn btn-sm btn-warning">
-                            Recarregar
-                        </button>
-                    </option>
-                `;
+            if (!nomeExterno.value || !cidadeExterno.value) {
+                e.preventDefault();
+                alert("Por favor, preencha todos os campos do cliente externo");
             }
-        } else {
-            clienteSelect.innerHTML = '<option value="">Selecione o tipo primeiro</option>';
-            clienteSelect.disabled = true;
-            clienteExternoFields.style.display = 'none';
-            nomeExterno.disabled = true;
-            cidadeExterno.disabled = true;
+        } else if (tipo && (!clienteSelecionado || clienteSelecionado === "")) {
+            e.preventDefault();
+            alert(`Por favor, selecione um ${tipo === 'inscricao' ? 'congressista' : 'profissional'}`);
         }
-    }
+    });
 
     tipoSelect.addEventListener("change", carregarClientes);
     
     // Carrega inicialmente se já tiver valor
-    if (tipoSelect.value) carregarClientes();
+    if (tipoSelect.value) {
+        carregarClientes();
+    } else {
+        clienteSelect.innerHTML = '<option value="">Selecione o tipo primeiro</option>';
+    }
     
     // Inicializa Select2 nos campos de seleção
     $(document).ready(function() {

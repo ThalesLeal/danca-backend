@@ -396,6 +396,7 @@ class CamisaDeleteView(DeleteView):
 
 # CRUD Pedidos de Camisa
 @method_decorator(never_cache, name="dispatch")
+@method_decorator(never_cache, name="dispatch")
 class PedidoCamisaListView(ListView):
     model = PedidoCamisa
     paginate_by = 40
@@ -445,8 +446,12 @@ class PedidoCamisaFormView(View):
             form = self.form_class(instance=pedido)
             titulo = "Editar Pedido de Camisa"
             
-            # Carrega dados do cliente para edição
-            if pedido.content_type.model == 'clienteexterno':
+            # Carrega os dados do cliente para edição
+            if pedido.content_type.model == 'inscricao':
+                form.initial['inscricao'] = pedido.object_id
+            elif pedido.content_type.model == 'profissional':
+                form.initial['profissional'] = pedido.object_id
+            elif pedido.content_type.model == 'clienteexterno':
                 cliente = pedido.cliente
                 form.initial.update({
                     'nome_externo': cliente.nome,
@@ -470,21 +475,22 @@ class PedidoCamisaFormView(View):
         
         if form.is_valid():
             pedido = form.save(commit=False)
+            tipo = form.cleaned_data['tipo_cliente']
             
-            # Lógica para cliente externo
-            if form.cleaned_data['tipo_cliente'] == 'externo':
+            if tipo == 'inscricao':
+                pedido.content_type = ContentType.objects.get_for_model(Inscricao)
+                pedido.object_id = form.cleaned_data['inscricao'].id
+            elif tipo == 'profissional':
+                pedido.content_type = ContentType.objects.get_for_model(Profissional)
+                pedido.object_id = form.cleaned_data['profissional'].id
+            else:  # cliente externo
                 cliente, _ = ClienteExterno.objects.get_or_create(
                     nome=form.cleaned_data['nome_externo'],
                     cidade=form.cleaned_data['cidade_externo'],
-                    defaults={'cpf': ''}  # Adicione outros campos se necessário
+                    defaults={'cpf': ''}
                 )
                 pedido.content_type = ContentType.objects.get_for_model(ClienteExterno)
                 pedido.object_id = cliente.id
-            else:
-                # Lógica para clientes cadastrados
-                model = Inscricao if form.cleaned_data['tipo_cliente'] == 'inscricao' else Profissional
-                pedido.content_type = ContentType.objects.get_for_model(model)
-                pedido.object_id = form.cleaned_data['cliente_id']
             
             pedido.save()
             messages.success(request, msg)
@@ -505,7 +511,7 @@ class PedidoCamisaDeleteView(DeleteView):
     
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Pedido de camisa removido com sucesso")
-        return super().delete(request, *args, **kwargs)@method_decorator(never_cache, name="dispatch")
+        return super().delete(request, *args, **kwargs)
 class PlanejamentoListView(ListView):
     model = Planejamento
     paginate_by = 20
@@ -1588,18 +1594,42 @@ def evento_inscritos_docx(request, pk):
 @require_GET
 def lista_clientes(request):
     tipo = request.GET.get('tipo', '').lower()
+    termo_busca = request.GET.get('search', '').strip()
     
     try:
         if tipo == 'inscricao':
-            data = list(Inscricao.objects.all().values('id', 'nome'))
-        elif tipo == 'profissional':
-            data = list(Profissional.objects.all().values('id', 'nome'))
-        elif tipo == 'cliente_externo':
-            data = list(ClienteExterno.objects.all().values('id', 'nome'))        
-        else:
-            data = []
+            queryset = Inscricao.objects.all()
+            if termo_busca:
+                queryset = queryset.filter(nome__icontains=termo_busca)
+            data = list(queryset.values('id', 'nome'))
             
-        return JsonResponse(data, safe=False)
+        elif tipo == 'profissional':
+            queryset = Profissional.objects.all()
+            if termo_busca:
+                queryset = queryset.filter(nome__icontains=termo_busca)
+            data = list(queryset.values('id', 'nome'))
+            
+        elif tipo == 'externo':  # Alterado para match com o frontend
+            queryset = ClienteExterno.objects.all()
+            if termo_busca:
+                queryset = queryset.filter(nome__icontains=termo_busca)
+            data = list(queryset.values('id', 'nome'))
+            
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'Tipo de cliente inválido',
+                'suggestions': ['inscricao', 'profissional', 'externo']
+            }, status=400)
+            
+        return JsonResponse({
+            'success': True,
+            'data': data
+        }, safe=False)
         
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'message': 'Erro ao buscar clientes'
+        }, status=500)
