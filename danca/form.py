@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Lote,Categoria,TipoEvento,Evento,Camisa,Planejamento,Inscricao, InscricaoEvento,Profissional, ProfissionalEvento, Entrada, Saida,Pagamento,PedidoCamisa
+from .models import Lote,Categoria,TipoEvento,Evento,Camisa,Planejamento,Inscricao, InscricaoEvento,Profissional, ProfissionalEvento, Entrada, Saida,Pagamento,PedidoCamisa,ClienteExterno
 from decimal import Decimal, InvalidOperation
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext_lazy as _
@@ -136,29 +136,59 @@ class PedidoCamisaForm(forms.ModelForm):
     TIPO_CLIENTE_CHOICES = (
         ('inscricao', 'Congressista'),
         ('profissional', 'Profissional'),
+        ('externo', 'Cliente Externo'),
     )
     
-    tipo_cliente = forms.ChoiceField(choices=TIPO_CLIENTE_CHOICES, widget=forms.Select(attrs={'class': 'form-select'}))
-    cliente_id = forms.IntegerField(widget=forms.HiddenInput(), required=False)
+    tipo_cliente = forms.ChoiceField(
+        choices=TIPO_CLIENTE_CHOICES,
+        widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
+        initial='inscricao'
+    )
     
+    # Campos dinâmicos
+    inscricao = forms.ModelChoiceField(
+        queryset=Inscricao.objects.all(),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select cliente-select'})
+    )
+    
+    profissional = forms.ModelChoiceField(
+        queryset=Profissional.objects.all(),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select cliente-select'})
+    )
+    
+    # Campos para cliente externo
+    nome_externo = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control cliente-externo'})
+    )
+    
+    cidade_externo = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control cliente-externo'})
+    )
+
     class Meta:
         model = PedidoCamisa
-        fields = ['tipo_cliente', 'cliente_id', 'camisa', 'cor', 'tamanho', 'status']
-        widgets = {
-            'camisa': forms.Select(attrs={'class': 'form-select'}),
-            'cor': forms.Select(attrs={'class': 'form-select'}),
-            'tamanho': forms.Select(attrs={'class': 'form-select'}),
-            'status': forms.Select(attrs={'class': 'form-select'}),
-        }
+        fields = ['camisa', 'cor', 'tamanho', 'status']
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['camisa'].queryset = Camisa.objects.filter(quantidade__gt=0)
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo = cleaned_data.get('tipo_cliente')
         
-        if self.instance and self.instance.pk:
-            self.fields['tipo_cliente'].initial = self.instance.content_type.model
-            self.fields['cliente_id'].initial = self.instance.object_id
-
+        if tipo == 'inscricao' and not cleaned_data.get('inscricao'):
+            self.add_error('inscricao', 'Selecione um congressista')
+        elif tipo == 'profissional' and not cleaned_data.get('profissional'):
+            self.add_error('profissional', 'Selecione um profissional')
+        elif tipo == 'externo':
+            if not cleaned_data.get('nome_externo'):
+                self.add_error('nome_externo', 'Nome é obrigatório')
+            if not cleaned_data.get('cidade_externo'):
+                self.add_error('cidade_externo', 'Cidade é obrigatória')
+        
+        return cleaned_data
+    
 class PlanejamentoForm(forms.ModelForm):
     class Meta:
         model = Planejamento

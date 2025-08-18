@@ -36,25 +36,45 @@
   {% csrf_token %}
 
   <div class="row">
+    <!-- Tipo de Cliente -->
     <div class="col-md-6 mb-3">
       <label class="me-3" for="cliente_tipo">Tipo de Cliente</label>
       <select class="form-select" id="cliente_tipo" name="tipo_cliente" required>
         <option value="">Selecione...</option>
         <option value="inscricao" {% if form.tipo_cliente.value == 'inscricao' %}selected{% endif %}>Congressista</option>
         <option value="profissional" {% if form.tipo_cliente.value == 'profissional' %}selected{% endif %}>Profissional</option>
+        <option value="externo" {% if form.tipo_cliente.value == 'externo' %}selected{% endif %}>Cliente Externo</option>
       </select>
     </div>
     
-    <div class="col-md-6 mb-3">
+    <!-- Seleção de Cliente (Congressista/Profissional) -->
+    <div class="col-md-6 mb-3" id="cliente_cadastrado_field">
       <label class="me-3" for="cliente_id">Cliente</label>
-      <select class="form-select" id="cliente_id" name="cliente_id" required {% if not form.tipo_cliente.value %}disabled{% endif %}>
-        <option value="">{% if form.tipo_cliente.value %}Selecione...{% else %}Selecione o tipo de cliente primeiro{% endif %}</option>
-        {% if cliente_selecionado %}
+      <select class="form-select" id="cliente_id" name="cliente_id" {% if not form.tipo_cliente.value or form.tipo_cliente.value == 'externo' %}disabled{% endif %}>
+        <option value="">{% if form.tipo_cliente.value and form.tipo_cliente.value != 'externo' %}Selecione...{% else %}Selecione o tipo de cliente primeiro{% endif %}</option>
+        {% if cliente_selecionado and form.tipo_cliente.value != 'externo' %}
           <option value="{{ cliente_selecionado.id }}" selected>{{ cliente_selecionado.nome }}</option>
         {% endif %}
       </select>
     </div>
     
+    <!-- Campos para Cliente Externo -->
+    <div class="col-md-6 mb-3" id="cliente_externo_fields" style="display: {% if form.tipo_cliente.value == 'externo' %}block{% else %}none{% endif %};">
+      <div class="mb-3">
+        <label class="me-3" for="nome_externo">Nome Completo</label>
+        <input type="text" class="form-control" id="nome_externo" name="nome_externo" 
+               value="{% if form.nome_externo.value %}{{ form.nome_externo.value }}{% endif %}"
+               {% if form.tipo_cliente.value != 'externo' %}disabled{% endif %}>
+      </div>
+      <div class="mb-3">
+        <label class="me-3" for="cidade_externo">Cidade</label>
+        <input type="text" class="form-control" id="cidade_externo" name="cidade_externo"
+               value="{% if form.cidade_externo.value %}{{ form.cidade_externo.value }}{% endif %}"
+               {% if form.tipo_cliente.value != 'externo' %}disabled{% endif %}>
+      </div>
+    </div>
+    
+    <!-- Campos do Produto -->
     <div class="col-md-6 mb-3">
       <label class="me-3" for="{{ form.camisa.id_for_label }}">{{ form.camisa.label }}</label>
       {{ form.camisa }}
@@ -88,53 +108,73 @@
 </form>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function() {
     const tipoSelect = document.getElementById("cliente_tipo");
     const clienteSelect = document.getElementById("cliente_id");
+    const clienteExternoFields = document.getElementById("cliente_externo_fields");
+    const nomeExterno = document.getElementById("nome_externo");
+    const cidadeExterno = document.getElementById("cidade_externo");
 
     async function carregarClientes() {
         const tipo = tipoSelect.value;
-        if (!tipo) {
+        
+        if (tipo === 'externo') {
+            clienteSelect.disabled = true;
+            clienteSelect.innerHTML = '<option value="">Não necessário para cliente externo</option>';
+            
+            // Ativa campos do cliente externo
+            clienteExternoFields.style.display = 'block';
+            nomeExterno.disabled = false;
+            cidadeExterno.disabled = false;
+            
+        } else if (tipo) {
+            // Desativa campos do cliente externo
+            clienteExternoFields.style.display = 'none';
+            nomeExterno.disabled = true;
+            cidadeExterno.disabled = true;
+            
+            try {
+                clienteSelect.disabled = true;
+                clienteSelect.innerHTML = '<option value="">Carregando...</option>';
+                
+                const response = await fetch(`/danca/api/clientes/?tipo=${tipo}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                let options = '<option value="">Selecione...</option>';
+                data.forEach(cliente => {
+                    options += `<option value="${cliente.id}">${cliente.nome}</option>`;
+                });
+                
+                clienteSelect.innerHTML = options;
+                clienteSelect.disabled = false;
+                
+                // Restaura seleção se existir
+                {% if cliente_selecionado and form.tipo_cliente.value != 'externo' %}
+                    clienteSelect.value = "{{ cliente_selecionado.id }}";
+                {% endif %}
+                
+            } catch (error) {
+                console.error("Erro ao carregar clientes:", error);
+                clienteSelect.innerHTML = `
+                    <option value="">
+                        Erro ao carregar. 
+                        <button onclick="window.location.reload()" class="btn btn-sm btn-warning">
+                            Recarregar
+                        </button>
+                    </option>
+                `;
+            }
+        } else {
             clienteSelect.innerHTML = '<option value="">Selecione o tipo primeiro</option>';
             clienteSelect.disabled = true;
-            return;
-        }
-
-        try {
-            clienteSelect.disabled = true;
-            clienteSelect.innerHTML = '<option value="">Carregando...</option>';
-            
-            const response = await fetch(`/danca/api/clientes/?tipo=${tipo}`);
-            
-            if (!response.ok) {
-                throw new Error(`Erro ${response.status}`);
-            }
-            
-            const data = await response.json();
-            
-            let options = '<option value="">Selecione...</option>';
-            data.forEach(cliente => {
-                options += `<option value="${cliente.id}">${cliente.nome}</option>`;
-            });
-            
-            clienteSelect.innerHTML = options;
-            clienteSelect.disabled = false;
-            
-            // Restaura seleção se existir
-            {% if cliente_selecionado %}
-                clienteSelect.value = "{{ cliente_selecionado.id }}";
-            {% endif %}
-            
-        } catch (error) {
-            console.error("Erro ao carregar clientes:", error);
-            clienteSelect.innerHTML = `
-                <option value="">
-                    Erro ao carregar. 
-                    <button onclick="window.location.reload()" class="btn btn-sm btn-warning">
-                        Recarregar
-                    </button>
-                </option>
-            `;
+            clienteExternoFields.style.display = 'none';
+            nomeExterno.disabled = true;
+            cidadeExterno.disabled = true;
         }
     }
 
@@ -142,6 +182,12 @@
     
     // Carrega inicialmente se já tiver valor
     if (tipoSelect.value) carregarClientes();
+    
+    // Inicializa Select2 nos campos de seleção
+    $(document).ready(function() {
+        $('#cliente_id').select2();
+        $('#id_camisa').select2();
+    });
 });
 </script>
 

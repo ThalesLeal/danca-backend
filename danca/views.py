@@ -9,8 +9,8 @@ from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.db.models.functions import Lower
-from .models import Lote, Categoria, TipoEvento, Evento, Camisa,Planejamento,Inscricao, InscricaoEvento, Profissional, ProfissionalEvento, Entrada, Saida,Pagamento,PedidoCamisa
-from .form import LoteForm,CategoriaForm,TipoEventoForm,EventoForm,CamisaForm,PlanejamentoForm,InscricaoForm, InscricaoEventoForm, ProfissionalForm, ProfissionalEventoForm, EntradaForm, SaidaForm, PagamentoForm,PedidoCamisaForm
+from .models import Lote, Categoria, TipoEvento, Evento, Camisa,Planejamento,Inscricao, InscricaoEvento, Profissional, ProfissionalEvento, Entrada, Saida,Pagamento,PedidoCamisa,ClienteExterno
+from .form import LoteForm,CategoriaForm,TipoEventoForm,EventoForm,CamisaForm,PlanejamentoForm,InscricaoForm, InscricaoEventoForm, ProfissionalForm, ProfissionalEventoForm, EntradaForm, SaidaForm, PagamentoForm,PedidoCamisaForm,ClienteExterno
 from django.shortcuts import redirect,render
 from django.db.models import Q
 from django.core.exceptions import ValidationError
@@ -398,7 +398,7 @@ class CamisaDeleteView(DeleteView):
 @method_decorator(never_cache, name="dispatch")
 class PedidoCamisaListView(ListView):
     model = PedidoCamisa
-    paginate_by = 10
+    paginate_by = 40
     template_name = "pedidos/list.html"
 
     def get_queryset(self):
@@ -422,12 +422,13 @@ class PedidoCamisaDetailView(TemplateView):
         context = super().get_context_data(**kwargs)
         pedido = get_object_or_404(PedidoCamisa, id=self.kwargs['pedido_id'])
         
-        # Obter o cliente dinamicamente baseado no content_type
+        # Obter o cliente dinamicamente
         cliente_model = pedido.content_type.model_class()
         cliente = cliente_model.objects.get(id=pedido.object_id)
         
         context['pedido'] = pedido
         context['cliente'] = cliente
+        context['tipo_cliente'] = pedido.content_type.model
         return context
 
 @method_decorator(never_cache, name="dispatch")
@@ -438,29 +439,24 @@ class PedidoCamisaFormView(View):
     def get(self, request, pedido_id=None):
         form = self.form_class()
         titulo = "Novo Pedido de Camisa"
-        cliente_selecionado = None
         
         if pedido_id:
             pedido = get_object_or_404(PedidoCamisa, id=pedido_id)
             form = self.form_class(instance=pedido)
             titulo = "Editar Pedido de Camisa"
             
-            # Obtém o cliente selecionado para edição
-            if pedido.content_type.model == 'inscricao':
-                cliente_selecionado = Inscricao.objects.filter(id=pedido.object_id).first()
-            elif pedido.content_type.model == 'profissional':
-                cliente_selecionado = Profissional.objects.filter(id=pedido.object_id).first()
-            
-            if cliente_selecionado:
-                cliente_selecionado = {
-                    'id': cliente_selecionado.id,
-                    'nome': cliente_selecionado.nome
-                }
+            # Carrega dados do cliente para edição
+            if pedido.content_type.model == 'clienteexterno':
+                cliente = pedido.cliente
+                form.initial.update({
+                    'nome_externo': cliente.nome,
+                    'cidade_externo': cliente.cidade
+                })
         
         return render(request, self.template_name, {
             "form": form,
             "titulo": titulo,
-            "cliente_selecionado": cliente_selecionado
+            "edicao": bool(pedido_id)
         })
 
     def post(self, request, pedido_id=None):
@@ -475,30 +471,41 @@ class PedidoCamisaFormView(View):
         if form.is_valid():
             pedido = form.save(commit=False)
             
-            if not pedido_id:  # Novo pedido
-                tipo_cliente = form.cleaned_data['tipo_cliente']
-                cliente_id = form.cleaned_data['cliente_id']
-                content_type = ContentType.objects.get(model=tipo_cliente)
-                
-                pedido.content_type = content_type
-                pedido.object_id = cliente_id
+            # Lógica para cliente externo
+            if form.cleaned_data['tipo_cliente'] == 'externo':
+                cliente, _ = ClienteExterno.objects.get_or_create(
+                    nome=form.cleaned_data['nome_externo'],
+                    cidade=form.cleaned_data['cidade_externo'],
+                    defaults={'cpf': ''}  # Adicione outros campos se necessário
+                )
+                pedido.content_type = ContentType.objects.get_for_model(ClienteExterno)
+                pedido.object_id = cliente.id
+            else:
+                # Lógica para clientes cadastrados
+                model = Inscricao if form.cleaned_data['tipo_cliente'] == 'inscricao' else Profissional
+                pedido.content_type = ContentType.objects.get_for_model(model)
+                pedido.object_id = form.cleaned_data['cliente_id']
             
             pedido.save()
             messages.success(request, msg)
             return redirect('list_pedidos_camisas')
         
-        return render(request, self.template_name, {"form": form})
-        
+        return render(request, self.template_name, {
+            "form": form,
+            "titulo": "Editar Pedido de Camisa" if pedido_id else "Novo Pedido de Camisa",
+            "edicao": bool(pedido_id)
+        })
+
+@method_decorator(never_cache, name="dispatch")
 class PedidoCamisaDeleteView(DeleteView):
     model = PedidoCamisa
     pk_url_kwarg = "pedido_id"
-    success_url = reverse_lazy('list_pedidos_camisas')  # Corrigido para plural
+    template_name = "pedidos/confirm_delete.html"
+    success_url = reverse_lazy('list_pedidos_camisas')
     
-    def form_valid(self, request, *args, **kwargs):
-        messages.success(self.request, "Pedido de camisa removido com sucesso")
-        return super().form_valid(request, *args, **kwargs)
-    
-@method_decorator(never_cache, name="dispatch")
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, "Pedido de camisa removido com sucesso")
+        return super().delete(request, *args, **kwargs)@method_decorator(never_cache, name="dispatch")
 class PlanejamentoListView(ListView):
     model = Planejamento
     paginate_by = 20
@@ -1587,6 +1594,8 @@ def lista_clientes(request):
             data = list(Inscricao.objects.all().values('id', 'nome'))
         elif tipo == 'profissional':
             data = list(Profissional.objects.all().values('id', 'nome'))
+        elif tipo == 'cliente_externo':
+            data = list(ClienteExterno.objects.all().values('id', 'nome'))        
         else:
             data = []
             
