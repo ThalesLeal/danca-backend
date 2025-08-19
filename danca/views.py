@@ -9,8 +9,8 @@ from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.db.models.functions import Lower
-from .models import Lote, Categoria, TipoEvento, Evento, Camisa,Planejamento,Inscricao, InscricaoEvento, Profissional, ProfissionalEvento, Entrada, Saida,Pagamento,PedidoCamisa,ClienteExterno
-from .form import LoteForm,CategoriaForm,TipoEventoForm,EventoForm,CamisaForm,PlanejamentoForm,InscricaoForm, InscricaoEventoForm, ProfissionalForm, ProfissionalEventoForm, EntradaForm, SaidaForm, PagamentoForm,PedidoCamisaForm,ClienteExterno
+from .models import Lote, Categoria, TipoEvento, Evento, Camisa,Planejamento,Inscricao, InscricaoEvento, Profissional, ProfissionalEvento, Entrada, Saida,Pagamento,PedidoCamisa
+from .form import LoteForm,CategoriaForm,TipoEventoForm,EventoForm,CamisaForm,PlanejamentoForm,InscricaoForm, InscricaoEventoForm, ProfissionalForm, ProfissionalEventoForm, EntradaForm, SaidaForm, PagamentoForm,PedidoCamisaForm
 from django.shortcuts import redirect,render
 from django.db.models import Q
 from django.core.exceptions import ValidationError
@@ -396,25 +396,25 @@ class CamisaDeleteView(DeleteView):
 
 # CRUD Pedidos de Camisa
 @method_decorator(never_cache, name="dispatch")
-@method_decorator(never_cache, name="dispatch")
 class PedidoCamisaListView(ListView):
     model = PedidoCamisa
-    paginate_by = 40
+    paginate_by = 10
     template_name = "pedidos/list.html"
+    ordering = ['-data_pedido']
 
     def get_queryset(self):
-        queryset = PedidoCamisa.objects.all().select_related('camisa', 'content_type')
-        status = self.request.GET.get('status')
-        if status:
-            queryset = queryset.filter(status=status)
-        return queryset.order_by('-data_pedido')
+        queryset = super().get_queryset()
+        query = self.request.GET.get('q')
+        if query:
+            queryset = queryset.filter(nome_completo__icontains=query)
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['create_url'] = reverse_lazy('create_pedido_camisa')
-        context['status_filter'] = self.request.GET.get('status', '')
+        context['q'] = self.request.GET.get('q', '')
+        context['create_url'] = reverse('create_pedido')
         return context
-    
+
 @method_decorator(never_cache, name="dispatch")
 class PedidoCamisaDetailView(TemplateView):
     template_name = "pedidos/detail.html"
@@ -422,14 +422,7 @@ class PedidoCamisaDetailView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         pedido = get_object_or_404(PedidoCamisa, id=self.kwargs['pedido_id'])
-        
-        # Obter o cliente dinamicamente
-        cliente_model = pedido.content_type.model_class()
-        cliente = cliente_model.objects.get(id=pedido.object_id)
-        
         context['pedido'] = pedido
-        context['cliente'] = cliente
-        context['tipo_cliente'] = pedido.content_type.model
         return context
 
 @method_decorator(never_cache, name="dispatch")
@@ -439,79 +432,55 @@ class PedidoCamisaFormView(View):
 
     def get(self, request, pedido_id=None):
         form = self.form_class()
-        titulo = "Novo Pedido de Camisa"
+        titulo = "Novo Pedido"
         
         if pedido_id:
             pedido = get_object_or_404(PedidoCamisa, id=pedido_id)
             form = self.form_class(instance=pedido)
-            titulo = "Editar Pedido de Camisa"
-            
-            # Carrega os dados do cliente para edição
-            if pedido.content_type.model == 'inscricao':
-                form.initial['inscricao'] = pedido.object_id
-            elif pedido.content_type.model == 'profissional':
-                form.initial['profissional'] = pedido.object_id
-            elif pedido.content_type.model == 'clienteexterno':
-                cliente = pedido.cliente
-                form.initial.update({
-                    'nome_externo': cliente.nome,
-                    'cidade_externo': cliente.cidade
-                })
+            titulo = "Editar Pedido"
         
         return render(request, self.template_name, {
             "form": form,
             "titulo": titulo,
-            "edicao": bool(pedido_id)
         })
 
     def post(self, request, pedido_id=None):
         form = self.form_class(request.POST)
-        msg = 'Pedido de camisa criado com sucesso'
+        msg = 'Pedido criado com sucesso'
 
         if pedido_id:
             pedido = get_object_or_404(PedidoCamisa, id=pedido_id)
             form = self.form_class(request.POST, instance=pedido)
-            msg = 'Pedido de camisa atualizado com sucesso'
+            msg = 'Pedido atualizado com sucesso'
         
         if form.is_valid():
             pedido = form.save(commit=False)
-            tipo = form.cleaned_data['tipo_cliente']
-            
-            if tipo == 'inscricao':
-                pedido.content_type = ContentType.objects.get_for_model(Inscricao)
-                pedido.object_id = form.cleaned_data['inscricao'].id
-            elif tipo == 'profissional':
-                pedido.content_type = ContentType.objects.get_for_model(Profissional)
-                pedido.object_id = form.cleaned_data['profissional'].id
-            else:  # cliente externo
-                cliente, _ = ClienteExterno.objects.get_or_create(
-                    nome=form.cleaned_data['nome_externo'],
-                    cidade=form.cleaned_data['cidade_externo'],
-                    defaults={'cpf': ''}
-                )
-                pedido.content_type = ContentType.objects.get_for_model(ClienteExterno)
-                pedido.object_id = cliente.id
-            
+            # Calcula o valor de venda automaticamente antes de salvar
+            if pedido.camisa:
+                if pedido.tipo_cliente == 'socio':
+                    pedido.valor_venda = pedido.camisa.valor_socio
+                else:
+                    pedido.valor_venda = pedido.camisa.valor_nao_socio
             pedido.save()
             messages.success(request, msg)
-            return redirect('list_pedidos_camisas')
+            return redirect('list_pedidos')
         
         return render(request, self.template_name, {
             "form": form,
-            "titulo": "Editar Pedido de Camisa" if pedido_id else "Novo Pedido de Camisa",
-            "edicao": bool(pedido_id)
+            "titulo": "Editar Pedido" if pedido_id else "Novo Pedido"
         })
 
 @method_decorator(never_cache, name="dispatch")
 class PedidoCamisaDeleteView(DeleteView):
     model = PedidoCamisa
     pk_url_kwarg = "pedido_id"
-    template_name = "pedidos/confirm_delete.html"
-    success_url = reverse_lazy('list_pedidos_camisas')
+
+    def get_success_url(self):
+        messages.success(self.request, "Pedido removido com sucesso")
+        return reverse_lazy('list_pedidos')
     
-    def delete(self, request, *args, **kwargs):
-        messages.success(request, "Pedido de camisa removido com sucesso")
-        return super().delete(request, *args, **kwargs)
+    
+@method_decorator(never_cache, name="dispatch")   
 class PlanejamentoListView(ListView):
     model = Planejamento
     paginate_by = 20
@@ -1591,45 +1560,45 @@ def evento_inscritos_docx(request, pk):
 
 #api Pedidos
 
-@require_GET
-def lista_clientes(request):
-    tipo = request.GET.get('tipo', '').lower()
-    termo_busca = request.GET.get('search', '').strip()
+# @require_GET
+# def lista_clientes(request):
+#     tipo = request.GET.get('tipo', '').lower()
+#     termo_busca = request.GET.get('search', '').strip()
     
-    try:
-        if tipo == 'inscricao':
-            queryset = Inscricao.objects.all()
-            if termo_busca:
-                queryset = queryset.filter(nome__icontains=termo_busca)
-            data = list(queryset.values('id', 'nome'))
+#     try:
+#         if tipo == 'inscricao':
+#             queryset = Inscricao.objects.all()
+#             if termo_busca:
+#                 queryset = queryset.filter(nome__icontains=termo_busca)
+#             data = list(queryset.values('id', 'nome'))
             
-        elif tipo == 'profissional':
-            queryset = Profissional.objects.all()
-            if termo_busca:
-                queryset = queryset.filter(nome__icontains=termo_busca)
-            data = list(queryset.values('id', 'nome'))
+#         elif tipo == 'profissional':
+#             queryset = Profissional.objects.all()
+#             if termo_busca:
+#                 queryset = queryset.filter(nome__icontains=termo_busca)
+#             data = list(queryset.values('id', 'nome'))
             
-        elif tipo == 'externo':  # Alterado para match com o frontend
-            queryset = ClienteExterno.objects.all()
-            if termo_busca:
-                queryset = queryset.filter(nome__icontains=termo_busca)
-            data = list(queryset.values('id', 'nome'))
+#         elif tipo == 'externo':  # Alterado para match com o frontend
+#             queryset = ClienteExterno.objects.all()
+#             if termo_busca:
+#                 queryset = queryset.filter(nome__icontains=termo_busca)
+#             data = list(queryset.values('id', 'nome'))
             
-        else:
-            return JsonResponse({
-                'success': False,
-                'message': 'Tipo de cliente inválido',
-                'suggestions': ['inscricao', 'profissional', 'externo']
-            }, status=400)
+#         else:
+#             return JsonResponse({
+#                 'success': False,
+#                 'message': 'Tipo de cliente inválido',
+#                 'suggestions': ['inscricao', 'profissional', 'externo']
+#             }, status=400)
             
-        return JsonResponse({
-            'success': True,
-            'data': data
-        }, safe=False)
+#         return JsonResponse({
+#             'success': True,
+#             'data': data
+#         }, safe=False)
         
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e),
-            'message': 'Erro ao buscar clientes'
-        }, status=500)
+#     except Exception as e:
+#         return JsonResponse({
+#             'success': False,
+#             'error': str(e),
+#             'message': 'Erro ao buscar clientes'
+#         }, status=500)

@@ -40,15 +40,13 @@ urlpatterns = [
     path('camisas/<int:camisa_id>/update/', CamisaFormView.as_view(), name='update_camisa'),
     path('camisas/<int:camisa_id>/delete/', CamisaDeleteView.as_view(), name='delete_camisa'),
 
-    # Pedidos de Camisas
-    path('pedidos-camisas/', PedidoCamisaListView.as_view(), name='list_pedidos_camisas'),
-    path('pedidos-camisas/<int:pedido_id>/', PedidoCamisaDetailView.as_view(), name='detail_pedido_camisa'),
-    path('pedidos-camisas/create/', PedidoCamisaFormView.as_view(), name='create_pedido_camisa'),
-    path('pedidos-camisas/<int:pedido_id>/update/', PedidoCamisaFormView.as_view(), name='update_pedido_camisa'),
-    path('pedidos-camisas/<int:pedido_id>/delete/', PedidoCamisaDeleteView.as_view(), name='delete_pedido_camisa'),
-    path('api/clientes/', lista_clientes, name='api_clientes'),
-    path('pedidos-camisas/create/', PedidoCamisaFormView.as_view(), name='create_pedido_camisa'),
-    path('pedidos-camisas/<int:pedido_id>/edit/', PedidoCamisaFormView.as_view(), name='edit_pedido_camisa'),
+    # Pedido de Camisa
+    path('pedidos/', PedidoCamisaListView.as_view(), name='list_pedidos'),
+    path('pedidos/novo/', PedidoCamisaFormView.as_view(), name='create_pedido'),
+    path('pedidos/<int:pedido_id>/', PedidoCamisaDetailView.as_view(), name='detail_pedido'),
+    path('pedidos/<int:pedido_id>/editar/', PedidoCamisaFormView.as_view(), name='edit_pedido'),
+    path('pedidos/<int:pedido_id>/excluir/', PedidoCamisaDeleteView.as_view(), name='delete_pedido'),
+
 
     # Planejamento
     path('planejamentos/', PlanejamentoListView.as_view(), name='list_planejamentos'),

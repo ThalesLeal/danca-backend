@@ -35,16 +35,19 @@
                                 <span style="margin-left: 10px;">Camisas</span>
                                 <i class="bi bi-chevron-down ms-2"></i>
                             </button>
-                            <div class="collapse {% if request.resolver_match.url_name == 'list_camisas' or request.resolver_match.url_name == 'list_pedidos_camisas' %}show{% endif %}" id="camisas-collapse">
+                            <div class="collapse {% if 'list_camisas' in request.resolver_match.url_name or 'create_camisa' in request.resolver_match.url_name or 'detail_camisa' in request.resolver_match.url_name or 'update_camisa' in request.resolver_match.url_name or 'delete_camisa' in request.resolver_match.url_name or 'list_pedidos' in request.resolver_match.url_name or 'create_pedido' in request.resolver_match.url_name or 'detail_pedido' in request.resolver_match.url_name or 'edit_pedido' in request.resolver_match.url_name or 'delete_pedido' in request.resolver_match.url_name %}show{% endif %}" id="camisas-collapse">
                                 <ul class="nav nav-pills flex-column mb-auto">
+                                    <!-- Cadastro de Camisas -->
                                     <li class="nav-item mb-2 mt-2">
-                                        <a class="nav-link {% if request.resolver_match.url_name == 'list_camisas' %}active{% endif %}" href="{% url 'list_camisas' %}">
+                                        <a class="nav-link {% if 'list_camisas' in request.resolver_match.url_name or 'create_camisa' in request.resolver_match.url_name or 'detail_camisa' in request.resolver_match.url_name or 'update_camisa' in request.resolver_match.url_name or 'delete_camisa' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'list_camisas' %}">
                                             <i class="bi bi-pencil-square"></i>
                                             <span style="margin-left: 10px;">Cadastro</span>
                                         </a>
                                     </li>
+                                    
+                                    <!-- Pedidos de Camisas -->
                                     <li class="nav-item mb-2">
-                                        <a class="nav-link {% if request.resolver_match.url_name == 'list_pedidos_camisas' %}active{% endif %}" href="{% url 'list_pedidos_camisas' %}">
+                                        <a class="nav-link {% if 'list_pedidos' in request.resolver_match.url_name or 'create_pedido' in request.resolver_match.url_name or 'detail_pedido' in request.resolver_match.url_name or 'edit_pedido' in request.resolver_match.url_name or 'delete_pedido' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'list_pedidos' %}">
                                             <i class="bi bi-cart"></i>
                                             <span style="margin-left: 10px;">Pedidos</span>
                                         </a>

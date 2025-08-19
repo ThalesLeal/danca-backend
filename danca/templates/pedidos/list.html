@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2 class="pb-2">Pedidos de Camisas</h2>
+<h2 class="pb-2">Pedidos de Camisa</h2>
 
 {% if messages %}
 <div class="container">
@@ -23,29 +23,33 @@
 <table class="table table-striped table-hover">
   <thead>
     <tr>
+      <th>Nº Pedido</th>
       <th>Cliente</th>
       <th>Camisa</th>
-      <th>Cor</th>
       <th>Tamanho</th>
-      <th>Valor Venda</th>
+      <th>Cor</th>
+      <th>Valor</th>
       <th>Status</th>
-      <th>Data do Pedido</th>
       <th class="text-center">Ações</th>
     </tr>
   </thead>
   <tbody>
     {% for pedido in page_obj %}
     <tr>
-      <td class="align-middle">{{ pedido.cliente }}</td>
+      <td class="align-middle">#{{ pedido.id }}</td>
+      <td class="align-middle">{{ pedido.nome_completo }}</td>
       <td class="align-middle">{{ pedido.camisa.descricao }}</td>
-      <td class="align-middle">{{ pedido.get_cor_display }}</td>
       <td class="align-middle">{{ pedido.get_tamanho_display }}</td>
+      <td class="align-middle">{{ pedido.get_cor_display }}</td>
       <td class="align-middle">R$ {{ pedido.valor_venda|floatformat:2 }}</td>
-      <td class="align-middle">{{ pedido.get_status_display }}</td>
-      <td class="align-middle">{{ pedido.data_pedido|date:"d/m/Y H:i" }}</td>
+      <td class="align-middle">
+        <span class="badge bg-{% if pedido.status == 'pendente' %}warning{% elif pedido.status == 'entregue' %}success{% else %}info{% endif %}">
+          {{ pedido.get_status_display }}
+        </span>
+      </td>
       <td class="col-3 text-center botoes">
-        <a href="{% url 'detail_pedido_camisa' pedido.id %}" class="btn btn-info"><i class="bi bi-eye-fill"></i></a>
-        <a href="{% url 'update_pedido_camisa' pedido.id %}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a>
+        <a href="{% url 'detail_pedido' pedido.id %}" class="btn btn-info"><i class="bi bi-eye-fill"></i></a>
+        <a href="{% url 'edit_pedido' pedido.id %}" class="btn btn-warning"><i class="bi bi-pencil-square"></i></a>
         <button type="button" class="btn btn-danger btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="{{ pedido.id }}">
           <i class="bi bi-trash3-fill"></i>
         </button>
@@ -64,33 +68,32 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="staticBackdropLabel">Remover Pedido</h1>
+        <h1 class="modal-title fs-5" id="staticBackdropLabel">Cancelar Pedido</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body text-start">
-        <p>Tem certeza que deseja remover este pedido?</p>
+        <p>Tem certeza que deseja cancelar este pedido?</p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
         <form method="post" id="delete-form" action="">
           {% csrf_token %}
-          <button type="submit" class="btn btn-danger">Excluir</button>
+          <button type="submit" class="btn btn-danger">Confirmar</button>
         </form>
       </div>
     </div>
   </div>
 </div>
-
 {% include "partials/_pagination.html" %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-  $(document).ready(function () {
+   $(document).ready(function () {
     $(".btn-delete").on("click", function () {
-      let pedidoId = $(this).data("id");
-      let deleteUrl = `{% url 'delete_pedido_camisa' pedido_id=0 %}`.replace('0', pedidoId);
-      $("#delete-form").attr("action", deleteUrl);
+        let pedidoId = $(this).data("id");
+        let deleteUrl = `{% url 'delete_pedido' pedido_id=0 %}`.replace('0', pedidoId);
+        $("#delete-form").attr("action", deleteUrl);
     });
   });
 </script>

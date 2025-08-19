@@ -1,6 +1,6 @@
 from datetime import timedelta
 from django.db import models
-from .constants import STATUS_EVENTO, TAMANHO_CAMISA, TIPO_CAMISA, STATUS_LOTE,CORES_CAMISA, STATUS_CAMISA
+from .constants import STATUS_EVENTO, TAMANHO_CAMISA, TIPO_CAMISA, STATUS_LOTE,CORES_CAMISA, STATUS_CAMISA,TIPO_CLIENTE_CHOICES
 from django.core.exceptions import ValidationError
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -390,12 +390,9 @@ class Pagamento(models.Model):
 
 class PedidoCamisa(models.Model):
    
-
-   # Relacionamento genérico (pode ser Profissional, Inscricao ou ClienteExterno)
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    cliente = GenericForeignKey('content_type', 'object_id')
-
+    nome_completo = models.CharField(max_length=100,null=True, blank=True)
+    cidade = models.CharField(max_length=100, null=True, blank=True)
+    tipo_cliente = models.CharField(max_length=20, choices=TIPO_CLIENTE_CHOICES, null=True,blank=True) 
     camisa = models.ForeignKey(Camisa, on_delete=models.CASCADE)
     cor = models.CharField(max_length=20, choices=CORES_CAMISA)
     tamanho = models.CharField(max_length=5, choices=TAMANHO_CAMISA)
@@ -404,24 +401,20 @@ class PedidoCamisa(models.Model):
     data_pedido = models.DateTimeField(auto_now_add=True)
     data_entrega = models.DateTimeField(null=True, blank=True)
 
-    def save(self, *args, **kwargs):
-        # Garante que o valor de venda sempre vem do cadastro da camisa
-        self.valor_venda = self.camisa.valor_venda
-        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Pedido #{self.id} - {self.cliente.nome} - {self.camisa.descricao}"
+        return f"Pedido #{self.id} - {self.nome_completo}"
 
     class Meta:
         verbose_name = "Pedido de Camisa"
         verbose_name_plural = "Pedidos de Camisas"
     
-class ClienteExterno(models.Model):
-    nome = models.CharField(max_length=100, blank=True, null=True)
-    cidade = models.CharField(max_length=100, blank=False, null=False)
-    cpf = models.CharField(max_length=14, blank=False, null=False)
-    telefone = models.CharField(max_length=15, blank=False, null=False)
-    email = models.EmailField(blank=False, null=False)
+# class ClienteExterno(models.Model):
+#     nome = models.CharField(max_length=100, blank=True, null=True)
+#     cidade = models.CharField(max_length=100, blank=False, null=False)
+#     cpf = models.CharField(max_length=14, blank=False, null=False)
+#     telefone = models.CharField(max_length=15, blank=False, null=False)
+#     email = models.EmailField(blank=False, null=False)
 
-    def __str__(self):
-        return self.nome
+#     def __str__(self):
+#         return self.nome

@@ -3,9 +3,6 @@
 
 {% block content %}
 
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
 <h2 class="pb-2">{{ titulo }}</h2>
 
 <!--- Mensagens de erro -->
@@ -32,186 +29,94 @@
 </div>
 {% endif %}
 
-<form method="post" id="pedidoForm">
+<form method="post" id="pedidoCamisaForm">
   {% csrf_token %}
 
   <div class="row">
-    <!-- Tipo de Cliente -->
     <div class="col-md-6 mb-3">
-      <label class="me-3" for="cliente_tipo">Tipo de Cliente</label>
-      <select class="form-select" id="cliente_tipo" name="tipo_cliente" required>
-        <option value="">Selecione...</option>
-        <option value="inscricao" {% if form.tipo_cliente.value == 'inscricao' %}selected{% endif %}>Congressista</option>
-        <option value="profissional" {% if form.tipo_cliente.value == 'profissional' %}selected{% endif %}>Profissional</option>
-        <option value="externo" {% if form.tipo_cliente.value == 'externo' %}selected{% endif %}>Cliente Externo</option>
-      </select>
+      <label class="me-3" for="{{ form.nome_completo.id_for_label }}">{{ form.nome_completo.label }}</label>
+      {{ form.nome_completo }}
     </div>
     
-    <!-- Seleção de Cliente (Congressista/Profissional) -->
-    <div class="col-md-6 mb-3" id="cliente_cadastrado_field">
-      <label class="me-3" for="cliente_id">Cliente</label>
-      <select class="form-select" id="cliente_id" name="cliente_id" {% if not form.tipo_cliente.value or form.tipo_cliente.value == 'externo' %}disabled{% endif %}>
-        <option value="">{% if form.tipo_cliente.value and form.tipo_cliente.value != 'externo' %}Selecione...{% else %}Selecione o tipo de cliente primeiro{% endif %}</option>
-        {% if cliente_selecionado and form.tipo_cliente.value != 'externo' %}
-          <option value="{{ cliente_selecionado.id }}" selected>{{ cliente_selecionado.nome }}</option>
-        {% endif %}
-      </select>
-    </div>
+    <div class="col-md-6 mb-3">
+      <label class="me-3" for="{{ form.cidade.id_for_label }}">{{ form.cidade.label }}</label>
+      {{ form.cidade }}
+    </div>   
     
-    <!-- Campos para Cliente Externo -->
-    <div class="col-md-6 mb-3" id="cliente_externo_fields" style="display: {% if form.tipo_cliente.value == 'externo' %}block{% else %}none{% endif %};">
-      <div class="mb-3">
-        <label class="me-3" for="nome_externo">Nome Completo</label>
-        <input type="text" class="form-control" id="nome_externo" name="nome_externo" 
-               value="{% if form.nome_externo.value %}{{ form.nome_externo.value }}{% endif %}"
-               {% if form.tipo_cliente.value != 'externo' %}disabled{% endif %}>
-      </div>
-      <div class="mb-3">
-        <label class="me-3" for="cidade_externo">Cidade</label>
-        <input type="text" class="form-control" id="cidade_externo" name="cidade_externo"
-               value="{% if form.cidade_externo.value %}{{ form.cidade_externo.value }}{% endif %}"
-               {% if form.tipo_cliente.value != 'externo' %}disabled{% endif %}>
+    <div class="col-md-12 mb-3">
+      <label class="me-3">{{ form.tipo_cliente.label }}</label>
+      <div class="form-check form-check-inline">
+        {% for choice in form.tipo_cliente %}
+          {{ choice.tag }}
+          <label class="form-check-label me-3" for="{{ choice.id_for_label }}">
+            {{ choice.choice_label }}
+          </label>
+        {% endfor %}
       </div>
     </div>
     
-    <!-- Campos do Produto -->
-    <div class="col-md-6 mb-3">
+    <div class="col-md-4 mb-3">
       <label class="me-3" for="{{ form.camisa.id_for_label }}">{{ form.camisa.label }}</label>
       {{ form.camisa }}
     </div>
     
-    <div class="col-md-3 mb-3">
+    <div class="col-md-4 mb-3">
       <label class="me-3" for="{{ form.tamanho.id_for_label }}">{{ form.tamanho.label }}</label>
       {{ form.tamanho }}
     </div>
     
-    <div class="col-md-3 mb-3">
+    <div class="col-md-4 mb-3">
       <label class="me-3" for="{{ form.cor.id_for_label }}">{{ form.cor.label }}</label>
       {{ form.cor }}
-    </div>
-    
-    <div class="col-md-6 mb-3">
-      <label class="me-3" for="{{ form.valor_venda.id_for_label }}">{{ form.valor_venda.label }}</label>
-      {{ form.valor_venda }}
     </div>
     
     <div class="col-md-6 mb-3">
       <label class="me-3" for="{{ form.status.id_for_label }}">{{ form.status.label }}</label>
       {{ form.status }}
     </div>
+    
+    {% if form.instance.valor_venda %}
+    <div class="col-md-6 mb-3">
+      <label class="me-3">Valor do Pedido:</label>
+      <div class="form-control-plaintext">R$ {{ form.instance.valor_venda|floatformat:2 }}</div>
+    </div>
+    {% endif %}
   </div>
 
   <button type="submit" class="btn btn-success me-2 float-end">
     <i class="bi bi-floppy"></i> &nbsp; Salvar
   </button>
-  <a href="{% url 'list_pedidos_camisas' %}" class="btn btn-secondary"><i class="bi bi-arrow-90deg-left"></i> Voltar</a>
+  <a href="{% url 'list_pedidos' %}" class="btn btn-secondary"><i class="bi bi-arrow-90deg-left"></i> Voltar</a>
 </form>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    const tipoSelect = document.getElementById("cliente_tipo");
-    const clienteSelect = document.getElementById("cliente_id");
-    const clienteExternoFields = document.getElementById("cliente_externo_fields");
-    const nomeExterno = document.getElementById("nome_externo");
-    const cidadeExterno = document.getElementById("cidade_externo");
-    const form = document.getElementById("pedidoForm");
-
-    async function carregarClientes() {
-    const tipo = tipoSelect.value;
+document.addEventListener("DOMContentLoaded", function () {
+    // Atualizar valor quando a camisa ou tipo de cliente mudar
+    const camisaSelect = document.querySelector("#id_camisa");
+    const tipoClienteRadios = document.querySelectorAll("input[name='tipo_cliente']");
     
-    // Resetar estados
-    clienteSelect.disabled = true;
-    clienteExternoFields.style.display = 'none';
-    nomeExterno.disabled = true;
-    nomeExterno.required = false;
-    cidadeExterno.disabled = true;
-    cidadeExterno.required = false;
-    
-    if (tipo === 'externo') {
-        clienteSelect.innerHTML = '<option value="">Não necessário para cliente externo</option>';
-        clienteExternoFields.style.display = 'block';
-        nomeExterno.disabled = false;
-        nomeExterno.required = true;
-        cidadeExterno.disabled = false;
-        cidadeExterno.required = true;
-    } 
-    else if (tipo) {
-        try {
-            clienteSelect.innerHTML = '<option value="">Carregando...</option>';
-            
-            const response = await fetch(`/danca/api/clientes/?tipo=${tipo}`);
-            
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Erro ao carregar clientes');
-            }
-            
-            const result = await response.json();
-            
-            if (!result.success) {
-                throw new Error(result.message || 'Dados inválidos retornados');
-            }
-            
-            const data = result.data;
-            
-            let options = '<option value="">Selecione...</option>';
-            data.forEach(cliente => {
-                options += `<option value="${cliente.id}">${cliente.nome}</option>`;
-            });
-            
-            clienteSelect.innerHTML = options;
-            clienteSelect.disabled = false;
-            
-            // Restaura seleção se existir
-            {% if cliente_selecionado and form.tipo_cliente.value != 'externo' %}
-                if (data.some(c => c.id == {{ cliente_selecionado.id }})) {
-                    clienteSelect.value = "{{ cliente_selecionado.id }}";
-                }
-            {% endif %}
-            
-        } catch (error) {
-            console.error("Erro ao carregar clientes:", error);
-            clienteSelect.innerHTML = `
-                <option value="">
-                    Erro: ${error.message}
-                </option>
-            `;
-        }
-    } else {
-        clienteSelect.innerHTML = '<option value="">Selecione o tipo primeiro</option>';
-    }
-}
-
-    // Validação antes do envio
-    form.addEventListener("submit", function(e) {
-        const tipo = tipoSelect.value;
-        const clienteSelecionado = clienteSelect.value;
+    function updateValorVenda() {
+        const camisaId = camisaSelect.value;
+        const tipoCliente = document.querySelector("input[name='tipo_cliente']:checked").value;
         
-        if (tipo === 'externo') {
-            if (!nomeExterno.value || !cidadeExterno.value) {
-                e.preventDefault();
-                alert("Por favor, preencha todos os campos do cliente externo");
-            }
-        } else if (tipo && (!clienteSelecionado || clienteSelecionado === "")) {
-            e.preventDefault();
-            alert(`Por favor, selecione um ${tipo === 'inscricao' ? 'congressista' : 'profissional'}`);
+        if (camisaId) {
+            fetch(`/api/camisas/${camisaId}/valor/?tipo_cliente=${tipoCliente}`)
+                .then(response => response.json())
+                .then(data => {
+                    const valorElement = document.querySelector("#valor-venda");
+                    if (valorElement) {
+                        valorElement.textContent = `R$ ${data.valor.toFixed(2)}`;
+                    }
+                });
         }
-    });
-
-    tipoSelect.addEventListener("change", carregarClientes);
-    
-    // Carrega inicialmente se já tiver valor
-    if (tipoSelect.value) {
-        carregarClientes();
-    } else {
-        clienteSelect.innerHTML = '<option value="">Selecione o tipo primeiro</option>';
     }
     
-    // Inicializa Select2 nos campos de seleção
-    $(document).ready(function() {
-        $('#cliente_id').select2();
-        $('#id_camisa').select2();
-    });
+    if (camisaSelect && tipoClienteRadios.length > 0) {
+        camisaSelect.addEventListener("change", updateValorVenda);
+        tipoClienteRadios.forEach(radio => {
+            radio.addEventListener("change", updateValorVenda);
+        });
+    }
 });
 </script>
 
