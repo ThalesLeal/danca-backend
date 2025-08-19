@@ -457,10 +457,13 @@ class PedidoCamisaFormView(View):
             pedido = form.save(commit=False)
             # Calcula o valor de venda automaticamente antes de salvar
             if pedido.camisa:
+                # Se você quiser lógica diferente para sócios e não-sócios:
                 if pedido.tipo_cliente == 'socio':
-                    pedido.valor_venda = pedido.camisa.valor_socio
+                    # Exemplo: desconto de 10% para sócios
+                    pedido.valor_venda = pedido.camisa.valor_venda * Decimal('0.9')
                 else:
-                    pedido.valor_venda = pedido.camisa.valor_nao_socio
+                    # Preço normal para não-sócios
+                    pedido.valor_venda = pedido.camisa.valor_venda
             pedido.save()
             messages.success(request, msg)
             return redirect('list_pedidos')

@@ -25,6 +25,8 @@
     <tr>
       <th>Nº Pedido</th>
       <th>Cliente</th>
+      <th>Cidade</th>
+      <th>Tipo Cliente</th>
       <th>Camisa</th>
       <th>Tamanho</th>
       <th>Cor</th>
@@ -38,6 +40,8 @@
     <tr>
       <td class="align-middle">#{{ pedido.id }}</td>
       <td class="align-middle">{{ pedido.nome_completo }}</td>
+      <td class="align-middle">{{ pedido.cidade }}</td>
+      <td class="aling-middle">{{ pedido.get_tipo_cliente_display }}</td>
       <td class="align-middle">{{ pedido.camisa.descricao }}</td>
       <td class="align-middle">{{ pedido.get_tamanho_display }}</td>
       <td class="align-middle">{{ pedido.get_cor_display }}</td>
