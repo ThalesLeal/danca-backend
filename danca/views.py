@@ -1255,8 +1255,10 @@ def resumo_caixa(request):
     total_valor_inscricoes = Inscricao.objects.aggregate(total=Sum('valor_total'))['total'] or 0
     total_a_receber = total_valor_inscricoes - total_pago_inscricoes
 
-    # Total camisas (considerado como entrada)
-    total_camisas = Camisa.objects.aggregate(total=Sum('valor_venda'))['total'] or 0
+    # Total camisas - SOMENTE pedidos com status 'pago' ou 'entregue'
+    total_camisas_pagas = PedidoCamisa.objects.filter(
+        Q(status='pago') | Q(status='entregue')
+    ).aggregate(total=Sum('valor_venda'))['total'] or 0
 
     # Total planejado e total pago em planejamentos
     total_planejamentos = Planejamento.objects.aggregate(total=Sum('valor_planejado'))['total'] or 0
@@ -1267,7 +1269,7 @@ def resumo_caixa(request):
     total_a_pagar = total_planejamentos - total_pago_planejamento
 
     # Saldo em caixa = entradas + inscrições pagas + camisas - saídas - pagamentos de planejamento
-    saldo_caixa = (total_entradas + total_pago_inscricoes + total_camisas) - (total_saidas + total_pago_planejamento)
+    saldo_caixa = (total_entradas + total_pago_inscricoes + total_camisas_pagas) - (total_saidas + total_pago_planejamento)
 
      # Cálculo da estimativa
     saldo_futuro_previsto = (saldo_caixa + total_a_receber) - (total_planejamentos - total_saidas)
@@ -1280,7 +1282,7 @@ def resumo_caixa(request):
         'total_planejamentos': total_planejamentos,
         'total_pago_planejamento': total_pago_planejamento,
         'total_a_pagar': total_a_pagar,
-        'total_camisas': total_camisas,
+        'total_camisas_pagas': total_camisas_pagas,
         'saldo_caixa': saldo_caixa,
         'saldo_futuro_previsto': saldo_futuro_previsto,
     }
