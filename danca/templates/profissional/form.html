@@ -106,7 +106,7 @@
               <option value="{{ evento.id }}"
                 data-descricao="{{ evento.descricao }}"
                 data-valor="{{ evento.valor_unitario }}"
-                {% if profissional and evento in profissional.eventos.all %}selected{% endif %}>
+                {% if profissional and evento in profissional.eventos.all %}class="ja-selecionado"{% endif %}>
                 {{ evento.descricao }} - R$ {{ evento.valor_unitario|floatformat:2 }}
               </option>
             {% endfor %}
@@ -135,9 +135,9 @@
                   <td>{{ evento.descricao }}</td>
                   <td>R$ {{ evento.valor_unitario|floatformat:2 }}</td>
                   <td>
-                    <button type="button" class="btn btn-danger btn-sm" onclick="removeEvento({{ evento.id }})">
+                    <button type="button" class="btn btn-danger btn-sm remover-evento" data-evento-id="{{ evento.id }}">
                       <i class="bi bi-trash"></i>
-                    </button>
+                  </button>
                   </td>
                 </tr>
                 {% endfor %}
@@ -147,7 +147,14 @@
         </div>
 
         <!-- Container para os inputs hidden dos eventos -->
-        <div id="eventosInputsContainer"></div>
+        <div id="eventosInputsContainer">
+          {% if profissional %}
+            {% for evento in profissional.eventos.all %}
+              <input type="hidden" name="eventos" value="{{ evento.id }}">
+            {% endfor %}
+          {% endif %}
+        </div>
+        
 
         <div class="row mt-3">
           <div class="col-md-12">
@@ -168,97 +175,138 @@
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const form = document.querySelector("#profissionalForm");
-    if (form) {
-        form.addEventListener("submit", function (e) {
-            const valorHoraAula = document.getElementById("{{ form.valor_hora_aula.id_for_label }}").value;
-            const qtAulas = document.getElementById("{{ form.qt_aulas.id_for_label }}").value;
-            const cache = valorHoraAula * qtAulas;
-            if (cache < 0) {
-                e.preventDefault();
-                alert("O valor do cachê não pode ser negativo");
-                return false;
-            }
-        });
-    }
+  const form = document.querySelector("#profissionalForm");
+  const eventoSelect = document.getElementById('eventoSelect');
+  const addEventoBtn = document.getElementById('addEventoBtn');
+  const eventosTable = document.getElementById('eventosTable');
 
-    const eventoSelect = document.getElementById('eventoSelect');
-    const addEventoBtn = document.getElementById('addEventoBtn');
-    const eventosTable = document.getElementById('eventosTable');
+  const eventosSelecionados = new Set([
+      {% if profissional %}
+        {% for evento in profissional.eventos.all %}
+          "{{ evento.id }}",
+        {% endfor %}
+      {% endif %}
+  ]);
 
-    const eventosSelecionados = new Set([
-        {% if profissional %}
-          {% for evento in profissional.eventos.all %}
-            "{{ evento.id }}",
-          {% endfor %}
-        {% endif %}
-    ]);
+  // Função para desabilitar eventos já selecionados no dropdown
+  function desabilitarEventosSelecionados() {
+      const options = eventoSelect.options;
+      for (let i = 0; i < options.length; i++) {
+          if (eventosSelecionados.has(options[i].value)) {
+              options[i].disabled = true;
+              options[i].style.color = '#999';
+          } else {
+              options[i].disabled = false;
+              options[i].style.color = '';
+          }
+      }
+  }
 
-    addEventoBtn.addEventListener('click', function () {
-        const eventoId = eventoSelect.value;
-        const option = eventoSelect.options[eventoSelect.selectedIndex];
-        const descricao = option.getAttribute('data-descricao');
-        const valor = parseFloat(option.getAttribute('data-valor')).toFixed(2).replace('.', ',');
+  // Função para atualizar inputs hidden e dropdown
+  function atualizarEventosInput() {
+      const container = document.getElementById("eventosInputsContainer");
+      container.innerHTML = "";
 
-        if (!eventoId) {
-            alert('Por favor, selecione um evento');
-            return;
-        }
+      Array.from(eventosSelecionados).forEach(eventoId => {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = "eventos";
+          input.value = eventoId;
+          container.appendChild(input);
+      });
+      
+      desabilitarEventosSelecionados();
+      
+      console.log('Eventos selecionados:', Array.from(eventosSelecionados));
+  }
 
-        if (eventosSelecionados.has(eventoId)) {
-            alert('Este evento já foi adicionado');
-            return;
-        }
+  // Adicionar evento
+  addEventoBtn.addEventListener('click', function (e) {
+      e.stopPropagation(); // Impede bubbling
+      
+      const eventoId = eventoSelect.value;
+      const option = eventoSelect.options[eventoSelect.selectedIndex];
+      const descricao = option.getAttribute('data-descricao');
+      const valor = parseFloat(option.getAttribute('data-valor')).toFixed(2).replace('.', ',');
 
-        // Adiciona o evento à tabela
-        const newRow = document.createElement('tr');
-        newRow.setAttribute('data-evento-id', eventoId);
-        newRow.innerHTML = `
-            <td>${descricao}</td>
-            <td>R$ ${valor}</td>
-            <td>
-                <button type="button" class="btn btn-danger btn-sm" onclick="removeEvento(${eventoId})">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </td>
-        `;
-        eventosTable.appendChild(newRow);
+      if (!eventoId) {
+          alert('Por favor, selecione um evento');
+          return;
+      }
 
-        // Adiciona o evento ao conjunto de selecionados
-        eventosSelecionados.add(eventoId);
+      if (eventosSelecionados.has(eventoId)) {
+          alert('Este evento já foi adicionado');
+          return;
+      }
 
-        // Atualiza o campo oculto com os IDs dos eventos
-        atualizarEventosInput();
+      // Adiciona à tabela
+      const newRow = document.createElement('tr');
+      newRow.setAttribute('data-evento-id', eventoId);
+      newRow.innerHTML = `
+          <td>${descricao}</td>
+          <td>R$ ${valor}</td>
+          <td>
+              <button type="button" class="btn btn-danger btn-sm remover-evento" data-evento-id="${eventoId}">
+                  <i class="bi bi-trash"></i>
+              </button>
+          </td>
+      `;
+      eventosTable.appendChild(newRow);
 
-        // Limpa a seleção
-        eventoSelect.value = '';
-    });
+      eventosSelecionados.add(eventoId);
+      atualizarEventosInput();
+      eventoSelect.value = '';
+  });
 
-    window.removeEvento = function (eventoId) {
-        const row = eventosTable.querySelector(`tr[data-evento-id="${eventoId}"]`);
-        if (row) {
-            row.remove();
-        }
+  // SINGLE event listener para remover eventos
+  document.addEventListener('click', function (e) {
+      // Verifica se o click foi em um botão de remover
+      const removeButton = e.target.closest('.remover-evento');
+      if (!removeButton) return;
+      
+      e.preventDefault();
+      e.stopPropagation(); // IMPEDE BUBBLING - ESSENCIAL!
+      
+      const eventoId = removeButton.getAttribute('data-evento-id');
+      console.log('Removendo evento:', eventoId);
+      
+      // Remove da tabela
+      const row = eventosTable.querySelector(`tr[data-evento-id="${eventoId}"]`);
+      if (row) {
+          row.remove();
+      }
 
-        // Remove o evento do conjunto de selecionados
-        eventosSelecionados.delete(eventoId);
+      // Remove do Set
+      if (eventosSelecionados.has(eventoId)) {
+          eventosSelecionados.delete(eventoId);
+      }
 
-        // Atualiza o campo oculto com os IDs dos eventos
-        atualizarEventosInput();
-    };
+      // Atualiza inputs hidden
+      atualizarEventosInput();
+      
+      console.log('Eventos restantes:', Array.from(eventosSelecionados));
+  });
 
-    function atualizarEventosInput() {
-        const container = document.getElementById("eventosInputsContainer");
-        container.innerHTML = ""; // Limpa os inputs antigos
+  // Validação do formulário
+  if (form) {
+      form.addEventListener("submit", function (e) {
+          const valorHoraAula = document.getElementById("{{ form.valor_hora_aula.id_for_label }}").value;
+          const qtAulas = document.getElementById("{{ form.qt_aulas.id_for_label }}").value;
+          const cache = valorHoraAula * qtAulas;
+          
+          if (cache < 0) {
+              e.preventDefault();
+              alert("O valor do cachê não pode ser negativo");
+              return false;
+          }
+          
+          console.log('Formulário enviado com eventos:', Array.from(eventosSelecionados));
+      });
+  }
 
-        Array.from(eventosSelecionados).forEach(eventoId => {
-            const input = document.createElement("input");
-            input.type = "hidden";
-            input.name = "eventos";  // mesmo nome do campo no form!
-            input.value = eventoId;
-            container.appendChild(input);
-        });
-    }
+  // Inicializa
+  atualizarEventosInput();
+  console.log('Eventos iniciais:', Array.from(eventosSelecionados));
 });
 </script>
 {% endblock %}
