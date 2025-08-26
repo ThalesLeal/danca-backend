@@ -6,16 +6,10 @@
 <h2 class="pb-2">{{ titulo }}</h2>
 
 <!--- Mensagens de erro -->
-{% if form.errors or messages %}
+{% if form.errors %}
 <div class="container">
   <div class="row">
     <div class="col-md-8 offset-md-2">
-      {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      {% endfor %}
       {% for error in form.non_field_errors %}
         <div class="alert alert-error alert-dismissible fade show" role="alert">
           {{ error }}
@@ -69,21 +63,6 @@
           <label class="me-3" for="{{ form.uf.id_for_label }}">{{ form.uf.label }}</label>
           {{ form.uf }}
         </div>
-        
-        {% if form.instance.pk %}
-        <div class="col-md-6 mb-3">
-          <label class="me-3" for="{{ form.data_proximo_pagamento.id_for_label }}">
-            {{ form.data_proximo_pagamento.label }}
-          </label>
-          {{ form.data_proximo_pagamento }}
-          <small class="text-muted">Deixe em branco para usar a data calculada automaticamente</small>
-          {% if form.data_proximo_pagamento.errors %}
-            <div class="text-danger small">
-              {{ form.data_proximo_pagamento.errors.0 }}
-            </div>
-          {% endif %}
-        </div>
-        {% endif %}
       </div>
     </div>
   </div>
@@ -179,13 +158,7 @@
   </div>
 
   <!-- Campo oculto para enviar os IDs dos eventos -->
-  <div id="eventosInputsContainer">
-    {% if inscricao %}
-      {% for evento in inscricao.eventos.all %}
-        <input type="hidden" name="eventos" value="{{ evento.id }}">
-      {% endfor %}
-    {% endif %}
-  </div>
+  <div id="eventosInputsContainer"></div>
 
   <div class="mt-4">
     <button type="submit" class="btn btn-success me-2 float-end">
@@ -201,119 +174,111 @@
 {% block extra_js %}
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // Autocomplete CEP
-    const cepInput = document.getElementById("id_cep");
-    const municipioInput = document.getElementById("id_municipio");
-    const ufInput = document.getElementById("id_uf");
+    // ... seu código de CEP ...
+    const cepInput = document.getElementById('id_cep');
+    const municipioInput = document.getElementById('id_municipio');
+    const ufInput = document.getElementById('id_uf');
 
-    cepInput.addEventListener("blur", function () {
-      const cep = cepInput.value.replace(/\D/g, ""); // Remove caracteres não numéricos
-
-      if (cep.length === 8) {
-        fetch(`https://viacep.com.br/ws/${cep}/json/`)
-          .then(response => response.json())
-          .then(data => {
-            if (!data.erro) {
-              municipioInput.value = data.localidade; // Preenche o município
-              ufInput.value = data.uf; // Preenche o estado (UF)
-            } else {
-              alert("CEP não encontrado.");
-              municipioInput.value = "";
-              ufInput.value = "";
+    if (cepInput && municipioInput && ufInput) {
+        cepInput.addEventListener('blur', function () {
+            const cep = cepInput.value.replace(/\D/g, '');
+            
+            if (cep.length === 8) {
+                // Mostra loading opcional
+                cepInput.disabled = true;
+                
+                fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                    .then(response => response.json())
+                    .then(dados => {
+                        if (!dados.erro) {
+                            municipioInput.value = dados.localidade || '';
+                            ufInput.value = dados.uf || '';
+                        } else {
+                            alert("CEP não encontrado.");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Erro ao buscar CEP:", error);
+                        alert("Erro ao buscar CEP. Tente novamente.");
+                    })
+                    .finally(() => {
+                        cepInput.disabled = false;
+                    });
+            } else if (cep.length > 0) {
+                alert("CEP inválido. Digite um CEP com 8 dígitos.");
             }
-          })
-          .catch(error => {
-            console.error("Erro ao buscar o CEP:", error);
-            alert("Erro ao buscar o CEP. Tente novamente.");
-          });
-      } else {
-        alert("CEP inválido. Digite um CEP com 8 dígitos.");
-        municipioInput.value = "";
-        ufInput.value = "";
-      }
-    });
+        });
+    }
 
     // Manipulação de eventos
     const eventoSelect = document.getElementById('eventoSelect');
     const addEventoBtn = document.getElementById('addEventoBtn');
     const eventosTable = document.getElementById('eventosTable');
-    const eventosSelecionados = new Set();
 
-    // Inicializa com os eventos já selecionados (para edição)
-    {% if inscricao %}
-      {% for evento in inscricao.eventos.all %}
-        eventosSelecionados.add('{{ evento.id }}');
-      {% endfor %}
-    {% endif %}
+    // 🔥 Cria inputs hidden logo no carregamento inicial
+    atualizarEventosInput();
 
     addEventoBtn.addEventListener('click', function () {
-      const eventoId = eventoSelect.value;
-      const option = eventoSelect.options[eventoSelect.selectedIndex];
-      const descricao = option.getAttribute('data-descricao');
-      const valor = parseFloat(option.getAttribute('data-valor')).toFixed(2).replace('.', ',');
+        const eventoId = eventoSelect.value;
+        const option = eventoSelect.options[eventoSelect.selectedIndex];
+        const descricao = option.getAttribute('data-descricao');
+        const valor = parseFloat(option.getAttribute('data-valor')).toFixed(2).replace('.', ',');
 
-      if (!eventoId) {
-        alert('Por favor, selecione um evento');
-        return;
-      }
+        if (!eventoId) {
+            alert('Por favor, selecione um evento');
+            return;
+        }
 
-      if (eventosSelecionados.has(eventoId)) {
-        alert('Este evento já foi adicionado');
-        return;
-      }
+        // Verifica se já existe na tabela (não no Set)
+        if (eventosTable.querySelector(`tr[data-evento-id="${eventoId}"]`)) {
+            alert('Este evento já foi adicionado');
+            return;
+        }
 
-      // Adiciona o evento à tabela
-      const newRow = document.createElement('tr');
-      newRow.setAttribute('data-evento-id', eventoId);
-      newRow.innerHTML = `
-        <td>${descricao}</td>
-        <td>R$ ${valor}</td>
-        <td>
-          <button type="button" class="btn btn-danger btn-sm" onclick="removeEvento(${eventoId})">
-            <i class="bi bi-trash"></i>
-          </button>
-        </td>
-      `;
-      eventosTable.appendChild(newRow);
+        // Adiciona o evento à tabela
+        const newRow = document.createElement('tr');
+        newRow.setAttribute('data-evento-id', eventoId);
+        newRow.innerHTML = `
+            <td>${descricao}</td>
+            <td>R$ ${valor}</td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeEvento('${eventoId}')">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        `;
+        eventosTable.appendChild(newRow);
 
-      // Adiciona o evento ao conjunto de selecionados
-      eventosSelecionados.add(eventoId);
-
-      // Atualiza o campo oculto com os IDs dos eventos
-      atualizarEventosInput();
+        // ⭐ CRÍTICO: Atualiza os inputs hidden
+        atualizarEventosInput();
     });
 
+    // ⭐ FUNÇÃO CORRIGIDA - remove do DOM e atualiza inputs
     window.removeEvento = function (eventoId) {
-      const row = eventosTable.querySelector(`tr[data-evento-id="${eventoId}"]`);
-      if (row) {
-        row.remove();
-      }
-
-      // Remove o evento do conjunto de selecionados
-      eventosSelecionados.delete(eventoId);
-
-      // Atualiza o campo oculto com os IDs dos eventos
-      atualizarEventosInput();
+        const row = eventosTable.querySelector(`tr[data-evento-id="${eventoId}"]`);
+        if (row) {
+            row.remove();
+        }
+        
+        // ⭐ CRÍTICO: Atualiza os inputs hidden APÓS remover
+        atualizarEventosInput();
     };
 
+    // ⭐ FUNÇÃO CORRIGIDA - cria inputs baseado no DOM visível
     function atualizarEventosInput() {
-      const container = document.getElementById("eventosInputsContainer");
-      container.innerHTML = ""; // Limpa os inputs antigos
-
-      Array.from(eventosSelecionados).forEach(eventoId => {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = "eventos"; // Mesmo nome para que o Django trate como lista
-        input.value = eventoId;
-        container.appendChild(input);
-      });
+        const container = document.getElementById("eventosInputsContainer");
+        container.innerHTML = ""; // Limpa TODOS os inputs
+        
+        // Cria inputs apenas para as linhas VISÍVEIS na tabela
+        document.querySelectorAll('#eventosTable tr[data-evento-id]').forEach(tr => {
+            const eventoId = tr.getAttribute('data-evento-id');
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "eventos";
+            input.value = eventoId;
+            container.appendChild(input);
+        });
     }
-
-    // Garante que os eventos sejam enviados ao submeter o formulário
-    document.getElementById('inscricaoForm').addEventListener('submit', function(e) {
-      atualizarEventosInput();
-      return true;
-    });
-  });
+});
 </script>
 {% endblock %}

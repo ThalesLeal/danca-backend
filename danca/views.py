@@ -913,6 +913,7 @@ class InscricaoCreateView(View):
             # Salva a inscrição sem os eventos
             inscricao = form.save(commit=False)
             inscricao.save()
+            
 
             # Associa os eventos selecionados
             eventos = form.cleaned_data['eventos']
