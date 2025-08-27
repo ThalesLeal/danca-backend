@@ -4,6 +4,16 @@
 {% block content %}
 <h2 class="pb-2">Resumo de Caixa</h2>
 
+<!-- No template do caixa -->
+<div class="mt-4">
+  <h5 class="mb-3">Relatórios Financeiros</h5>
+  <div class="d-flex gap-2">
+      <a href="{% url 'relatorio_caixa_completo_docx' %}" class="btn btn-success">
+          <i class="bi bi-graph-up"></i> Relatório Completo
+      </a>
+  </div>
+</div>
+
 <div class="row">
   <!-- Planejamentos, Pagamentos e Saídas -->
   <fieldset class="border p-2 mb-3 w-100" style="max-width: 800px;">

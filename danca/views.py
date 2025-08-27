@@ -1563,47 +1563,241 @@ def evento_inscritos_docx(request, pk):
     document.save(response)
     return response
 
-#api Pedidos
+from django.http import HttpResponse
+from django.utils.timezone import now
+from docx import Document
+from .models import Profissional
 
-# @require_GET
-# def lista_clientes(request):
-#     tipo = request.GET.get('tipo', '').lower()
-#     termo_busca = request.GET.get('search', '').strip()
+class ProfissionalRelatorioDocxView(View):
+    """ Gera relatório minimalista apenas com dados essenciais """
     
-#     try:
-#         if tipo == 'inscricao':
-#             queryset = Inscricao.objects.all()
-#             if termo_busca:
-#                 queryset = queryset.filter(nome__icontains=termo_busca)
-#             data = list(queryset.values('id', 'nome'))
-            
-#         elif tipo == 'profissional':
-#             queryset = Profissional.objects.all()
-#             if termo_busca:
-#                 queryset = queryset.filter(nome__icontains=termo_busca)
-#             data = list(queryset.values('id', 'nome'))
-            
-#         elif tipo == 'externo':  # Alterado para match com o frontend
-#             queryset = ClienteExterno.objects.all()
-#             if termo_busca:
-#                 queryset = queryset.filter(nome__icontains=termo_busca)
-#             data = list(queryset.values('id', 'nome'))
-            
-#         else:
-#             return JsonResponse({
-#                 'success': False,
-#                 'message': 'Tipo de cliente inválido',
-#                 'suggestions': ['inscricao', 'profissional', 'externo']
-#             }, status=400)
-            
-#         return JsonResponse({
-#             'success': True,
-#             'data': data
-#         }, safe=False)
+    def get(self, request, *args, **kwargs):
+        profissionais = Profissional.objects.all().order_by('nome')
         
-#     except Exception as e:
-#         return JsonResponse({
-#             'success': False,
-#             'error': str(e),
-#             'message': 'Erro ao buscar clientes'
-#         }, status=500)
+        document = Document()
+        document.add_heading('Profissionais', 0)
+        document.add_paragraph(now().strftime("%d/%m/%Y %H:%M"))
+        document.add_paragraph('')
+
+        for profissional in profissionais:
+            eventos = ", ".join([e.descricao for e in profissional.eventos.all()])
+            
+            document.add_paragraph(
+                f'{profissional.nome} • {profissional.cpf or "---"} • {eventos or "---"}'
+            )
+
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        )
+        response['Content-Disposition'] = 'attachment; filename="profissionais.docx"'
+        document.save(response)
+        return response
+    
+class PlanejamentoRelatorioDocxView(View):
+    """ Gera relatório de planejamento com totais e formatação """
+    
+    def get(self, request, *args, **kwargs):
+        planejamentos = Planejamento.objects.all().order_by('descricao')
+        total_geral = sum(p.valor_planejado for p in planejamentos if p.valor_planejado)
+        
+        document = Document()
+        document.add_heading('Relatório de Planejamento Financeiro', 0)
+        document.add_paragraph(f'Gerado em: {now().strftime("%d/%m/%Y %H:%M")}')
+        document.add_paragraph(f'Total de itens: {planejamentos.count()}')
+        document.add_paragraph(f'Valor total planejado: R$ {total_geral:,.2f}')
+        document.add_paragraph('')
+
+        # Tabela principal
+        table = document.add_table(rows=1, cols=3)
+        table.style = 'Table Grid'
+        
+        # Cabeçalho
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = 'DESCRIÇÃO'
+        hdr_cells[1].text = 'VALOR PLANEJADO'
+        hdr_cells[2].text = 'STATUS'
+        
+        # Dados
+        for planejamento in planejamentos:
+            row_cells = table.add_row().cells
+            row_cells[0].text = planejamento.descricao or "---"
+            
+            # Formata valor
+            if planejamento.valor_planejado:
+                row_cells[1].text = f"R$ {planejamento.valor_planejado:,.2f}"
+            else:
+                row_cells[1].text = "R$ 0,00"
+            
+            # Formata status
+            status = planejamento.status
+            if hasattr(planejamento, 'get_status_display'):
+                status = planejamento.get_status_display()
+            row_cells[2].text = str(status)
+
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        )
+        response['Content-Disposition'] = 'attachment; filename="planejamento_financeiro.docx"'
+        document.save(response)
+        return response
+
+class PedidosSimplesRelatorioDocxView(View):
+    """ Gera relatório minimalista ordenado por nome """
+    
+    def get(self, request, *args, **kwargs):
+        from django.db.models.functions import Lower
+        pedidos = PedidoCamisa.objects.all().order_by(Lower('nome_completo'))
+        
+        document = Document()
+        document.add_heading('Pedidos por Ordem Alfabética', 0)
+        document.add_paragraph(now().strftime("%d/%m/%Y %H:%M"))
+        document.add_paragraph('')
+
+        for pedido in pedidos:
+            tamanho = pedido.get_tamanho_display() if hasattr(pedido, 'get_tamanho_display') else pedido.tamanho
+            cor = pedido.get_cor_display() if hasattr(pedido, 'get_cor_display') else pedido.cor
+            status = pedido.get_status_display() if hasattr(pedido, 'get_status_display') else pedido.status
+            
+            document.add_paragraph(
+                f'{pedido.nome_completo} • {pedido.cidade} • {tamanho} • {cor} • {status}'
+            )
+
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        )
+        response['Content-Disposition'] = 'attachment; filename="pedidos_alfabetico.docx"'
+        document.save(response)
+        return response
+    
+class CaixaCompletoRelatorioDocxView(View):
+    """ Gera relatório completo do caixa com todos os indicadores """
+    
+    def get(self, request, *args, **kwargs):
+        document = Document()
+        document.add_heading('Relatório Completo do Caixa', 0)
+        document.add_paragraph(f'Gerado em: {now().strftime("%d/%m/%Y %H:%M")}')
+        document.add_paragraph('')
+        
+        # ============ CÁLCULOS ============
+        
+        # PLANEJAMENTO
+        total_planejado = Planejamento.objects.aggregate(
+            total=Sum('valor_planejado')
+        )['total'] or 0
+        
+        # PAGAMENTOS (CAIXA GERAL)
+        # Verificando se há pagamentos de entrada e saída baseado no valor positivo/negativo
+        total_entradas = Pagamento.objects.filter(
+            valor_pago__gt=0
+        ).aggregate(total=Sum('valor_pago'))['total'] or 0
+        
+        total_saidas = Pagamento.objects.filter(
+            valor_pago__lt=0
+        ).aggregate(total=Sum('valor_pago'))['total'] or 0
+        
+        # Convertendo para positivo para exibição
+        total_saidas = abs(total_saidas) if total_saidas else 0
+        
+        saldo_caixa = total_entradas - total_saidas
+        
+        # INSCRIÇÕES
+        total_inscricoes_pagas = Inscricao.objects.filter(
+            valor_restante_db=0
+        ).aggregate(total=Sum('valor_total'))['total'] or 0
+        
+        total_inscricoes_receber = Inscricao.objects.filter(
+            valor_restante_db__gt=0
+        ).aggregate(total=Sum('valor_restante_db'))['total'] or 0
+        
+        # CAMISAS
+        total_camisas = PedidoCamisa.objects.aggregate(
+            total=Sum('valor_venda')
+        )['total'] or 0
+        
+        camisas_pagas = PedidoCamisa.objects.filter(
+            status='pago'
+        ).aggregate(total=Sum('valor_venda'))['total'] or 0
+        
+        camisas_receber = total_camisas - camisas_pagas
+        
+        # SALDO FUTURO PREVISTO
+        saldo_futuro_previsto = saldo_caixa + total_inscricoes_receber + camisas_receber - total_planejado
+        
+        # ============ RELATÓRIO ============
+        
+        # RESUMO GERAL
+        document.add_heading('Resumo Financeiro Geral', level=1)
+        
+        table_geral = document.add_table(rows=1, cols=2)
+        table_geral.style = 'Table Grid'
+        
+        # Adicionar cabeçalhos
+        hdr_cells = table_geral.rows[0].cells
+        hdr_cells[0].text = 'Descrição'
+        hdr_cells[1].text = 'Valor'
+        
+        dados_geral = [
+            ('VALOR NO CAIXA ATUAL', f'R$ {saldo_caixa:,.2f}'),
+            ('', ''),
+            ('=== PLANEJAMENTO ===', ''),
+            ('Total Planejado', f'R$ {total_planejado:,.2f}'),
+            ('', ''),
+            ('=== FLUXO DE CAIXA ===', ''),
+            ('Total de Entradas', f'R$ {total_entradas:,.2f}'),
+            ('Total de Saídas', f'R$ {total_saidas:,.2f}'),
+            ('', ''),
+            ('=== INSCRIÇÕES ===', ''),
+            ('Inscrições Pagas', f'R$ {total_inscricoes_pagas:,.2f}'),
+            ('Total a Receber (Inscrições)', f'R$ {total_inscricoes_receber:,.2f}'),
+            ('', ''),
+            ('=== CAMISAS ===', ''),
+            ('Vendas de Camisas', f'R$ {total_camisas:,.2f}'),
+            ('Camisas Pagas', f'R$ {camisas_pagas:,.2f}'),
+            ('Total a Receber (Camisas)', f'R$ {camisas_receber:,.2f}'),
+            ('', ''),
+            ('=== PROJEÇÃO FUTURA ===', ''),
+            ('Saldo Futuro Previsto', f'R$ {saldo_futuro_previsto:,.2f}')
+        ]
+        
+        for descricao, valor in dados_geral:
+            row_cells = table_geral.add_row().cells
+            row_cells[0].text = descricao
+            row_cells[1].text = valor
+            if '===' in descricao:
+                # Destaca os títulos das seções
+                row_cells[0].paragraphs[0].runs[0].bold = True
+        
+        document.add_paragraph('')
+        
+        # ÚLTIMOS MOVIMENTOS
+        document.add_heading('Últimos Movimentos do Caixa', level=1)
+        
+        ultimos_movimentos = Pagamento.objects.order_by('-data_pagamento')[:10]
+        
+        if ultimos_movimentos:
+            table_movimentos = document.add_table(rows=1, cols=4)
+            table_movimentos.style = 'Table Grid'
+            
+            hdr_cells = table_movimentos.rows[0].cells
+            hdr_cells[0].text = 'Data'
+            hdr_cells[1].text = 'Descrição'
+            hdr_cells[2].text = 'Tipo'
+            hdr_cells[3].text = 'Valor'
+            
+            for movimento in ultimos_movimentos:
+                row_cells = table_movimentos.add_row().cells
+                row_cells[0].text = movimento.data_pagamento.strftime("%d/%m/%Y") if movimento.data_pagamento else "---"
+                row_cells[1].text = movimento.descricao or "---"
+                
+                # Determinando o tipo baseado no valor (positivo = entrada, negativo = saída)
+                tipo = "Entrada" if movimento.valor_pago > 0 else "Saída"
+                row_cells[2].text = tipo
+                
+                row_cells[3].text = f"R$ {abs(movimento.valor_pago):,.2f}"
+
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        )
+        response['Content-Disposition'] = 'attachment; filename="relatorio_caixa_completo.docx"'
+        document.save(response)
+        return response

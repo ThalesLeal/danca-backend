@@ -46,6 +46,7 @@ urlpatterns = [
     path('pedidos/<int:pedido_id>/', PedidoCamisaDetailView.as_view(), name='detail_pedido'),
     path('pedidos/<int:pedido_id>/editar/', PedidoCamisaFormView.as_view(), name='edit_pedido'),
     path('pedidos/<int:pedido_id>/excluir/', PedidoCamisaDeleteView.as_view(), name='delete_pedido'),
+    path('pedidos/relatorio-simples/', views.PedidosSimplesRelatorioDocxView.as_view(), name='relatorio_pedidos_simples_docx'),
 
 
     # Planejamento
@@ -54,6 +55,7 @@ urlpatterns = [
     path('planejamentos/create/', PlanejamentoFormView.as_view(), name='create_planejamento'),
     path('planejamentos/<int:planejamento_id>/update/', PlanejamentoFormView.as_view(), name='update_planejamento'),
     path('planejamentos/<int:planejamento_id>/delete/', PlanejamentoDeleteView.as_view(), name='delete_planejamento'),
+    path('planejamento/relatorio/', views.PlanejamentoRelatorioDocxView.as_view(), name='relatorio_planejamento_docx'),
     
     # Inscricao
     path('inscricoes/', InscricaoListView.as_view(), name='list_inscricoes'),
@@ -73,6 +75,8 @@ urlpatterns = [
     path('profissionais/<int:profissional_id>/delete/', ProfissionalDeleteView.as_view(), name='delete_profissional'),
     path('profissionais/<int:profissional_id>/eventos/create/', ProfissionalEventoFormView.as_view(), name='create_profissional_evento'),
     path('profissionais/<int:profissional_id>/eventos/<int:profissional_evento_id>/delete/', ProfissionalEventoDeleteView.as_view(), name='delete_profissional_evento'),
+    path('profissionais/relatorio/', views.ProfissionalRelatorioDocxView.as_view(), name='relatorio_profissionais_docx'),
+
 
     # Entrada
     path('entrada/', EntradaListView.as_view(), name='list_entradas'),
@@ -90,6 +94,7 @@ urlpatterns = [
 
     # Resumo Caixa
     path('resumo/', resumo_caixa, name='resumo_caixa'),
+    path('caixa/relatorio-completo/', views.CaixaCompletoRelatorioDocxView.as_view(), name='relatorio_caixa_completo_docx'),
 
     # Pagamento
     path('pagamento/', PagamentoListView.as_view(), name='list_pagamentos'),
