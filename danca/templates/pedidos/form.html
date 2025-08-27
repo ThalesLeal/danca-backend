@@ -82,6 +82,15 @@
     </div>
     {% endif %}
   </div>
+  <div class="row">
+    <div class="col-md-12 mb-3">
+        <label class="me-3" for="{{ form.observacoes.id_for_label }}">{{ form.observacoes.label }}</label>
+        {{ form.observacoes }}
+        {% if form.observacoes.help_text %}
+            <small class="form-text text-muted">{{ form.observacoes.help_text }}</small>
+        {% endif %}
+    </div>
+</div>
 
   <button type="submit" class="btn btn-success me-2 float-end">
     <i class="bi bi-floppy"></i> &nbsp; Salvar

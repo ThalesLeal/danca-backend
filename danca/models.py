@@ -400,6 +400,7 @@ class PedidoCamisa(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CAMISA, default='pendente')
     data_pedido = models.DateTimeField(auto_now_add=True)
     data_entrega = models.DateTimeField(null=True, blank=True)
+    observacoes = models.TextField(null=True, blank=True)
 
 
     def __str__(self):
@@ -409,12 +410,3 @@ class PedidoCamisa(models.Model):
         verbose_name = "Pedido de Camisa"
         verbose_name_plural = "Pedidos de Camisas"
     
-# class ClienteExterno(models.Model):
-#     nome = models.CharField(max_length=100, blank=True, null=True)
-#     cidade = models.CharField(max_length=100, blank=False, null=False)
-#     cpf = models.CharField(max_length=14, blank=False, null=False)
-#     telefone = models.CharField(max_length=15, blank=False, null=False)
-#     email = models.EmailField(blank=False, null=False)
-
-#     def __str__(self):
-#         return self.nome

@@ -135,13 +135,14 @@ class CamisaForm(forms.ModelForm):
 class PedidoCamisaForm(forms.ModelForm):
     class Meta:
         model = PedidoCamisa
-        fields = ['nome_completo', 'cidade', 'tipo_cliente', 'camisa', 'tamanho', 'cor', 'status']
+        fields = ['nome_completo', 'cidade', 'tipo_cliente', 'camisa', 'tamanho', 'cor', 'status','observacoes']
         widgets = {
             'tipo_cliente': forms.RadioSelect(),
             'camisa': forms.Select(attrs={'class': 'form-select'}),
             'tamanho': forms.Select(attrs={'class': 'form-select'}),
             'cor': forms.Select(attrs={'class': 'form-select'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
+            'observacoes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
 

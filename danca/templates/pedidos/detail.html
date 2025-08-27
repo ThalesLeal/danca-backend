@@ -4,71 +4,70 @@
 {% block content %}
 <h2 class="pb-2">Detalhes do Pedido #{{ pedido.id }}</h2>
 
-<div class="card mb-4">
-  <div class="card-body">
-    <div class="row">
-      <div class="col-md-6">
-        <dl class="row">
-          <dt class="col-sm-4">Cliente:</dt>
-          <dd class="col-sm-8">{{ pedido.nome_completo }}</dd>
-          
-          <dt class="col-sm-4">Cidade:</dt>
-          <dd class="col-sm-8">{{ pedido.cidade }}</dd>
-          
-          <dt class="col-sm-4">Tipo Cliente:</dt>
-          <dd class="col-sm-8">{{ pedido.get_tipo_cliente_display }}</dd>
-        </dl>
-      </div>
-      <div class="col-md-6">
-        <dl class="row">
-          <dt class="col-sm-4">Camisa:</dt>
-          <dd class="col-sm-8">{{ pedido.camisa.descricao }}</dd>
-          
-          <dt class="col-sm-4">Valor:</dt>
-          <dd class="col-sm-8">R$ {{ pedido.valor_venda|floatformat:2 }}</dd>
-          
-          <dt class="col-sm-4">Data Pedido:</dt>
-          <dd class="col-sm-8">{{ pedido.data_pedido|date:"d/m/Y H:i" }}</dd>
-        </dl>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div class="card">
   <div class="card-header">
-    <h5>Especificações da Camisa</h5>
+    <h5 class="mb-0">Informações do Pedido</h5>
   </div>
   <div class="card-body">
     <div class="row">
+      <!-- Coluna 1: Dados do Cliente -->
       <div class="col-md-6">
-        <dl class="row">
-          <dt class="col-sm-4">Tamanho:</dt>
-          <dd class="col-sm-8">{{ pedido.get_tamanho_display }}</dd>
-          
-          <dt class="col-sm-4">Cor:</dt>
-          <dd class="col-sm-8">{{ pedido.get_cor_display }}</dd>
-        </dl>
+        <h6 class="text-primary mb-3">Dados do Cliente</h6>
+        <p><strong>Nome:</strong> {{ pedido.nome_completo }}</p>
+        <p><strong>Cidade:</strong> {{ pedido.cidade }}</p>
+        <p><strong>Tipo:</strong> {{ pedido.get_tipo_cliente_display }}</p>
       </div>
+
+      <!-- Coluna 2: Dados do Produto -->
       <div class="col-md-6">
-        <dl class="row">
-          <dt class="col-sm-4">Status:</dt>
-          <dd class="col-sm-8">
-            <span class="badge bg-{% if pedido.status == 'pendente' %}warning{% elif pedido.status == 'entregue' %}success{% else %}info{% endif %}">
-              {{ pedido.get_status_display }}
-            </span>
-          </dd>
-          
-          {% if pedido.data_entrega %}
-          <dt class="col-sm-4">Data Entrega:</dt>
-          <dd class="col-sm-8">{{ pedido.data_entrega|date:"d/m/Y H:i" }}</dd>
-          {% endif %}
-        </dl>
+        <h6 class="text-primary mb-3">Dados do Produto</h6>
+        <p><strong>Camisa:</strong> {{ pedido.camisa.descricao }}</p>
+        <p><strong>Valor:</strong> R$ {{ pedido.valor_venda|floatformat:2 }}</p>
+        <p><strong>Data do Pedido:</strong> {{ pedido.data_pedido|date:"d/m/Y H:i" }}</p>
       </div>
     </div>
+
+    <hr>
+
+    <div class="row">
+      <!-- Coluna 3: Especificações -->
+      <div class="col-md-6">
+        <h6 class="text-primary mb-3">Especificações</h6>
+        <p><strong>Tamanho:</strong> {{ pedido.get_tamanho_display }}</p>
+        <p><strong>Cor:</strong> {{ pedido.get_cor_display }}</p>
+      </div>
+
+      <!-- Coluna 4: Status -->
+      <div class="col-md-6">
+        <h6 class="text-primary mb-3">Status</h6>
+        <p>
+          <strong>Status:</strong> 
+          <span class="badge bg-{% if pedido.status == 'pendente' %}warning{% elif pedido.status == 'entregue' %}success{% else %}info{% endif %}">
+            {{ pedido.get_status_display }}
+          </span>
+        </p>
+        {% if pedido.data_entrega %}
+        <p><strong>Data de Entrega:</strong> {{ pedido.data_entrega|date:"d/m/Y H:i" }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Observações -->
+    {% if pedido.observacoes %}
+    <hr>
+    <div class="row">
+      <div class="col-12">
+        <h6 class="text-primary mb-2">Observações</h6>
+        <div class="border rounded p-3 bg-light">
+          {{ pedido.observacoes|linebreaksbr }}
+        </div>
+      </div>
+    </div>
+    {% endif %}
   </div>
 </div>
 
+<!-- Botões de Ação -->
 <div class="d-flex justify-content-between mt-4">
   <a href="{% url 'list_pedidos' %}" class="btn btn-secondary">
     <i class="bi bi-arrow-90deg-left"></i> Voltar
@@ -83,7 +82,7 @@
   </div>
 </div>
 
-<!-- Modal de cancelamento -->
+<!-- Modal de cancelamento (mantido igual) -->
 <div class="modal fade" id="deleteModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
