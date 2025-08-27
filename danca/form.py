@@ -288,8 +288,8 @@ class InscricaoEventoForm(forms.ModelForm):
 class ProfissionalForm(forms.ModelForm):
     eventos = forms.ModelMultipleChoiceField(
         queryset=Evento.objects.all(),
-        widget=forms.CheckboxSelectMultiple,
-        required=True,
+        widget=forms.MultipleHiddenInput,
+        required=False,
         label="Eventos"
     )
 

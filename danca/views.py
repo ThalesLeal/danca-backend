@@ -1038,9 +1038,10 @@ class ProfissionalFormView(View):
             profissional = form.save(commit=False)
             profissional.save()
 
-            # Associa os eventos selecionados
+            # ⭐ EVENTOS SÃO OPCIONAIS - sempre limpa e adiciona os selecionados
             eventos_ids = request.POST.getlist('eventos')
-            profissional.eventos.set(eventos_ids)
+            eventos_validos = Evento.objects.filter(id__in=eventos_ids)
+            profissional.eventos.set(eventos_validos)  # Se vazio, limpa todos
 
             messages.success(request, "Profissional salvo com sucesso!")
             return redirect('list_profissionais')
@@ -1051,8 +1052,6 @@ class ProfissionalFormView(View):
             "eventos": Evento.objects.all(),
             "titulo": "Editar Profissional" if profissional else "Novo Profissional"
         })
-
-
 @method_decorator(never_cache, name="dispatch")
 class ProfissionalDeleteView(DeleteView):
     model = Profissional

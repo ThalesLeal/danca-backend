@@ -87,6 +87,7 @@ INSTALLED_APPS = [
     "reversion",
 
     # Project apps
+    
     "danca",
 ]
 

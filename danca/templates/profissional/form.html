@@ -92,82 +92,81 @@
   </div>
 
   <!-- Aba 2: Eventos -->
-  <div class="card mb-4">
-    <div class="card-header">
-      <h5 class="mb-0">2. Eventos</h5>
-    </div>
-    <div class="card-body">
-      <div class="row">
-        <div class="col-md-12 mb-3">
-          <label class="me-3">Eventos</label>
-          <select class="form-select" id="eventoSelect">
-            <option value="">Selecione um evento</option>
-            {% for evento in eventos %}
-              <option value="{{ evento.id }}"
-                data-descricao="{{ evento.descricao }}"
-                data-valor="{{ evento.valor_unitario }}"
-                {% if profissional and evento in profissional.eventos.all %}class="ja-selecionado"{% endif %}>
-                {{ evento.descricao }} - R$ {{ evento.valor_unitario|floatformat:2 }}
-              </option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <div class="col-md-12 mb-3">
-          <button type="button" class="btn btn-primary" id="addEventoBtn">
-            <i class="bi bi-plus-circle"></i> Adicionar Evento
-          </button>
-        </div>
-
-        <div class="col-md-12">
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <th>Evento</th>
-                <th>Valor</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody id="eventosTable">
-              {% if profissional %}
-                {% for evento in profissional.eventos.all %}
-                <tr data-evento-id="{{ evento.id }}">
-                  <td>{{ evento.descricao }}</td>
-                  <td>R$ {{ evento.valor_unitario|floatformat:2 }}</td>
-                  <td>
-                    <button type="button" class="btn btn-danger btn-sm remover-evento" data-evento-id="{{ evento.id }}">
-                      <i class="bi bi-trash"></i>
-                  </button>
-                  </td>
-                </tr>
-                {% endfor %}
-              {% endif %}
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Container para os inputs hidden dos eventos -->
-        <div id="eventosInputsContainer">
-          {% if profissional %}
-            {% for evento in profissional.eventos.all %}
-              <input type="hidden" name="eventos" value="{{ evento.id }}">
-            {% endfor %}
-          {% endif %}
-        </div>
-        
-
-        <div class="row mt-3">
-          <div class="col-md-12">
-            <button type="submit" class="btn btn-success me-2 float-end">
-              <i class="bi bi-floppy"></i> &nbsp; Salvar
-            </button>
-            <a href="{% url 'list_profissionais' %}" class="btn btn-secondary">
-              <i class="bi bi-arrow-90deg-left"></i> Voltar
-            </a>
-          </div>
-        </div>
+<div class="card mb-4">
+  <div class="card-header">
+    <h5 class="mb-0">4. Eventos</h5>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-12 mb-3">
+        <label class="me-3">Eventos</label>
+        <select class="form-select" id="eventoSelect">
+          <option value="">Selecione um evento</option>
+          {% for evento in eventos %}
+            <option value="{{ evento.id }}"
+              data-descricao="{{ evento.descricao }}"
+              data-valor="{{ evento.valor_unitario }}"
+              {% if profissional and evento in profissional.eventos.all %}selected{% endif %}>
+              {{ evento.descricao }} - R$ {{ evento.valor_unitario|floatformat:2 }}
+            </option>
+          {% endfor %}
+        </select>
       </div>
     </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <button type="button" class="btn btn-primary" id="addEventoBtn">
+          <i class="bi bi-plus-circle"></i> Adicionar Evento
+        </button>
+      </div>
+    </div>
+
+    <div class="row mt-3">
+      <div class="col-md-12">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Evento</th>
+              <th>Valor</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="eventosTable">
+            {% if profissional %}
+              {% for evento in profissional.eventos.all %}
+              <tr data-evento-id="{{ evento.id }}">
+                <td>{{ evento.descricao }}</td>
+                <td>R$ {{ evento.valor_unitario|floatformat:2 }}</td>
+                <td>
+                  <button type="button" class="btn btn-danger btn-sm" onclick="removeEvento({{ evento.id }})">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Campo oculto para enviar os IDs dos eventos -->
+<div id="eventosInputsContainer"></div>
+
+
+  <!-- Campo oculto para enviar os IDs dos eventos -->
+  <div id="eventosInputsContainer"></div>
+
+  <div class="mt-4">
+    <button type="submit" class="btn btn-success me-2 float-end">
+      <i class="bi bi-floppy"></i> &nbsp; Salvar
+    </button>
+    <a href="{% url 'list_profissionais' %}" class="btn btn-secondary">
+      <i class="bi bi-arrow-90deg-left"></i> Voltar
+    </a>
   </div>
 </form>
 {% endblock %}
@@ -175,138 +174,68 @@
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  const form = document.querySelector("#profissionalForm");
-  const eventoSelect = document.getElementById('eventoSelect');
-  const addEventoBtn = document.getElementById('addEventoBtn');
-  const eventosTable = document.getElementById('eventosTable');
+    const eventoSelect = document.getElementById('eventoSelect');
+    const addEventoBtn = document.getElementById('addEventoBtn');
+    const eventosTable = document.getElementById('eventosTable');
 
-  const eventosSelecionados = new Set([
-      {% if profissional %}
-        {% for evento in profissional.eventos.all %}
-          "{{ evento.id }}",
-        {% endfor %}
-      {% endif %}
-  ]);
+    // Atualiza inputs hidden no carregamento inicial
+    atualizarEventosInput();
 
-  // Função para desabilitar eventos já selecionados no dropdown
-  function desabilitarEventosSelecionados() {
-      const options = eventoSelect.options;
-      for (let i = 0; i < options.length; i++) {
-          if (eventosSelecionados.has(options[i].value)) {
-              options[i].disabled = true;
-              options[i].style.color = '#999';
-          } else {
-              options[i].disabled = false;
-              options[i].style.color = '';
-          }
-      }
-  }
+    addEventoBtn.addEventListener('click', function () {
+        const eventoId = eventoSelect.value;
+        const option = eventoSelect.options[eventoSelect.selectedIndex];
 
-  // Função para atualizar inputs hidden e dropdown
-  function atualizarEventosInput() {
-      const container = document.getElementById("eventosInputsContainer");
-      container.innerHTML = "";
+        if (!eventoId) {
+            alert('Por favor, selecione um evento');
+            return;
+        }
 
-      Array.from(eventosSelecionados).forEach(eventoId => {
-          const input = document.createElement("input");
-          input.type = "hidden";
-          input.name = "eventos";
-          input.value = eventoId;
-          container.appendChild(input);
-      });
-      
-      desabilitarEventosSelecionados();
-      
-      console.log('Eventos selecionados:', Array.from(eventosSelecionados));
-  }
+        const descricao = option.getAttribute('data-descricao');
+        const valor = parseFloat(option.getAttribute('data-valor')).toFixed(2).replace('.', ',');
 
-  // Adicionar evento
-  addEventoBtn.addEventListener('click', function (e) {
-      e.stopPropagation(); // Impede bubbling
-      
-      const eventoId = eventoSelect.value;
-      const option = eventoSelect.options[eventoSelect.selectedIndex];
-      const descricao = option.getAttribute('data-descricao');
-      const valor = parseFloat(option.getAttribute('data-valor')).toFixed(2).replace('.', ',');
+        // Evita duplicado
+        if (eventosTable.querySelector(`tr[data-evento-id="${eventoId}"]`)) {
+            alert('Este evento já foi adicionado');
+            return;
+        }
 
-      if (!eventoId) {
-          alert('Por favor, selecione um evento');
-          return;
-      }
+        // Adiciona à tabela
+        const newRow = document.createElement('tr');
+        newRow.setAttribute('data-evento-id', eventoId);
+        newRow.innerHTML = `
+            <td>${descricao}</td>
+            <td>R$ ${valor}</td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeEvento('${eventoId}')">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        `;
+        eventosTable.appendChild(newRow);
 
-      if (eventosSelecionados.has(eventoId)) {
-          alert('Este evento já foi adicionado');
-          return;
-      }
+        atualizarEventosInput();
+    });
 
-      // Adiciona à tabela
-      const newRow = document.createElement('tr');
-      newRow.setAttribute('data-evento-id', eventoId);
-      newRow.innerHTML = `
-          <td>${descricao}</td>
-          <td>R$ ${valor}</td>
-          <td>
-              <button type="button" class="btn btn-danger btn-sm remover-evento" data-evento-id="${eventoId}">
-                  <i class="bi bi-trash"></i>
-              </button>
-          </td>
-      `;
-      eventosTable.appendChild(newRow);
+    // Função global pra remoção
+    window.removeEvento = function (eventoId) {
+        const row = eventosTable.querySelector(`tr[data-evento-id="${eventoId}"]`);
+        if (row) row.remove();
+        atualizarEventosInput();
+    };
 
-      eventosSelecionados.add(eventoId);
-      atualizarEventosInput();
-      eventoSelect.value = '';
-  });
-
-  // SINGLE event listener para remover eventos
-  document.addEventListener('click', function (e) {
-      // Verifica se o click foi em um botão de remover
-      const removeButton = e.target.closest('.remover-evento');
-      if (!removeButton) return;
-      
-      e.preventDefault();
-      e.stopPropagation(); // IMPEDE BUBBLING - ESSENCIAL!
-      
-      const eventoId = removeButton.getAttribute('data-evento-id');
-      console.log('Removendo evento:', eventoId);
-      
-      // Remove da tabela
-      const row = eventosTable.querySelector(`tr[data-evento-id="${eventoId}"]`);
-      if (row) {
-          row.remove();
-      }
-
-      // Remove do Set
-      if (eventosSelecionados.has(eventoId)) {
-          eventosSelecionados.delete(eventoId);
-      }
-
-      // Atualiza inputs hidden
-      atualizarEventosInput();
-      
-      console.log('Eventos restantes:', Array.from(eventosSelecionados));
-  });
-
-  // Validação do formulário
-  if (form) {
-      form.addEventListener("submit", function (e) {
-          const valorHoraAula = document.getElementById("{{ form.valor_hora_aula.id_for_label }}").value;
-          const qtAulas = document.getElementById("{{ form.qt_aulas.id_for_label }}").value;
-          const cache = valorHoraAula * qtAulas;
-          
-          if (cache < 0) {
-              e.preventDefault();
-              alert("O valor do cachê não pode ser negativo");
-              return false;
-          }
-          
-          console.log('Formulário enviado com eventos:', Array.from(eventosSelecionados));
-      });
-  }
-
-  // Inicializa
-  atualizarEventosInput();
-  console.log('Eventos iniciais:', Array.from(eventosSelecionados));
+    // Cria inputs hidden a partir da tabela
+    function atualizarEventosInput() {
+        const container = document.getElementById("eventosInputsContainer");
+        container.innerHTML = "";
+        document.querySelectorAll('#eventosTable tr[data-evento-id]').forEach(tr => {
+            const eventoId = tr.getAttribute('data-evento-id');
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "eventos";
+            input.value = eventoId;
+            container.appendChild(input);
+        });
+    }
 });
 </script>
 {% endblock %}
