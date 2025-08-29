@@ -1670,7 +1670,7 @@ class PedidosSimplesRelatorioDocxView(View):
         return response
     
 class CaixaCompletoRelatorioDocxView(View):
-    """ Gera relatório completo do caixa com todos os indicadores """
+    """ Gera relatório completo do caixa sem tabelas """
     
     def get(self, request, *args, **kwargs):
         document = Document()
@@ -1686,7 +1686,6 @@ class CaixaCompletoRelatorioDocxView(View):
         )['total'] or 0
         
         # PAGAMENTOS (CAIXA GERAL)
-        # Verificando se há pagamentos de entrada e saída baseado no valor positivo/negativo
         total_entradas = Pagamento.objects.filter(
             valor_pago__gt=0
         ).aggregate(total=Sum('valor_pago'))['total'] or 0
@@ -1695,19 +1694,22 @@ class CaixaCompletoRelatorioDocxView(View):
             valor_pago__lt=0
         ).aggregate(total=Sum('valor_pago'))['total'] or 0
         
-        # Convertendo para positivo para exibição
         total_saidas = abs(total_saidas) if total_saidas else 0
-        
         saldo_caixa = total_entradas - total_saidas
         
         # INSCRIÇÕES
-        total_inscricoes_pagas = Inscricao.objects.filter(
-            valor_restante_db=0
-        ).aggregate(total=Sum('valor_total'))['total'] or 0
+        total_inscricoes = Inscricao.objects.aggregate(
+            total=Sum('valor_total')
+        )['total'] or 0
         
-        total_inscricoes_receber = Inscricao.objects.filter(
-            valor_restante_db__gt=0
-        ).aggregate(total=Sum('valor_restante_db'))['total'] or 0
+        inscricao_content_type = ContentType.objects.get_for_model(Inscricao)
+        pagamentos_inscricoes = Pagamento.objects.filter(
+            content_type=inscricao_content_type,
+            valor_pago__gt=0
+        ).aggregate(total=Sum('valor_pago'))['total'] or 0
+        
+        total_inscricoes_pagas = pagamentos_inscricoes
+        total_inscricoes_receber = max(total_inscricoes - pagamentos_inscricoes, 0)
         
         # CAMISAS
         total_camisas = PedidoCamisa.objects.aggregate(
@@ -1728,45 +1730,72 @@ class CaixaCompletoRelatorioDocxView(View):
         # RESUMO GERAL
         document.add_heading('Resumo Financeiro Geral', level=1)
         
-        table_geral = document.add_table(rows=1, cols=2)
-        table_geral.style = 'Table Grid'
+        # CAIXA ATUAL
+        p = document.add_paragraph()
+        p.add_run('Valor no Caixa Atual: ').bold = True
+        p.add_run(f'R$ {saldo_caixa:,.2f}')
         
-        # Adicionar cabeçalhos
-        hdr_cells = table_geral.rows[0].cells
-        hdr_cells[0].text = 'Descrição'
-        hdr_cells[1].text = 'Valor'
+        document.add_paragraph('')
         
-        dados_geral = [
-            ('VALOR NO CAIXA ATUAL', f'R$ {saldo_caixa:,.2f}'),
-            ('', ''),
-            ('=== PLANEJAMENTO ===', ''),
-            ('Total Planejado', f'R$ {total_planejado:,.2f}'),
-            ('', ''),
-            ('=== FLUXO DE CAIXA ===', ''),
-            ('Total de Entradas', f'R$ {total_entradas:,.2f}'),
-            ('Total de Saídas', f'R$ {total_saidas:,.2f}'),
-            ('', ''),
-            ('=== INSCRIÇÕES ===', ''),
-            ('Inscrições Pagas', f'R$ {total_inscricoes_pagas:,.2f}'),
-            ('Total a Receber (Inscrições)', f'R$ {total_inscricoes_receber:,.2f}'),
-            ('', ''),
-            ('=== CAMISAS ===', ''),
-            ('Vendas de Camisas', f'R$ {total_camisas:,.2f}'),
-            ('Camisas Pagas', f'R$ {camisas_pagas:,.2f}'),
-            ('Total a Receber (Camisas)', f'R$ {camisas_receber:,.2f}'),
-            ('', ''),
-            ('=== PROJEÇÃO FUTURA ===', ''),
-            ('Saldo Futuro Previsto', f'R$ {saldo_futuro_previsto:,.2f}')
-        ]
+        # PLANEJAMENTO
+        document.add_heading('Planejamento', level=2)
+        p = document.add_paragraph()
+        p.add_run('Total Planejado: ').bold = True
+        p.add_run(f'R$ {total_planejado:,.2f}')
         
-        for descricao, valor in dados_geral:
-            row_cells = table_geral.add_row().cells
-            row_cells[0].text = descricao
-            row_cells[1].text = valor
-            if '===' in descricao:
-                # Destaca os títulos das seções
-                row_cells[0].paragraphs[0].runs[0].bold = True
+        document.add_paragraph('')
         
+        # FLUXO DE CAIXA
+        document.add_heading('Fluxo de Caixa', level=2)
+        p = document.add_paragraph()
+        p.add_run('Total de Entradas: ').bold = True
+        p.add_run(f'R$ {total_entradas:,.2f}')
+        
+        p = document.add_paragraph()
+        p.add_run('Total de Saídas: ').bold = True
+        p.add_run(f'R$ {total_saidas:,.2f}')
+        
+        document.add_paragraph('')
+        
+        # INSCRIÇÕES
+        document.add_heading('Inscrições', level=2)
+        p = document.add_paragraph()
+        p.add_run('Valor Total das Inscrições: ').bold = True
+        p.add_run(f'R$ {total_inscricoes:,.2f}')
+        
+        p = document.add_paragraph()
+        p.add_run('Inscrições Pagas: ').bold = True
+        p.add_run(f'R$ {total_inscricoes_pagas:,.2f}')
+        
+        p = document.add_paragraph()
+        p.add_run('Total a Receber (Inscrições): ').bold = True
+        p.add_run(f'R$ {total_inscricoes_receber:,.2f}')
+        
+        document.add_paragraph('')
+        
+        # CAMISAS
+        document.add_heading('Camisas', level=2)
+        p = document.add_paragraph()
+        p.add_run('Vendas de Camisas: ').bold = True
+        p.add_run(f'R$ {total_camisas:,.2f}')
+        
+        p = document.add_paragraph()
+        p.add_run('Camisas Pagas: ').bold = True
+        p.add_run(f'R$ {camisas_pagas:,.2f}')
+        
+        p = document.add_paragraph()
+        p.add_run('Total a Receber (Camisas): ').bold = True
+        p.add_run(f'R$ {camisas_receber:,.2f}')
+        
+        document.add_paragraph('')
+        
+        # PROJEÇÃO FUTURA
+        document.add_heading('Projeção Futura', level=2)
+        p = document.add_paragraph()
+        p.add_run('Saldo Futuro Previsto: ').bold = True
+        p.add_run(f'R$ {saldo_futuro_previsto:,.2f}')
+        
+        document.add_paragraph('')
         document.add_paragraph('')
         
         # ÚLTIMOS MOVIMENTOS
@@ -1775,29 +1804,35 @@ class CaixaCompletoRelatorioDocxView(View):
         ultimos_movimentos = Pagamento.objects.order_by('-data_pagamento')[:10]
         
         if ultimos_movimentos:
-            table_movimentos = document.add_table(rows=1, cols=4)
-            table_movimentos.style = 'Table Grid'
-            
-            hdr_cells = table_movimentos.rows[0].cells
-            hdr_cells[0].text = 'Data'
-            hdr_cells[1].text = 'Descrição'
-            hdr_cells[2].text = 'Tipo'
-            hdr_cells[3].text = 'Valor'
-            
             for movimento in ultimos_movimentos:
-                row_cells = table_movimentos.add_row().cells
-                row_cells[0].text = movimento.data_pagamento.strftime("%d/%m/%Y") if movimento.data_pagamento else "---"
-                row_cells[1].text = movimento.descricao or "---"
+                p = document.add_paragraph()
                 
-                # Determinando o tipo baseado no valor (positivo = entrada, negativo = saída)
-                tipo = "Entrada" if movimento.valor_pago > 0 else "Saída"
-                row_cells[2].text = tipo
+                # Data
+                data_str = movimento.data_pagamento.strftime("%d/%m/%Y") if movimento.data_pagamento else "---"
                 
-                row_cells[3].text = f"R$ {abs(movimento.valor_pago):,.2f}"
+                # Tipo
+                tipo = "ENTRADA" if movimento.valor_pago > 0 else "SAÍDA"
+                
+                # Origem
+                origem = "Geral"
+                if movimento.content_type:
+                    origem = f"{movimento.content_type.model.capitalize()}"
+                    if movimento.object_id:
+                        origem += f" #{movimento.object_id}"
+                
+                # Valor
+                valor = abs(movimento.valor_pago)
+                
+                p.add_run(f'{data_str} - ').bold = True
+                p.add_run(f'{tipo} - ')
+                p.add_run(f'{origem} - ')
+                p.add_run(f'R$ {valor:,.2f}')
+        else:
+            document.add_paragraph('Nenhum movimento encontrado.')
 
         response = HttpResponse(
             content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         )
-        response['Content-Disposition'] = 'attachment; filename="relatorio_caixa_completo.docx"'
+        response['Content-Disposition'] = 'attachment; filename="relatorio_caixa_simples.docx"'
         document.save(response)
         return response
