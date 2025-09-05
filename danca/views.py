@@ -1642,33 +1642,140 @@ class PlanejamentoRelatorioDocxView(View):
         return response
 
 class PedidosSimplesRelatorioDocxView(View):
-    """ Gera relatório minimalista ordenado por nome """
+    """ Gera relatório minimalista ordenado por nome com resumo """
     
     def get(self, request, *args, **kwargs):
         from django.db.models.functions import Lower
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        
+        # Ordenar por nome completo em ordem alfabética
         pedidos = PedidoCamisa.objects.all().order_by(Lower('nome_completo'))
+        
+        # Preparar dados para o resumo
+        resumo_por_tipo = {}  # Dicionário para agrupar por tipo de camisa
+        
+        for pedido in pedidos:
+            # Usar o tipo da camisa (choices TIPO_CAMISA) em vez da descrição
+            tipo_camisa = pedido.camisa.get_tipo_display() if pedido.camisa else "Sem tipo"
+            tamanho = pedido.get_tamanho_display() if hasattr(pedido, 'get_tamanho_display') else pedido.tamanho
+            cor = pedido.get_cor_display() if hasattr(pedido, 'get_cor_display') else pedido.cor
+            
+            # Criar chave combinando tamanho e cor
+            chave = f"{tamanho} {cor}"
+            
+            # Inicializar o dicionário para este tipo de camisa se não existir
+            if tipo_camisa not in resumo_por_tipo:
+                resumo_por_tipo[tipo_camisa] = {}
+            
+            # Adicionar ao resumo
+            if chave in resumo_por_tipo[tipo_camisa]:
+                resumo_por_tipo[tipo_camisa][chave] += 1
+            else:
+                resumo_por_tipo[tipo_camisa][chave] = 1
         
         document = Document()
         document.add_heading('Pedidos por Ordem Alfabética', 0)
-        document.add_paragraph(now().strftime("%d/%m/%Y %H:%M"))
+        
+        # Data e hora
+        data_paragraph = document.add_paragraph()
+        data_run = data_paragraph.add_run(now().strftime("%d/%m/%Y %H:%M"))
+        data_run.bold = True
+        data_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        
         document.add_paragraph('')
-
+        
+        # Adicionar lista de pedidos
+        document.add_heading('Lista de Pedidos', level=1)
+        
+        # Adicionar cabeçalho à lista
+        table = document.add_table(rows=1, cols=6)
+        table.style = 'Table Grid'
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = 'Nome'
+        hdr_cells[1].text = 'Cidade'
+        hdr_cells[2].text = 'Tipo Camisa'
+        hdr_cells[3].text = 'Tamanho'
+        hdr_cells[4].text = 'Cor'
+        hdr_cells[5].text = 'Status'
+        
         for pedido in pedidos:
             tamanho = pedido.get_tamanho_display() if hasattr(pedido, 'get_tamanho_display') else pedido.tamanho
             cor = pedido.get_cor_display() if hasattr(pedido, 'get_cor_display') else pedido.cor
             status = pedido.get_status_display() if hasattr(pedido, 'get_status_display') else pedido.status
+            tipo_camisa = pedido.camisa.get_tipo_display() if pedido.camisa else "Sem tipo"
+            descricao_camisa = pedido.camisa.descricao if pedido.camisa else "Sem descrição"
             
-            document.add_paragraph(
-                f'{pedido.nome_completo} • {pedido.cidade} • {tamanho} • {cor} • {status}'
-            )
+            # Adicionar linha à tabela
+            row_cells = table.add_row().cells
+            row_cells[0].text = pedido.nome_completo or ''
+            row_cells[1].text = pedido.cidade or ''
+            row_cells[2].text = f"{tipo_camisa} ({descricao_camisa})"
+            row_cells[3].text = tamanho
+            row_cells[4].text = cor
+            row_cells[5].text = status
+        
+        document.add_paragraph('')
+        
+        # Adicionar resumo
+        document.add_heading('Resumo por Tipo de Camisa, Tamanho e Cor', level=1)
+        
+        # DEBUG: Mostrar todos os tipos de camisa encontrados
+        tipos = set()
+        for pedido in pedidos:
+            if pedido.camisa:
+                tipos.add(pedido.camisa.get_tipo_display())
+        
+        debug_p = document.add_paragraph()
+        debug_p.add_run('Tipos encontrados: ').bold = True
+        debug_p.add_run(', '.join(sorted(tipos)))
+        document.add_paragraph('')
+        
+        # Resumo por tipo de camisa (ordenado alfabeticamente)
+        for tipo_camisa in sorted(resumo_por_tipo.keys()):
+            resumo = resumo_por_tipo[tipo_camisa]
+            document.add_heading(f'Camisas {tipo_camisa}', level=2)
+            
+            if resumo:
+                # Ordenar por tamanho e depois por cor
+                itens_ordenados = sorted(resumo.items(), key=lambda x: (x[0].split()[0], x[0].split()[1]))
+                
+                for chave, quantidade in itens_ordenados:
+                    partes = chave.split()
+                    tamanho = partes[0]
+                    cor = ' '.join(partes[1:])
+                    
+                    p = document.add_paragraph()
+                    p.add_run(f'{quantidade} ').bold = True
+                    p.add_run(f'{tamanho} {cor}')
+            else:
+                document.add_paragraph('Nenhum pedido encontrado')
+            
+            document.add_paragraph('')
+        
+        # Adicionar totais
+        document.add_heading('Totais Gerais', level=2)
+        
+        total_por_tipo = {}
+        for tipo_camisa, resumo in resumo_por_tipo.items():
+            total_por_tipo[tipo_camisa] = sum(resumo.values())
+        
+        total_geral = sum(total_por_tipo.values())
+        
+        for tipo_camisa, total in sorted(total_por_tipo.items()):
+            p_total = document.add_paragraph()
+            p_total.add_run(f'Total {tipo_camisa}: ').bold = True
+            p_total.add_run(f'{total}')
+        
+        p_total = document.add_paragraph()
+        p_total.add_run('Total Geral: ').bold = True
+        p_total.add_run(f'{total_geral}').bold = True
 
         response = HttpResponse(
             content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         )
-        response['Content-Disposition'] = 'attachment; filename="pedidos_alfabetico.docx"'
+        response['Content-Disposition'] = 'attachment; filename="pedidos_com_resumo.docx"'
         document.save(response)
         return response
-    
 class CaixaCompletoRelatorioDocxView(View):
     """ Gera relatório completo do caixa sem tabelas """
     

@@ -3,6 +3,10 @@
 {% block content %}
 <h2 class="pb-2">Pedidos de Camisa</h2>
 
+<div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+  <span class="text-muted">Total de Pedidos: <strong class="text-primary">{{ page_obj.paginator.count }}</strong></span>
+</div>
+
 {% if messages %}
 <div class="container">
   <div class="row">
