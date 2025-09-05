@@ -57,4 +57,7 @@ TIPO_CLIENTE_CHOICES = [
         ('inscricao', 'Congressista'),
         ('profissional', 'Profissional'),
         ('externo', 'Cliente Externo'),
+        ('equipe', 'Equipe'),
+        ('colaborador', 'Colaborador'),
+
     ]

@@ -27,6 +27,8 @@ from docx import Document
 from docx.shared import Inches
 from .models import Inscricao
 from django.utils.timezone import now
+from django.db.models import Sum, F, Value, DecimalField, Q, Case, When
+from django.db.models.functions import Coalesce
 
 
 
@@ -1256,9 +1258,23 @@ def resumo_caixa(request):
     total_a_receber = total_valor_inscricoes - total_pago_inscricoes
 
     # Total camisas - SOMENTE pedidos com status 'pago' ou 'entregue'
-    total_camisas_pagas = PedidoCamisa.objects.filter(
-        Q(status='pago') | Q(status='entregue')
-    ).aggregate(total=Sum('valor_venda'))['total'] or 0
+    total_camisas_pagas = (
+        PedidoCamisa.objects
+        .filter(Q(status='pago') | Q(status='entregue'))
+        .aggregate(
+            total=Coalesce(
+                Sum(
+                    Case(
+                        When(tipo_cliente='equipe', then=Value(0, output_field=DecimalField())),
+                        When(tipo_cliente='colaborador', then=F('camisa__valor_compra')),
+                        default=F('valor_venda'),
+                        output_field=DecimalField()
+                    )
+                ),
+                Value(0, output_field=DecimalField())
+            )
+        )['total']
+    )
 
     # Total planejado e total pago em planejamentos
     total_planejamentos = Planejamento.objects.aggregate(total=Sum('valor_planejado'))['total'] or 0
