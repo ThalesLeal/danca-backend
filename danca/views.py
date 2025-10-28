@@ -2,6 +2,13 @@ from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views import View
+from rest_framework import viewsets, permissions, filters
+from .serializers import (
+    CategoriaSerializer, EventoSerializer, CamisaSerializer, PlanejamentoSerializer,
+    InscricaoSerializer, ProfissionalSerializer, EntradaSerializer, SaidaSerializer, 
+    PagamentoSerializer, TipoEventoSerializer, LoteSerializer
+)
+from .models import Camisa, Planejamento, Inscricao, Profissional, Entrada, Saida, Pagamento, TipoEvento, Lote
 from django.views.generic import ListView, TemplateView, DeleteView, DetailView
 from django.contrib.contenttypes.models import ContentType
 from django.contrib import messages
@@ -40,20 +47,118 @@ def index(request):
 @method_decorator(never_cache, name="dispatch")
 class LoteListView(ListView):
     model = Lote
-    paginate_by = 10
-    template_name = "lote/list.html"
 
-    def get_queryset(self):
-        query = self.request.GET.get('q')
-        if query:
-            return Lote.objects.filter(descricao__icontains=query).order_by(Lower('descricao'))
-        return Lote.objects.all().order_by(Lower('descricao'))
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['q'] = self.request.GET.get('q', '')
-        context['create_url'] = reverse('create_lote')
+class CategoriaViewSet(viewsets.ModelViewSet):
+    queryset = Categoria.objects.all().order_by("-id")
+    serializer_class = CategoriaSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["descricao"]
+    ordering_fields = ["id", "descricao"]
+
+
+class EventoViewSet(viewsets.ModelViewSet):
+    queryset = Evento.objects.all().order_by("-id")
+    serializer_class = EventoSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["descricao", "tipo__descricao"]
+    ordering_fields = ["id", "data", "descricao"]
+
+
+class CamisaViewSet(viewsets.ModelViewSet):
+    queryset = Camisa.objects.all().order_by("-id")
+    serializer_class = CamisaSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["descricao"]
+    ordering_fields = ["id", "descricao"]
+
+
+class PlanejamentoViewSet(viewsets.ModelViewSet):
+    queryset = Planejamento.objects.all().order_by("-id")
+    serializer_class = PlanejamentoSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["descricao"]
+    ordering_fields = ["id", "descricao"]
+
+
+class InscricaoViewSet(viewsets.ModelViewSet):
+    queryset = Inscricao.objects.all().order_by("-id")
+    serializer_class = InscricaoSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["nome", "cpf"]
+    ordering_fields = ["id", "nome"]
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
         return context
+
+
+class ProfissionalViewSet(viewsets.ModelViewSet):
+    queryset = Profissional.objects.all().order_by("-id")
+    serializer_class = ProfissionalSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["nome", "cpf"]
+    ordering_fields = ["id", "nome"]
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
+
+class EntradaViewSet(viewsets.ModelViewSet):
+    queryset = Entrada.objects.all().order_by("-id")
+    serializer_class = EntradaSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["descricao"]
+    ordering_fields = ["id", "data", "valor"]
+
+
+class SaidaViewSet(viewsets.ModelViewSet):
+    queryset = Saida.objects.all().order_by("-id")
+    serializer_class = SaidaSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["descricao"]
+    ordering_fields = ["id", "data", "valor"]
+
+
+class PagamentoViewSet(viewsets.ModelViewSet):
+    queryset = Pagamento.objects.all().order_by("-id")
+    serializer_class = PagamentoSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["observacoes"]
+    ordering_fields = ["id", "data_pagamento", "valor_pago"]
+
+
+class TipoEventoViewSet(viewsets.ModelViewSet):
+    queryset = TipoEvento.objects.all().order_by("-id")
+    serializer_class = TipoEventoSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["descricao"]
+    ordering_fields = ["id", "descricao"]
+
+
+class LoteViewSet(viewsets.ModelViewSet):
+    queryset = Lote.objects.all().order_by("-id")
+    serializer_class = LoteSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["descricao"]
+    ordering_fields = ["id", "descricao"]
+
+
+# Views antigas do Django (mantidas para compatibilidade)
 
 #@method_decorator(login_required, name='dispatch')
 @method_decorator(never_cache, name="dispatch")
@@ -1959,3 +2064,42 @@ class CaixaCompletoRelatorioDocxView(View):
         response['Content-Disposition'] = 'attachment; filename="relatorio_caixa_simples.docx"'
         document.save(response)
         return response
+from rest_framework.response import Response
+
+# View para processar pagamento de inscrição via gateway
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .services.payment_service import PaymentService
+
+@api_view(['POST'])
+def processar_pagamento_inscricao(request):
+    """
+    Endpoint para processar pagamento de inscrição
+    Suporta cartão de crédito e PIX
+    """
+    inscricao_id = request.data.get('inscricao_id')
+    gateway = request.data.get('gateway', 'pagseguro')
+    tipo_pagamento = request.data.get('tipo_pagamento', 'credit_card')
+    dados_pagamento = request.data.get('dados_pagamento', {})
+    
+    if not inscricao_id:
+        return Response(
+            {'error': 'inscricao_id é obrigatório'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        inscricao = Inscricao.objects.get(id=inscricao_id)
+    except Inscricao.DoesNotExist:
+        return Response(
+            {'error': 'Inscrição não encontrada'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    resultado = PaymentService.pagar_inscricao(inscricao, tipo_pagamento, dados_pagamento, gateway)
+    
+    if resultado['success']:
+        return Response(resultado, status=status.HTTP_201_CREATED)
+    else:
+        return Response(resultado, status=status.HTTP_400_BAD_REQUEST)

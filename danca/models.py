@@ -149,6 +149,7 @@ class Inscricao(models.Model):
     numero_parcelas = models.IntegerField(default=1)
     valor_total = models.DecimalField(max_digits=12, decimal_places=2, editable=False, default=0)
     valor_parcela = models.DecimalField(max_digits=12, decimal_places=2, editable=False, default=0)
+    foto = models.ImageField(upload_to='inscricoes/', null=True, blank=True)
     eventos = models.ManyToManyField(Evento, through='InscricaoEvento', related_name='inscricao_eventos')
 
     def calcular_valor_total(self):
@@ -276,6 +277,7 @@ class Profissional(models.Model):
     funcao = models.ForeignKey(Categoria, on_delete=models.CASCADE)
     local_partida = models.CharField(max_length=100, null=True, blank=True)
     local_volta = models.CharField(max_length=100, null=True, blank=True)
+    foto = models.ImageField(upload_to='profissionais/', null=True, blank=True)
     eventos = models.ManyToManyField(Evento, through='ProfissionalEvento', related_name='profissionais_eventos')
 
     def calcular_cache(self):
@@ -344,10 +346,18 @@ class Saida(models.Model):
 
 
 class Pagamento(models.Model):
+    STATUS_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('pago', 'Pago'),
+        ('cancelado', 'Cancelado'),
+        ('reembolsado', 'Reembolsado'),
+    ]
+    
     TIPOS_MODELO = [
         ('planejamento', 'Planejamento'),
         ('inscricao', 'Inscrição'),
     ]
+    
     tipo_modelo = models.CharField(max_length=20, choices=TIPOS_MODELO)
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
@@ -357,7 +367,18 @@ class Pagamento(models.Model):
     valor_pago = models.DecimalField(max_digits=10, decimal_places=2)
     data_pagamento = models.DateField(auto_now_add=True)
     data_proximo_pagamento = models.DateField(null=True, blank=True)  
-    numero_parcela =models.IntegerField()
+    numero_parcela = models.IntegerField()
+    
+    # Campos de integração com gateway de pagamento
+    status_pagamento = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
+    gateway_pagamento = models.CharField(max_length=50, blank=True, null=True)  # pagseguro, infinitepay
+    transaction_id = models.CharField(max_length=255, blank=True, null=True)  # ID da transação no gateway
+    payment_method = models.CharField(max_length=50, blank=True, null=True)  # credit_card, pix, boleto
+    
+    # Campos adicionais para cartão de crédito
+    nome_cartao = models.CharField(max_length=100, blank=True, null=True)
+    ultimos_digitos = models.CharField(max_length=4, blank=True, null=True)
+    bandeira_cartao = models.CharField(max_length=20, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         # Garante que a data de pagamento seja sempre definida

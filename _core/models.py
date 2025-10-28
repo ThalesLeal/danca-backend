@@ -1,8 +1,6 @@
 from django.db import models
-
-from django.contrib.auth.models import Group as BaseGroup
+from django.contrib.auth.models import AbstractUser, Group as BaseGroup
 from django.utils.translation import gettext_lazy as _
-from codata_sso.models import User as BaseUser
 
 
 class TimestampedModel(models.Model):
@@ -20,5 +18,9 @@ class Group(BaseGroup):
         verbose_name = _("group")
         verbose_name_plural = _("groups")
 
-class User(BaseUser):
+class User(AbstractUser):
+    """
+    Modelo de usuário personalizado
+    Login por username (nome) ao invés de CPF
+    """
     pass

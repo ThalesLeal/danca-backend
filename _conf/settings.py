@@ -23,6 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env(
     DEBUG=(bool, False),
+    USE_SSO=(bool, False),  # Se deve usar SSO (default False em DEBUG)
     SSO_URL=(str, "https://sso.codata.pb.gov.br/auth"),
     SSO_REALM=(str, "paraiba"),
     SSO_CLIENT_ID=(str, "cadastro_de_jogos"),
@@ -58,10 +59,26 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Application definition
 
+# Instalação condicional de apps SSO quando o SSO_URL é acessível ou não em modo debug
+USE_SSO = env("USE_SSO") if DEBUG else True
+
 INSTALLED_APPS = [
     "_core",
-    "codata_sso",
+]
 
+# Só adiciona codata_sso e mozilla_django_oidc se não estiver em DEBUG ou se USE_SSO=True
+# SSO desabilitado para permitir login por nome
+# if not DEBUG or USE_SSO:
+#     INSTALLED_APPS.extend([
+#         "codata_sso",
+#         "mozilla_django_oidc",
+#     ])
+
+INSTALLED_APPS.extend([
+    # APIs
+    "rest_framework",
+    "corsheaders",
+    "django_filters",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -69,9 +86,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
-
-    # Mozilla Django OIDC https://mozilla-django-oidc.readthedocs.io/
-    "mozilla_django_oidc",
 
     # Debug Toolbar https://django-debug-toolbar.readthedocs.io/
     "debug_toolbar",
@@ -89,21 +103,16 @@ INSTALLED_APPS = [
     # Project apps
     
     "danca",
-]
+])
 
 AUTH_USER_MODEL = "_core.User"
 
 AUTHENTICATION_BACKENDS = [
-    "codata_sso.auth_backend.SSOAuthenticationBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]
 
-if DEBUG:
-    AUTHENTICATION_BACKENDS = [
-        "django.contrib.auth.backends.ModelBackend",
-    ]
-
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -111,7 +120,6 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "mozilla_django_oidc.middleware.SessionRefresh",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -197,10 +205,43 @@ MEDIA_URL = env("MEDIA_URL")
 MEDIA_ROOT = env("MEDIA_ROOT")
 
 STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
+
+# Django REST Framework
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
+    ],
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.SearchFilter",
+        "rest_framework.filters.OrderingFilter",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
+}
+
+# CORS
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
+    "http://localhost:5175",
+    "http://127.0.0.1:5175",
+]
+CORS_ALLOW_CREDENTIALS = True
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -248,18 +289,7 @@ LOGGING = {
 
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = env("LOGOUT_REDIRECT_URL")
-LOGIN_URL = '/oidc/login/'
-
-# SSO
-USERS_STAFF = env.list("USERS_STAFF")
-USERS_SUPERUSER = env.list("USERS_SUPERUSER")
-
-SSO_URL = env("SSO_URL")
-SSO_REALM = env("SSO_REALM")
-
-SSO_ISSUER_URL = f"{SSO_URL}/realms/{SSO_REALM}"
-SSO_CLIENT_ID = env("SSO_CLIENT_ID")
-SSO_CLIENT_SECRET = env("SSO_CLIENT_SECRET")
+LOGIN_URL = '/admin/login/'
 
 
 # Crispy Forms
@@ -273,3 +303,8 @@ WATCHMAN_CHECKS = [
     "watchman.checks.databases",
     "watchman.checks.caches"
 ]
+
+# PIX Configuration (para pagamento direto via PIX de conta bancária)
+PIX_CHAVE = env("PIX_CHAVE", default="")  # Chave PIX (CPF, CNPJ, Email ou chave aleatória)
+PIX_RAZAO_SOCIAL = env("PIX_RAZAO_SOCIAL", default="")
+PIX_CIDADE = env("PIX_CIDADE", default="")
