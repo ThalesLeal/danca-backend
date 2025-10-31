@@ -24,7 +24,7 @@ from danca.views import (
     index, CategoriaViewSet, EventoViewSet, CamisaViewSet,
     PlanejamentoViewSet, InscricaoViewSet, ProfissionalViewSet,
     EntradaViewSet, SaidaViewSet, PagamentoViewSet, TipoEventoViewSet, LoteViewSet,
-    processar_pagamento_inscricao
+    PedidoCamisaViewSet, processar_pagamento_inscricao, processar_pagamento_pedido
 )
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import (
@@ -49,6 +49,7 @@ router.register(r"saidas", SaidaViewSet, basename="saida")
 router.register(r"pagamentos", PagamentoViewSet, basename="pagamento")
 router.register(r"tipo-eventos", TipoEventoViewSet, basename="tipo-evento")
 router.register(r"lotes", LoteViewSet, basename="lote")
+router.register(r"pedidos", PedidoCamisaViewSet, basename="pedido")
 
 
 urlpatterns = [

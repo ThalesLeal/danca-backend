@@ -103,12 +103,20 @@ class Camisa(models.Model):
 
 
 class Planejamento(models.Model):
+    STATUS_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('concluido', 'Concluído'),
+    ]
+    
     descricao = models.CharField(max_length=100)   
-    valor_planejado = models.DecimalField(max_digits=10, decimal_places=2,null=True,blank=True)    
+    valor_planejado = models.DecimalField(max_digits=10, decimal_places=2,null=True,blank=True)
+    status_gasto = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente', verbose_name='Status do Gasto')
+    data_conclusao = models.DateField(null=True, blank=True, verbose_name='Data de Conclusão')
       
 
     def __str__(self):
         return self.descricao    
+    
     class Meta:
         ordering = ['-id']
         verbose_name = "Planejamento"
@@ -129,6 +137,8 @@ class Planejamento(models.Model):
 
     @property
     def status(self):
+        if self.status_gasto == 'concluido':
+            return "Concluído"
         if self.valor_restante <= 0:
             return "Pago"
         elif self.valor_pago > 0:
@@ -356,6 +366,7 @@ class Pagamento(models.Model):
     TIPOS_MODELO = [
         ('planejamento', 'Planejamento'),
         ('inscricao', 'Inscrição'),
+        ('pedido', 'Pedido de Camisa'),
     ]
     
     tipo_modelo = models.CharField(max_length=20, choices=TIPOS_MODELO)

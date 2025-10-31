@@ -23,4 +23,8 @@ class User(AbstractUser):
     Modelo de usuário personalizado
     Login por username (nome) ao invés de CPF
     """
-    pass
+    foto = models.ImageField(upload_to='usuarios/', null=True, blank=True)
+    
+    class Meta:
+        verbose_name = _("user")
+        verbose_name_plural = _("users")

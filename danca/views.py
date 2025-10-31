@@ -2,11 +2,13 @@ from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views import View
-from rest_framework import viewsets, permissions, filters
+from rest_framework import viewsets, permissions, filters, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from .serializers import (
     CategoriaSerializer, EventoSerializer, CamisaSerializer, PlanejamentoSerializer,
     InscricaoSerializer, ProfissionalSerializer, EntradaSerializer, SaidaSerializer, 
-    PagamentoSerializer, TipoEventoSerializer, LoteSerializer
+    PagamentoSerializer, TipoEventoSerializer, LoteSerializer, PedidoCamisaSerializer
 )
 from .models import Camisa, Planejamento, Inscricao, Profissional, Entrada, Saida, Pagamento, TipoEvento, Lote
 from django.views.generic import ListView, TemplateView, DeleteView, DetailView
@@ -82,7 +84,43 @@ class PlanejamentoViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["descricao"]
-    ordering_fields = ["id", "descricao"]
+    ordering_fields = ["id", "descricao", "status_gasto"]
+    
+    @action(detail=True, methods=['post'], url_path='concluir')
+    def concluir(self, request, pk=None):
+        """Marca planejamento como concluído e cria saída no caixa"""
+        planejamento = self.get_object()
+        
+        if planejamento.status_gasto == 'concluido':
+            return Response(
+                {'error': 'Este planejamento já está concluído'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Atualizar status
+        planejamento.status_gasto = 'concluido'
+        from django.utils import timezone
+        planejamento.data_conclusao = timezone.now().date()
+        planejamento.save()
+        
+        # Criar saída automática no caixa
+        from .models import Saida
+        descricao_saida = f"Gasto Planejado - {planejamento.descricao}"
+        
+        # Verificar se já existe saída para este planejamento
+        saidas_existentes = Saida.objects.filter(
+            descricao=descricao_saida
+        )
+        
+        if not saidas_existentes.exists() and planejamento.valor_planejado:
+            Saida.objects.create(
+                descricao=descricao_saida,
+                valor=planejamento.valor_planejado,
+                data=timezone.now().date()
+            )
+        
+        serializer = self.get_serializer(planejamento)
+        return Response(serializer.data)
 
 
 class InscricaoViewSet(viewsets.ModelViewSet):
@@ -120,6 +158,38 @@ class EntradaViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["descricao"]
     ordering_fields = ["id", "data", "valor"]
+    
+    @action(detail=False, methods=['get'], url_path='resumo')
+    def resumo(self, request):
+        """Retorna resumo completo do caixa"""
+        from django.db.models import Sum, Q
+        from django.utils import timezone
+        from datetime import datetime
+        
+        # Data atual
+        hoje = timezone.now().date()
+        
+        # Totais gerais
+        total_entradas = Entrada.objects.aggregate(total=Sum('valor'))['total'] or 0
+        total_saidas = Saida.objects.aggregate(total=Sum('valor'))['total'] or 0
+        
+        # Totais do dia
+        entradas_hoje = Entrada.objects.filter(data=hoje).aggregate(total=Sum('valor'))['total'] or 0
+        saidas_hoje = Saida.objects.filter(data=hoje).aggregate(total=Sum('valor'))['total'] or 0
+        
+        # Saldo atual
+        saldo_caixa = total_entradas - total_saidas
+        saldo_hoje = entradas_hoje - saidas_hoje
+        
+        return Response({
+            'total_arrecadado': float(total_entradas),
+            'total_gasto': float(total_saidas),
+            'saldo_atual': float(saldo_caixa),
+            'arrecadado_hoje': float(entradas_hoje),
+            'gasto_hoje': float(saidas_hoje),
+            'saldo_hoje': float(saldo_hoje),
+            'data_hoje': hoje.isoformat()
+        })
 
 
 class SaidaViewSet(viewsets.ModelViewSet):
@@ -138,6 +208,69 @@ class PagamentoViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["observacoes"]
     ordering_fields = ["id", "data_pagamento", "valor_pago"]
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+    
+    @action(detail=False, methods=['get'], url_path='caixa')
+    def caixa(self, request):
+        """Retorna apenas pagamentos de pedidos e inscrições para o caixa"""
+        from django.contrib.contenttypes.models import ContentType
+        
+        # Filtrar apenas pedidos e inscrições
+        ct_pedido = ContentType.objects.get_for_model(PedidoCamisa)
+        ct_inscricao = ContentType.objects.get_for_model(Inscricao)
+        
+        pagamentos = Pagamento.objects.filter(
+            content_type__in=[ct_pedido, ct_inscricao]
+        ).select_related('content_type').prefetch_related('pagamento_relacionado').order_by('-data_pagamento')
+        
+        serializer = self.get_serializer(pagamentos, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'], url_path='confirmar')
+    def confirmar_pagamento(self, request, pk=None):
+        """Confirma um pagamento PIX pendente e atualiza estoque"""
+        pagamento = self.get_object()
+        
+        if pagamento.status_pagamento != 'pendente':
+            return Response(
+                {'error': 'Este pagamento não está pendente'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Atualizar status para pago
+        pagamento.status_pagamento = 'pago'
+        from django.utils import timezone
+        pagamento.data_pagamento = timezone.now()
+        pagamento.save()
+        
+        # Se for pedido, diminuir quantidade de camisas e criar entrada
+        if pagamento.tipo_modelo == 'pedido':
+            pedido = pagamento.pagamento_relacionado
+            if pedido:
+                pedido.status = 'pago'
+                pedido.save(update_fields=['status'])
+                
+                # Diminuir quantidade de camisas disponíveis
+                if pedido.camisa and pedido.camisa.quantidade > 0:
+                    pedido.camisa.quantidade -= 1
+                    pedido.camisa.save(update_fields=['quantidade'])
+                
+                # Criar entrada automática
+                from .services.payment_service import PaymentService
+                PaymentService._criar_entrada_automatica(pedido, pagamento)
+        elif pagamento.tipo_modelo == 'inscricao':
+            inscricao = pagamento.pagamento_relacionado
+            if inscricao:
+                # Criar entrada automática
+                from .services.payment_service import PaymentService
+                PaymentService._criar_entrada_automatica(inscricao, pagamento)
+        
+        serializer = self.get_serializer(pagamento)
+        return Response(serializer.data)
 
 
 class TipoEventoViewSet(viewsets.ModelViewSet):
@@ -156,6 +289,106 @@ class LoteViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["descricao"]
     ordering_fields = ["id", "descricao"]
+
+
+class PedidoCamisaViewSet(viewsets.ModelViewSet):
+    queryset = PedidoCamisa.objects.all().order_by("-id")
+    serializer_class = PedidoCamisaSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["nome_completo", "cidade", "camisa__descricao"]
+    ordering_fields = ["id", "data_pedido", "status", "valor_venda"]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
+    def perform_create(self, serializer):
+        camisa = serializer.validated_data.get("camisa")
+        if camisa:
+            serializer.save(valor_venda=camisa.valor_venda)
+        else:
+            serializer.save()
+
+    @action(detail=False, methods=['post'], url_path='processar')
+    def processar_pagamento(self, request):
+        """Action: POST /api/pedidos/processar/"""
+        pedido_id = request.data.get('pedido_id')
+        gateway = request.data.get('gateway', 'pagseguro')
+        tipo_pagamento = request.data.get('tipo_pagamento', 'credit_card')
+        dados_pagamento = request.data.get('dados_pagamento', {})
+
+        if not pedido_id:
+            return Response({'error': 'pedido_id é obrigatório'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            pedido = PedidoCamisa.objects.get(id=pedido_id)
+        except PedidoCamisa.DoesNotExist:
+            return Response({'error': 'Pedido não encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        resultado = PaymentService.pagar_pedido(pedido, tipo_pagamento, dados_pagamento, gateway)
+
+        if resultado.get('success') and resultado.get('status') == 'pago' and resultado.get('nota_file'):
+            from django.conf import settings
+            import os
+            nota_path = resultado['nota_file']
+            rel = os.path.relpath(nota_path, settings.MEDIA_ROOT)
+            resultado['nota_url'] = request.build_absolute_uri(settings.MEDIA_URL + rel.replace('\\', '/'))
+
+        return Response(resultado, status=status.HTTP_201_CREATED if resultado.get('success') else status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['get'], url_path='nota')
+    def obter_nota(self, request, pk=None):
+        """Retorna os dados da nota fiscal (JSON) do pedido e último pagamento"""
+        try:
+            pedido = self.get_object()
+        except PedidoCamisa.DoesNotExist:
+            return Response({'error': 'Pedido não encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        from django.contrib.contenttypes.models import ContentType
+        from .models import Pagamento
+        content_type = ContentType.objects.get_for_model(pedido.__class__)
+        pagamento = (Pagamento.objects
+                     .filter(content_type=content_type, object_id=pedido.id)
+                     .order_by('-id')
+                     .first())
+
+        nota = {
+            'pedido': {
+                'id': pedido.id,
+                'camisa_descricao': getattr(pedido.camisa, 'descricao', ''),
+                'cor': pedido.cor,
+                'tamanho': pedido.tamanho,
+                'valor': str(pedido.valor_venda),
+                'status': pedido.status,
+                'data_pedido': pedido.data_pedido,
+                'cliente': pedido.nome_completo,
+                'cidade': pedido.cidade,
+            },
+            'pagamento': None
+        }
+
+        if pagamento:
+            nota['pagamento'] = {
+                'id': pagamento.id,
+                'status': pagamento.status_pagamento,
+                'gateway': pagamento.gateway_pagamento,
+                'metodo': pagamento.payment_method,
+                'valor_pago': str(pagamento.valor_pago),
+                'parcelas': pagamento.numero_parcela,
+                'data_pagamento': pagamento.data_pagamento,
+                'transaction_id': pagamento.transaction_id,
+            }
+            # Montar nota_url se arquivo existir
+            from django.conf import settings
+            import os
+            nota_path = os.path.join(settings.MEDIA_ROOT, 'notas', f'nota_{pagamento.id}.docx')
+            if os.path.exists(nota_path):
+                rel = os.path.relpath(nota_path, settings.MEDIA_ROOT)
+                nota['pagamento']['nota_url'] = request.build_absolute_uri(settings.MEDIA_URL + rel.replace('\\', '/'))
+
+        return Response(nota)
 
 
 # Views antigas do Django (mantidas para compatibilidade)
@@ -2103,3 +2336,32 @@ def processar_pagamento_inscricao(request):
         return Response(resultado, status=status.HTTP_201_CREATED)
     else:
         return Response(resultado, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+def processar_pagamento_pedido(request):
+    """Processa pagamento de Pedido de Camisa (cartão ou PIX)"""
+    pedido_id = request.data.get('pedido_id')
+    gateway = request.data.get('gateway', 'pagseguro')
+    tipo_pagamento = request.data.get('tipo_pagamento', 'credit_card')
+    dados_pagamento = request.data.get('dados_pagamento', {})
+
+    if not pedido_id:
+        return Response({'error': 'pedido_id é obrigatório'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        pedido = PedidoCamisa.objects.get(id=pedido_id)
+    except PedidoCamisa.DoesNotExist:
+        return Response({'error': 'Pedido não encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+    resultado = PaymentService.pagar_pedido(pedido, tipo_pagamento, dados_pagamento, gateway)
+
+    if resultado.get('success') and resultado.get('status') == 'pago' and resultado.get('nota_file'):
+        # Construir URL absoluta da nota
+        from django.conf import settings
+        import os
+        nota_path = resultado['nota_file']
+        rel = os.path.relpath(nota_path, settings.MEDIA_ROOT)
+        resultado['nota_url'] = request.build_absolute_uri(settings.MEDIA_URL + rel.replace('\\', '/'))
+
+    return Response(resultado, status=status.HTTP_201_CREATED if resultado.get('success') else status.HTTP_400_BAD_REQUEST)

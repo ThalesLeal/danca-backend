@@ -42,7 +42,7 @@ def register(request):
 @permission_classes([permissions.IsAuthenticated])
 def me(request):
     """Retorna os dados do usuário logado"""
-    serializer = UserSerializer(request.user)
+    serializer = UserSerializer(request.user, context={'request': request})
     return Response(serializer.data)
 
 
@@ -66,7 +66,7 @@ def change_password(request):
 @permission_classes([permissions.IsAuthenticated])
 def update_profile(request):
     """Atualiza o perfil do usuário logado"""
-    serializer = UserSerializer(request.user, data=request.data, partial=True)
+    serializer = UserSerializer(request.user, data=request.data, partial=True, context={'request': request})
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data)
